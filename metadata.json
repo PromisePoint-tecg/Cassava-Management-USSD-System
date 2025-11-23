@@ -1,0 +1,5 @@
+{
+  "name": "Cassava Connect",
+  "description": "A comprehensive USSD and Admin Dashboard system for cassava aggregation, farmer payments, and loan management.",
+  "requestFramePermissions": []
+}
