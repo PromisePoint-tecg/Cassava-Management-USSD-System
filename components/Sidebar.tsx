@@ -12,6 +12,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, i
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'farmers', label: 'Farmers', icon: Users },
+    { id: 'products', label: 'Products', icon: Scale },
     { id: 'purchases', label: 'Purchases', icon: Scale },
     { id: 'loans', label: 'Loans', icon: CreditCard },
     { id: 'ussd', label: 'USSD Logs', icon: Smartphone },

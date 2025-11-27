@@ -1,0 +1,102 @@
+import { apiClient } from './client';
+
+export interface Farmer {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  phone: string;
+  lga: string;
+  farmSizeHectares: number;
+  totalSales: number;
+  totalEarnings: number;
+  completedSales: number;
+  loanDefaults: number;
+  activeLoan: boolean;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FarmerDetail extends Farmer {}
+
+export interface PaginatedFarmersResponse {
+  farmers: Farmer[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface GetAllFarmersParams {
+  page?: number;
+  limit?: number;
+  lga?: string;
+  status?: 'active' | 'inactive' | 'suspended';
+  activeLoan?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface UpdateFarmerData {
+  firstName?: string;
+  lastName?: string;
+  lga?: string;
+  farmSizeHectares?: number;
+}
+
+export const farmersApi = {
+  /**
+   * Get all farmers with pagination and filters
+   */
+  async getAllFarmers(params?: GetAllFarmersParams): Promise<PaginatedFarmersResponse> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.lga) queryParams.append('lga', params.lga);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.activeLoan) queryParams.append('activeLoan', params.activeLoan);
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+    const queryString = queryParams.toString();
+    const url = `/admins/farmers/list${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await apiClient.get<PaginatedFarmersResponse>(url);
+    return response;
+  },
+
+  /**
+   * Get farmer by ID with detailed information
+   */
+  async getFarmerById(farmerId: string): Promise<FarmerDetail> {
+    const response = await apiClient.get<FarmerDetail>(`/admins/farmers/${farmerId}`);
+    return response;
+  },
+
+  /**
+   * Update farmer information
+   */
+  async updateFarmer(farmerId: string, data: UpdateFarmerData): Promise<FarmerDetail> {
+    const response = await apiClient.patch<FarmerDetail>(`/admins/farmers/${farmerId}`, data);
+    return response;
+  },
+
+  /**
+   * Deactivate farmer account
+   */
+  async deactivateFarmer(farmerId: string): Promise<{ message: string; farmer: FarmerDetail }> {
+    const response = await apiClient.patch<{ message: string; farmer: FarmerDetail }>(`/admins/farmers/${farmerId}/deactivate`, {});
+    return response;
+  },
+
+  /**
+   * Activate farmer account
+   */
+  async activateFarmer(farmerId: string): Promise<{ message: string; farmer: FarmerDetail }> {
+    const response = await apiClient.patch<{ message: string; farmer: FarmerDetail }>(`/admins/farmers/${farmerId}/activate`, {});
+    return response;
+  },
+};

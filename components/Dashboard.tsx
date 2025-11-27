@@ -19,6 +19,15 @@ const CHART_DATA = [
 ];
 
 export const Dashboard: React.FC<DashboardProps> = ({ kpiData }) => {
+  if (kpiData.totalWeight === 0 && kpiData.totalPaid === 0 && kpiData.activeFarmers === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
+        <h3 className="text-lg font-semibold text-gray-800">No activity yet</h3>
+        <p className="text-sm text-gray-500 mt-2">No purchases or farmers have been recorded. Create products and record purchases to populate the dashboard.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">

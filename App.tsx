@@ -2,9 +2,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
+import { FarmersDirectory } from './components/FarmersDirectory';
 import { PurchasesView } from './components/PurchasesView';
 import { LoansView } from './components/LoansView';
 import { SettingsView } from './components/SettingsView';
+import ProductsView from './components/ProductsView';
 import LoginPage from './components/LoginPage';
 import {
   MOCK_FARMERS,
@@ -32,8 +34,8 @@ const App: React.FC = () => {
   const [editingFarmer, setEditingFarmer] = useState<Farmer | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [ussdSessions] = useState<USSDSession[]>(MOCK_USSD_SESSIONS);
-
-  // System Settings State
+  
+  // System Settings State - must be at top level, not inside conditional
   const [settings, setSettings] = useState<SystemSettings>({
     pricePerKg: PRICE_PER_KG,
     transactionFeePercent: 1.5,
@@ -42,6 +44,16 @@ const App: React.FC = () => {
     autoApproveLoansUnder: 50000,
     maintenanceMode: false
   });
+
+  // Derived State for KPIs - must be at top level before any returns
+  const kpiData: KPIData = useMemo(() => {
+    return {
+      totalWeight: purchases.reduce((sum, p) => sum + p.weightKg, 0),
+      totalPaid: purchases.reduce((sum, p) => sum + p.totalAmount, 0),
+      activeFarmers: farmers.filter(f => f.status === 'Active').length,
+      outstandingLoans: loans.reduce((sum, l) => sum + l.outstandingBalance, 0),
+    };
+  }, [purchases, farmers, loans]);
 
   // Check authentication on mount
   useEffect(() => {
@@ -71,16 +83,6 @@ const App: React.FC = () => {
     setAdminInfo(admin);
     setIsAuthenticated(true);
   };
-
-  // Derived State for KPIs
-  const kpiData: KPIData = useMemo(() => {
-    return {
-      totalWeight: purchases.reduce((sum, p) => sum + p.weightKg, 0),
-      totalPaid: purchases.reduce((sum, p) => sum + p.totalAmount, 0),
-      activeFarmers: farmers.filter(f => f.status === 'Active').length,
-      outstandingLoans: loans.reduce((sum, l) => sum + l.outstandingBalance, 0),
-    };
-  }, [purchases, farmers, loans]);
 
   const handleLogout = () => {
     apiLogout();
@@ -199,205 +201,10 @@ const App: React.FC = () => {
             onSave={handleUpdateSettings}
           />
         );
+      case 'products':
+        return <ProductsView />;
       case 'farmers':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Farmers Directory</h2>
-            
-            {/* Mobile Card View */}
-            <div className="lg:hidden space-y-4">
-              {farmers.map((farmer) => (
-                <div key={farmer.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{farmer.name}</h3>
-                      <p className="text-xs text-gray-500 font-mono mt-1">{farmer.id}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${farmer.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {farmer.status}
-                      </span>
-                      <button 
-                        onClick={() => setEditingFarmer(farmer)}
-                        className="text-gray-400 hover:text-emerald-600 transition-colors p-1"
-                        title="Edit Farmer"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-500 text-xs">Phone</p>
-                      <p className="text-gray-900">{farmer.phone}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs">Branch</p>
-                      <p className="text-gray-900">{farmer.branch}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs">Wallet</p>
-                      <p className="text-gray-900 font-mono text-xs">{farmer.walletNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs">Balance</p>
-                      <p className="text-emerald-700 font-bold">₦{farmer.walletBalance.toLocaleString()}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop Table View */}
-            <div className="hidden lg:block bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-               <div className="overflow-x-auto">
-                 <table className="w-full text-left text-sm text-gray-600">
-                  <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs">
-                    <tr>
-                      <th className="px-6 py-4">ID</th>
-                      <th className="px-6 py-4">Name</th>
-                      <th className="px-6 py-4">National ID</th>
-                      <th className="px-6 py-4">Phone Number</th>
-                      <th className="px-6 py-4">Wallet Number</th>
-                      <th className="px-6 py-4">Branch</th>
-                      <th className="px-6 py-4">Wallet Balance</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {farmers.map((farmer) => (
-                      <tr key={farmer.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-mono text-gray-500">{farmer.id}</td>
-                        <td className="px-6 py-4 font-medium text-gray-900">{farmer.name}</td>
-                        <td className="px-6 py-4 text-gray-500">{farmer.nationalId}</td>
-                        <td className="px-6 py-4">{farmer.phone}</td>
-                        <td className="px-6 py-4 font-mono text-gray-500">{farmer.walletNumber}</td>
-                        <td className="px-6 py-4">{farmer.branch}</td>
-                        <td className="px-6 py-4 text-emerald-700 font-bold">₦{farmer.walletBalance.toLocaleString()}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-block px-2 py-1 text-xs rounded-full ${farmer.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {farmer.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <button 
-                            onClick={() => setEditingFarmer(farmer)}
-                            className="text-gray-400 hover:text-emerald-600 transition-colors"
-                            title="Edit Farmer"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Edit Farmer Modal */}
-            {editingFarmer && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-                <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden my-auto">
-                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-emerald-50">
-                    <h3 className="text-lg font-bold text-emerald-900">Edit Farmer Details</h3>
-                    <button onClick={() => setEditingFarmer(null)} className="text-gray-400 hover:text-gray-600">
-                      <X className="w-6 h-6" />
-                    </button>
-                  </div>
-                  <form onSubmit={handleUpdateFarmer} className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <input
-                          type="text"
-                          required
-                          className="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                          value={editingFarmer.name}
-                          onChange={(e) => setEditingFarmer({ ...editingFarmer, name: e.target.value })}
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <input
-                          type="text"
-                          required
-                          className="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                          value={editingFarmer.phone}
-                          onChange={(e) => setEditingFarmer({ ...editingFarmer, phone: e.target.value })}
-                        />
-                      </div>
-
-                      <div>
-                         <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                         <select
-                           className="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                           value={editingFarmer.status}
-                           onChange={(e) => setEditingFarmer({ ...editingFarmer, status: e.target.value as 'Active' | 'Inactive' })}
-                         >
-                           <option value="Active">Active</option>
-                           <option value="Inactive">Inactive</option>
-                         </select>
-                      </div>
-
-                      <div className="col-span-2">
-                         <label className="block text-sm font-medium text-gray-700 mb-1">National ID</label>
-                         <input
-                           type="text"
-                           required
-                           className="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                           value={editingFarmer.nationalId}
-                           onChange={(e) => setEditingFarmer({ ...editingFarmer, nationalId: e.target.value })}
-                         />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Wallet Number</label>
-                        <input
-                          type="text"
-                          required
-                          className="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                          value={editingFarmer.walletNumber}
-                          onChange={(e) => setEditingFarmer({ ...editingFarmer, walletNumber: e.target.value })}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                        <input
-                          type="text"
-                          required
-                          className="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                          value={editingFarmer.branch}
-                          onChange={(e) => setEditingFarmer({ ...editingFarmer, branch: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-4 flex justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setEditingFarmer(null)}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 flex items-center"
-                      >
-                        <Save className="w-4 h-4 mr-2" />
-                        Save Changes
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-          </div>
-        );
+        return <FarmersDirectory />;
       case 'ussd':
          const networkData = [
             { name: 'MTN', value: 45, color: '#FFC400' }, // MTN Yellow
@@ -499,20 +306,8 @@ const App: React.FC = () => {
                     <span className="hidden sm:inline">System Operational</span>
                     <span className="sm:hidden">Operational</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="hidden sm:block text-sm text-gray-600 mr-2">
-                    {adminInfo?.email}
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold border border-emerald-700" title={adminInfo?.email || 'Admin'}>
-                      {adminInfo?.email?.substring(0, 2).toUpperCase() || 'AD'}
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Logout"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </button>
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold border border-gray-300">
+                    SA
                 </div>
             </div>
         </header>
