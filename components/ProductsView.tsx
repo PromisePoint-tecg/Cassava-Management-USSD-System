@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { productsApi, Product, ProductFilters, PaginatedProductsResponse } from '../api/products';
-import { Search, Edit, Plus, ChevronLeft, ChevronRight, Loader2, CheckCircle, X } from 'lucide-react';
+import { Search, Edit, Plus, ChevronLeft, ChevronRight, Loader2, CheckCircle, X, Trash2 } from 'lucide-react';
 
 const ProductsView: React.FC = () => {
   const [data, setData] = useState<PaginatedProductsResponse | null>(null);
@@ -10,6 +10,8 @@ const ProductsView: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [filters, setFilters] = useState<ProductFilters>({
     page: 1,
     limit: 20,
@@ -60,22 +62,38 @@ const ProductsView: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate price inputs
+    const farmerPrice = parseFloat(createForm.priceForFarmers);
+    const marketPrice = parseFloat(createForm.priceForMarket);
+    
+    if (isNaN(farmerPrice) || farmerPrice < 0) {
+      alert('Please enter a valid price for farmers');
+      return;
+    }
+    
+    if (isNaN(marketPrice) || marketPrice < 0) {
+      alert('Please enter a valid price for market');
+      return;
+    }
+    
     setSubmitting(true);
     try {
       await productsApi.create({
-        productName: createForm.productName,
-        priceForFarmers: parseFloat(createForm.priceForFarmers) || 0,
-        priceForMarket: parseFloat(createForm.priceForMarket) || 0,
-        size: createForm.size
+        productName: createForm.productName.trim(),
+        priceForFarmers: farmerPrice,
+        priceForMarket: marketPrice,
+        size: createForm.size.trim()
       });
       setShowCreate(false);
       setCreateForm({ productName: '', priceForFarmers: '', priceForMarket: '', size: '' });
       setSuccessMessage('Product created successfully!');
       setShowSuccess(true);
       load(); // Reload list
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to create product');
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to create product';
+      alert(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -113,6 +131,31 @@ const ProductsView: React.FC = () => {
       console.error(err);
       alert('Failed to update status');
     }
+  };
+
+  const handleDelete = async () => {
+    if (!productToDelete) return;
+    
+    setSubmitting(true);
+    try {
+      await productsApi.delete(productToDelete.id);
+      setShowDeleteConfirm(false);
+      setProductToDelete(null);
+      setSuccessMessage('Product deleted successfully!');
+      setShowSuccess(true);
+      load(); // Reload list
+    } catch (err: any) {
+      console.error(err);
+      const errorMessage = err?.message || 'Failed to delete product';
+      alert(errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const confirmDelete = (product: Product) => {
+    setProductToDelete(product);
+    setShowDeleteConfirm(true);
   };
 
   if (loading) {
@@ -213,6 +256,13 @@ const ProductsView: React.FC = () => {
                           <Edit className="w-4 h-4" />
                         </button>
                         <button 
+                          onClick={() => confirmDelete(p)} 
+                          className="text-red-600 hover:text-red-800 p-1 rounded"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button 
                           onClick={() => toggleStatus(p)} 
                           className="text-sm px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
                         >
@@ -277,9 +327,9 @@ const ProductsView: React.FC = () => {
                   <p className="text-xs text-blue-600 mb-1">💡 Enter price in naira (e.g., enter 200 for ₦200.00)</p>
                   <input 
                     required 
-                    type="number" 
-                    min="0"
-                    step="0.01"
+                    type="text" 
+                    inputMode="decimal"
+                    pattern="[0-9]+(\.[0-9]+)?"
                     placeholder="Enter price in naira (e.g., 200)"
                     value={createForm.priceForFarmers} 
                     onChange={(e) => setCreateForm({ ...createForm, priceForFarmers: e.target.value })} 
@@ -291,9 +341,9 @@ const ProductsView: React.FC = () => {
                   <p className="text-xs text-blue-600 mb-1">💡 Enter price in naira (e.g., enter 300 for ₦300.00)</p>
                   <input 
                     required 
-                    type="number" 
-                    min="0"
-                    step="0.01"
+                    type="text" 
+                    inputMode="decimal"
+                    pattern="[0-9]+(\.[0-9]+)?"
                     placeholder="Enter price in naira (e.g., 300)"
                     value={createForm.priceForMarket} 
                     onChange={(e) => setCreateForm({ ...createForm, priceForMarket: e.target.value })} 
@@ -355,11 +405,11 @@ const ProductsView: React.FC = () => {
                   <p className="text-xs text-blue-600 mb-1">💡 Enter price in naira (e.g., enter 200 for ₦200.00)</p>
                   <input 
                     required 
-                    type="number" 
-                    min="0"
-                    step="0.01"
+                    type="text" 
+                    inputMode="decimal"
+                    pattern="[0-9]+(\.[0-9]+)?"
                     value={editingProduct.priceForFarmers} 
-                    onChange={(e) => setEditingProduct({ ...editingProduct, priceForFarmers: Number(e.target.value) })} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, priceForFarmers: Number(e.target.value) || 0 })} 
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" 
                   />
                 </div>
@@ -368,11 +418,11 @@ const ProductsView: React.FC = () => {
                   <p className="text-xs text-blue-600 mb-1">💡 Enter price in naira (e.g., enter 300 for ₦300.00)</p>
                   <input 
                     required 
-                    type="number" 
-                    min="0"
-                    step="0.01"
+                    type="text" 
+                    inputMode="decimal"
+                    pattern="[0-9]+(\.[0-9]+)?"
                     value={editingProduct.priceForMarket} 
-                    onChange={(e) => setEditingProduct({ ...editingProduct, priceForMarket: Number(e.target.value) })} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, priceForMarket: Number(e.target.value) || 0 })} 
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" 
                   />
                 </div>
@@ -416,6 +466,48 @@ const ProductsView: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && productToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Product</h3>
+                <p className="text-sm text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete <strong>"{productToDelete.productName}"</strong>? 
+              This will permanently remove the product from the system.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button 
+                type="button" 
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setProductToDelete(null);
+                }} 
+                disabled={submitting}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDelete}
+                disabled={submitting}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                Delete Product
+              </button>
+            </div>
           </div>
         </div>
       )}

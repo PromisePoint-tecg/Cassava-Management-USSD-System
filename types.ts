@@ -12,9 +12,11 @@ export enum TransactionStatus {
 }
 
 export enum LoanStatus {
-  ACTIVE = 'ACTIVE',
-  PAID = 'PAID',
-  DEFAULTED = 'DEFAULTED',
+  REQUESTED = 'requested',
+  APPROVED = 'approved', 
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  DEFAULTED = 'defaulted',
 }
 
 export enum NetworkOperator {
@@ -25,12 +27,8 @@ export enum NetworkOperator {
 }
 
 export interface SystemSettings {
-  pricePerKg: number;
-  transactionFeePercent: number;
-  smsNotifications: boolean;
-  emailAlerts: boolean;
-  autoApproveLoansUnder: number;
-  maintenanceMode: boolean;
+  cassavaPricePerKg: number;
+  cassavaPricePerTon: number;
 }
 
 export interface Farmer {
@@ -59,13 +57,37 @@ export interface Purchase {
 
 export interface Loan {
   id: string;
-  farmerId: string;
-  farmerName: string;
-  principal: number;
-  outstandingBalance: number;
-  type: 'Input Credit' | 'Cash Loan';
+  farmer_id: string;
+  farmer_name: string;
+  farmer_phone: string;
+  loan_type_name: string;
+  principal_amount: number; // in naira
+  interest_rate: number;
+  interest_amount: number; // in naira
+  total_repayment: number; // in naira
+  purpose: string;
+  duration_months: number;
+  monthly_payment: number; // in naira
+  amount_paid: number; // in naira
+  amount_outstanding: number; // in naira
   status: LoanStatus;
-  dueDate: string;
+  reference: string;
+  pickup_date?: Date;
+  pickup_location?: string;
+  approved_at?: Date;
+  disbursed_at?: Date;
+  due_date: Date;
+  completed_at?: Date;
+  defaulted_at?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  items: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    description?: string;
+  }>;
 }
 
 export interface USSDSession {

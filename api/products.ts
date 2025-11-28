@@ -61,4 +61,9 @@ export const productsApi = {
     const res = await apiClient.patch<{ message: string }>(`/admins/products/${id}/status`, { isActive });
     return res;
   },
+
+  delete: async (id: string): Promise<{ message: string }> => {
+    const res = await apiClient.delete<{ message: string }>(`/admins/products/${id}`);
+    return res;
+  },
 };

@@ -8,14 +8,15 @@ import { LoansView } from './components/LoansView';
 import { SettingsView } from './components/SettingsView';
 import ProductsView from './components/ProductsView';
 import LoginPage from './components/LoginPage';
+import { SuccessModal } from './components/SuccessModal';
+import { settingsApi } from './api/settings';
 import {
   MOCK_FARMERS,
-  MOCK_LOANS,
   MOCK_PURCHASES,
   MOCK_USSD_SESSIONS,
   PRICE_PER_KG
 } from './constants';
-import { Farmer, KPIData, Purchase, TransactionStatus, NetworkOperator, USSDSession, Loan, LoanStatus, SystemSettings } from './types';
+import { Farmer, KPIData, Purchase, TransactionStatus, NetworkOperator, USSDSession, SystemSettings } from './types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { Phone, RefreshCw, Signal, Pencil, X, Save, Menu, LogOut } from 'lucide-react';
 import { getAuthToken } from './utils/cookies';
@@ -30,19 +31,19 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [purchases, setPurchases] = useState<Purchase[]>(MOCK_PURCHASES);
   const [farmers, setFarmers] = useState<Farmer[]>(MOCK_FARMERS);
-  const [loans, setLoans] = useState<Loan[]>(MOCK_LOANS);
   const [editingFarmer, setEditingFarmer] = useState<Farmer | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [ussdSessions] = useState<USSDSession[]>(MOCK_USSD_SESSIONS);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSuccess, setSettingsSuccess] = useState<{
+    isOpen: boolean;
+    message: string;
+  }>({ isOpen: false, message: '' });
   
   // System Settings State - must be at top level, not inside conditional
   const [settings, setSettings] = useState<SystemSettings>({
-    pricePerKg: PRICE_PER_KG,
-    transactionFeePercent: 1.5,
-    smsNotifications: true,
-    emailAlerts: true,
-    autoApproveLoansUnder: 50000,
-    maintenanceMode: false
+    cassavaPricePerKg: 500,
+    cassavaPricePerTon: 450000,
   });
 
   // Derived State for KPIs - must be at top level before any returns
@@ -51,9 +52,9 @@ const App: React.FC = () => {
       totalWeight: purchases.reduce((sum, p) => sum + p.weightKg, 0),
       totalPaid: purchases.reduce((sum, p) => sum + p.totalAmount, 0),
       activeFarmers: farmers.filter(f => f.status === 'Active').length,
-      outstandingLoans: loans.reduce((sum, l) => sum + l.outstandingBalance, 0),
+      outstandingLoans: 0, // Will be loaded from real data in LoansView component
     };
-  }, [purchases, farmers, loans]);
+  }, [purchases, farmers]);
 
   // Check authentication on mount
   useEffect(() => {
@@ -140,36 +141,26 @@ const App: React.FC = () => {
     alert(`Farmer details for ${editingFarmer.name} updated.`);
   };
 
-  const handleIssueLoan = (data: { farmerId: string; type: 'Input Credit' | 'Cash Loan'; principal: number; dueDate: string }) => {
-    const farmer = farmers.find(f => f.id === data.farmerId);
-    const newLoan: Loan = {
-        id: `L${Math.floor(Math.random() * 10000)}`,
-        farmerId: data.farmerId,
-        farmerName: farmer ? farmer.name : 'Unknown',
-        principal: data.principal,
-        outstandingBalance: data.principal,
-        type: data.type,
-        status: LoanStatus.ACTIVE,
-        dueDate: data.dueDate
-    };
-    setLoans([newLoan, ...loans]);
-    alert(`Loan of ₦${newLoan.principal.toLocaleString()} issued to ${newLoan.farmerName}`);
-  };
-
-  const handleRepayLoan = (loanId: string, amount: number) => {
-    setLoans(loans.map(loan => {
-        if (loan.id === loanId) {
-            const newBalance = Math.max(0, loan.outstandingBalance - amount);
-            const newStatus = newBalance === 0 ? LoanStatus.PAID : loan.status;
-            return { ...loan, outstandingBalance: newBalance, status: newStatus };
-        }
-        return loan;
-    }));
-    alert('Repayment recorded successfully');
-  };
-
-  const handleUpdateSettings = (newSettings: SystemSettings) => {
-    setSettings(newSettings);
+  const handleUpdateSettings = async (newSettings: SystemSettings) => {
+    try {
+      setSettingsLoading(true);
+      const response = await settingsApi.updateSettings(newSettings);
+      
+      if (response.success) {
+        setSettings(newSettings);
+        setSettingsSuccess({
+          isOpen: true,
+          message: response.message || 'Settings saved successfully! Cassava pricing has been updated.'
+        });
+      } else {
+        throw new Error(response.message || 'Failed to save settings');
+      }
+    } catch (error: any) {
+      console.error('Failed to save settings:', error);
+      alert(`Failed to save settings: ${error.message || 'Unknown error occurred'}`);
+    } finally {
+      setSettingsLoading(false);
+    }
   };
 
   const renderContent = () => {
@@ -187,18 +178,14 @@ const App: React.FC = () => {
         );
       case 'loans':
         return (
-          <LoansView 
-            loans={loans} 
-            farmers={farmers} 
-            onIssueLoan={handleIssueLoan} 
-            onRepayLoan={handleRepayLoan} 
-          />
+          <LoansView />
         );
       case 'settings':
         return (
           <SettingsView
             settings={settings}
             onSave={handleUpdateSettings}
+            loading={settingsLoading}
           />
         );
       case 'products':
@@ -315,6 +302,14 @@ const App: React.FC = () => {
           {renderContent()}
         </div>
       </main>
+
+      {/* Settings Success Modal */}
+      <SuccessModal
+        isOpen={settingsSuccess.isOpen}
+        onClose={() => setSettingsSuccess({ isOpen: false, message: '' })}
+        title="Settings Saved!"
+        message={settingsSuccess.message}
+      />
     </div>
   );
 };

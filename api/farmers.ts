@@ -5,6 +5,7 @@ export interface Farmer {
   userId: string;
   firstName: string;
   lastName: string;
+  name: string;
   fullName: string;
   phone: string;
   lga: string;
