@@ -13,6 +13,7 @@ export interface Farmer {
   totalSales: number;
   totalEarnings: number;
   completedSales: number;
+  walletBalance: number;
   loanDefaults: number;
   activeLoan: boolean;
   status: string;
@@ -20,7 +21,9 @@ export interface Farmer {
   updatedAt: string;
 }
 
-export interface FarmerDetail extends Farmer {}
+export interface FarmerDetail extends Farmer {
+  walletBalance: number;
+}
 
 export interface PaginatedFarmersResponse {
   farmers: Farmer[];
@@ -45,6 +48,37 @@ export interface UpdateFarmerData {
   lastName?: string;
   lga?: string;
   farmSizeHectares?: number;
+}
+
+export interface UserFinancialDetails {
+  wallet: {
+    balance: number;
+    isActive: boolean;
+  };
+  outstandingLoans: Array<{
+    id: string;
+    principalAmount: number;
+    totalRepayment: number;
+    amountPaid: number;
+    amountOutstanding: number;
+    status: string;
+  }>;
+  recentPurchases: Array<{
+    id: string;
+    weightKg: number;
+    totalAmount: number;
+    netAmountCredited: number;
+    status: string;
+    createdAt: Date;
+  }>;
+  recentTransactions: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    status: string;
+    description: string;
+    createdAt: Date;
+  }>;
 }
 
 export const farmersApi = {
@@ -99,5 +133,13 @@ export const farmersApi = {
   async activateFarmer(farmerId: string): Promise<{ message: string; farmer: FarmerDetail }> {
     const response = await apiClient.patch<{ message: string; farmer: FarmerDetail }>(`/admins/farmers/${farmerId}/activate`, {});
     return response;
+  },
+
+  /**
+   * Get farmer's detailed financial status including wallet, loans, and transactions
+   */
+  async getFarmerFinancialStatus(farmerId: string): Promise<UserFinancialDetails> {
+    const response = await apiClient.get<{status: boolean; message: string; data: UserFinancialDetails}>(`/admin/transactions/farmer/${farmerId}/financial-status`);
+    return response.data;
   },
 };

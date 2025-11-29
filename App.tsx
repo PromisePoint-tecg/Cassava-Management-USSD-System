@@ -8,6 +8,7 @@ import { LoansView } from './components/LoansView';
 import { SettingsView } from './components/SettingsView';
 import ProductsView from './components/ProductsView';
 import LoginPage from './components/LoginPage';
+import { TransactionsView } from './components/TransactionsView';
 import { SuccessModal } from './components/SuccessModal';
 import { settingsApi } from './api/settings';
 import {
@@ -179,6 +180,10 @@ const App: React.FC = () => {
       case 'loans':
         return (
           <LoansView />
+        );
+      case 'transactions':
+        return (
+          <TransactionsView />
         );
       case 'settings':
         return (

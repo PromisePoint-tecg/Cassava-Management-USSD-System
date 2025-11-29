@@ -8,6 +8,7 @@ import {
   Clock, 
   DollarSign, 
   TrendingUp, 
+  RefreshCw, 
   Scale, 
   Users,
   ChevronLeft,
@@ -30,6 +31,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const [farmersLoading, setFarmersLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [pricingLoading, setPricingLoading] = useState(true);
+  const [retryingPurchase, setRetryingPurchase] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   // Modal states
@@ -184,6 +186,30 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     }
   };
 
+  // Retry purchase handler
+  const handleRetryPurchase = async (purchaseId: string) => {
+    try {
+      setRetryingPurchase(purchaseId);
+      await purchasesApi.retryPurchase(purchaseId);
+      
+      // Show success message
+      setSuccessModal({
+        isOpen: true,
+        title: 'Purchase Retried Successfully!',
+        message: 'The failed purchase has been retried and processed successfully.',
+      });
+      
+      // Reload data
+      loadPurchases();
+      loadKPIs();
+    } catch (err) {
+      console.error('Failed to retry purchase:', err);
+      setError('Failed to retry purchase. Please try again.');
+    } finally {
+      setRetryingPurchase(null);
+    }
+  };
+
   // Legacy form handler (for old modal)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -315,7 +341,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-gray-500 text-sm font-medium">Total Weight</h3>
-                <p className="text-2xl font-bold text-gray-800">{kpis.totalWeightKg.toLocaleString()}kg</p>
+                <p className="text-2xl font-bold text-gray-800">{(kpis.totalWeight || 0).toLocaleString()}kg</p>
               </div>
               <Scale className="w-8 h-8 text-blue-600" />
             </div>
@@ -324,8 +350,8 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-gray-500 text-sm font-medium">Total Amount Paid</h3>
-                <p className="text-2xl font-bold text-gray-800">{formatCurrency(kpis.totalAmountPaid)}</p>
+                <h3 className="text-gray-500 text-sm font-medium">Total Amount Spent</h3>
+                <p className="text-2xl font-bold text-gray-800">{formatCurrency(kpis.totalAmountSpent || 0)}</p>
               </div>
               <DollarSign className="w-8 h-8 text-emerald-600" />
             </div>
@@ -335,7 +361,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-gray-500 text-sm font-medium">Average Price/kg</h3>
-                <p className="text-2xl font-bold text-gray-800">{formatCurrency(kpis.avgPricePerKg)}</p>
+                <p className="text-2xl font-bold text-gray-800">{formatCurrency(kpis.averagePrice || 0)}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-600" />
             </div>
@@ -344,8 +370,8 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-gray-500 text-sm font-medium">Active Farmers</h3>
-                <p className="text-2xl font-bold text-gray-800">{kpis.activeFarmers}</p>
+                <h3 className="text-gray-500 text-sm font-medium">Total Purchases</h3>
+                <p className="text-2xl font-bold text-gray-800">{(kpis.totalPurchases || 0).toLocaleString()}</p>
               </div>
               <Users className="w-8 h-8 text-orange-600" />
             </div>
@@ -398,11 +424,12 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedPurchases.map((purchase) => (
-                  <tr key={purchase.id} className="hover:bg-gray-50">
+                  <tr key={purchase._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{purchase.farmerName}</div>
@@ -425,6 +452,27 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(purchase.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {purchase.status === 'failed' && (
+                        <button
+                          onClick={() => handleRetryPurchase(purchase._id)}
+                          className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          disabled={retryingPurchase === purchase._id}
+                        >
+                          {retryingPurchase === purchase._id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                              Retrying...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-3 h-3 mr-1" />
+                              Retry
+                            </>
+                          )}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -536,9 +584,26 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                           {Number(createForm.weightKg) >= 1000 ? 'Bulk (Ton)' : 'Retail (Kg)'}
                         </span>
                       </div>
+                      
+                      {/* Show both pricing options for reference */}
+                      <div className="bg-white p-3 rounded border space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Retail Price (per kg):</span>
+                          <span className="font-medium">{formatCurrency(cassavaPricing.pricePerKg)}/kg</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Bulk Price (per ton):</span>
+                          <span className="font-medium">{formatCurrency(cassavaPricing.pricePerTon)}/ton</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-emerald-600">
+                          <span className="font-medium">Bulk unit price:</span>
+                          <span className="font-medium">{formatCurrency(cassavaPricing.pricePerTon / 1000)}/kg</span>
+                        </div>
+                      </div>
+                      
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Unit Price:</span>
-                        <span className="font-medium">
+                        <span className="text-gray-600">Applied Unit Price:</span>
+                        <span className="font-medium text-emerald-600">
                           {formatCurrency(Number(createForm.weightKg) >= 1000 ? cassavaPricing.pricePerTon / 1000 : cassavaPricing.pricePerKg)}/kg
                         </span>
                       </div>

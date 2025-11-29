@@ -216,6 +216,10 @@ export const FarmersDirectory: React.FC = () => {
                     <p className="font-medium">{farmer.farmSizeHectares} ha</p>
                   </div>
                   <div>
+                    <span className="text-gray-500">Wallet Balance:</span>
+                    <p className="font-medium">{formatCurrency(farmer.walletBalance || 0)}</p>
+                  </div>
+                  <div>
                     <span className="text-gray-500">Total Sales:</span>
                     <p className="font-medium">{farmer.totalSales}</p>
                   </div>
@@ -238,6 +242,7 @@ export const FarmersDirectory: React.FC = () => {
                     <th className="px-6 py-3">Phone</th>
                     <th className="px-6 py-3">LGA</th>
                     <th className="px-6 py-3">Farm Size</th>
+                    <th className="px-6 py-3">Wallet Balance</th>
                     <th className="px-6 py-3">Total Sales</th>
                     <th className="px-6 py-3">Earnings</th>
                     <th className="px-6 py-3">Status</th>
@@ -256,6 +261,7 @@ export const FarmersDirectory: React.FC = () => {
                       <td className="px-6 py-4">{farmer.phone}</td>
                       <td className="px-6 py-4">{farmer.lga}</td>
                       <td className="px-6 py-4">{farmer.farmSizeHectares} ha</td>
+                      <td className="px-6 py-4">{formatCurrency(farmer.walletBalance || 0)}</td>
                       <td className="px-6 py-4">{farmer.totalSales}</td>
                       <td className="px-6 py-4">{formatCurrency(farmer.totalEarnings)}</td>
                       <td className="px-6 py-4">{getStatusBadge(farmer.status)}</td>
@@ -346,6 +352,10 @@ export const FarmersDirectory: React.FC = () => {
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3">Financial Information</h4>
                 <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Wallet Balance</p>
+                    <p className="font-medium">{formatCurrency(viewingFarmer.walletBalance || 0)}</p>
+                  </div>
                   <div>
                     <p className="text-sm text-gray-500">Total Earnings</p>
                     <p className="font-medium">{formatCurrency(viewingFarmer.totalEarnings)}</p>

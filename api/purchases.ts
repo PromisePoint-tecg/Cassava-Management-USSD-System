@@ -1,7 +1,7 @@
 import { ApiClient } from './client';
 
 export interface PurchaseItem {
-  id: string;
+  _id: string;
   farmerId: string;
   farmerName: string;
   farmerPhone: string;
@@ -55,12 +55,11 @@ export interface PurchasesResponse {
 
 export interface PurchaseKPIs {
   totalPurchases: number;
-  totalWeightKg: number;
-  totalAmountPaid: number; // in naira
-  avgPricePerKg: number;
-  pendingPayments: number;
+  totalWeight: number;
+  totalAmountSpent: number; // in naira
+  averagePrice: number;
+  pendingPurchases: number;
   completedPurchases: number;
-  activeFarmers: number;
 }
 
 export interface CassavaPricing {
@@ -179,6 +178,14 @@ export class PurchasesApi {
    */
   async deletePurchase(id: string): Promise<{ message: string }> {
     const response = await this.client.delete<{ message: string }>(`/purchases/${id}`);
+    return response;
+  }
+
+  /**
+   * Retry a failed purchase
+   */
+  async retryPurchase(id: string): Promise<{ success: boolean; message: string; data: PurchaseItem }> {
+    const response = await this.client.post<{ success: boolean; message: string; data: PurchaseItem }>(`/purchases/${id}/retry`);
     return response;
   }
 }
