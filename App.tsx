@@ -227,7 +227,7 @@ const App: React.FC = () => {
               </button>
               <div className="flex items-center text-gray-500 text-sm">
                 <span className="hidden sm:inline">Branch:</span>
-                <span className="font-semibold text-gray-800 ml-0 sm:ml-2">Lagos North HQ</span>
+                <span className="font-semibold text-gray-800 ml-0 sm:ml-2">Ogun State HQ</span>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">

@@ -48,10 +48,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, i
       `}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-lg">C</span>
-            </div>
-            <span className="text-xl font-bold text-gray-800 tracking-tight">Cassava<span className="text-emerald-600">Connect</span></span>
+        <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center mr-3">
+          <span className="text-white font-bold text-lg">P</span>
+        </div>
+            <span className="text-xl font-bold text-gray-800 tracking-tight">Promise Point <span className="text-emerald-600">Agrictech</span></span>
           </div>
           <button
             onClick={onClose}

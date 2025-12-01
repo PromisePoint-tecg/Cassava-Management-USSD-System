@@ -54,8 +54,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">FarmConnect</h1>
-          <p className="text-gray-600">Admin Portal</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Promise Point</h1>
+          <p className="text-gray-600">Agrictech Solution - Admin Portal</p>
         </div>
 
         {/* Login Card */}
@@ -133,7 +133,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          © 2025 FarmConnect. All rights reserved.
+          © 2025 Promise Point Agrictech Solution. All rights reserved.
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
-# Cassava Management USSD System
+# Promise Point Agrictech Solution
 
-A management dashboard for tracking cassava purchases, farmer loans, and USSD transactions.
+A comprehensive management dashboard for tracking agricultural purchases, farmer loans, and USSD transactions.
 
 ## Run Locally
 
