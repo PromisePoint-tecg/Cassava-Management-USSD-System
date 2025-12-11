@@ -10,11 +10,11 @@ import ProductsView from './components/ProductsView';
 import LoginPage from './components/LoginPage';
 import { TransactionsView } from './components/TransactionsView';
 import { AdminManagementView } from './components/AdminManagementView';
+import { USSDAnalyticsView } from './components/USSDAnalyticsView';
 import { SuccessModal } from './components/SuccessModal';
 import { settingsApi } from './api/settings';
 import { SystemSettings } from './types';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { Phone, Signal, Menu } from 'lucide-react';
+import { Signal, Menu } from 'lucide-react';
 import { getAuthToken } from './utils/cookies';
 import { introspect, logout as apiLogout } from './api/auth';
 import type { AdminInfo } from './api/auth';
@@ -153,53 +153,7 @@ const App: React.FC = () => {
       case 'farmers':
         return <FarmersDirectory />;
       case 'ussd':
-         const networkData = [
-            { name: 'MTN', value: 45, color: '#FFC400' }, // MTN Yellow
-            { name: 'Airtel', value: 30, color: '#FF0000' }, // Airtel Red
-            { name: 'Glo', value: 15, color: '#00AA00' }, // Glo Green
-            { name: '9Mobile', value: 10, color: '#005500' }, // 9Mobile Green
-         ];
-
-         return (
-             <div className="space-y-6">
-                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800">USSD & Network Analytics</h2>
-                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Traffic by Network Operator</h3>
-                        <div className="h-56 sm:h-64">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={networkData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                    >
-                                        {networkData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <RechartsTooltip />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                    
-                    <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Recent Sessions</h3>
-                        <div className="space-y-4">
-                            <div className="text-center py-8 text-gray-500 text-sm">
-                                USSD session data will be displayed here when available
-                            </div>
-                        </div>
-                    </div>
-                 </div>
-             </div>
-         );
+        return <USSDAnalyticsView />;
       case 'admins':
         return <AdminManagementView />;
       default:
