@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, Scale, CreditCard, Smartphone, Settings, LogOut, X, Receipt, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, Scale, CreditCard, Smartphone, Settings, LogOut, X, Receipt, Shield, Briefcase, DollarSign, PiggyBank } from 'lucide-react';
 
 interface SidebarProps {
   currentView: string;
@@ -16,6 +16,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, i
     { id: 'purchases', label: 'Purchases', icon: Scale },
     { id: 'loans', label: 'Loans', icon: CreditCard },
     { id: 'transactions', label: 'Transactions', icon: Receipt },
+    { id: 'staff', label: 'Staff Management', icon: Briefcase },
+    { id: 'payroll', label: 'Payroll', icon: DollarSign },
+    { id: 'pension', label: 'Pension', icon: PiggyBank },
     { id: 'admins', label: 'Admin Management', icon: Shield },
     { id: 'ussd', label: 'USSD Logs', icon: Smartphone },
     { id: 'settings', label: 'Settings', icon: Settings },

@@ -135,6 +135,43 @@ export class ApiClient {
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'DELETE' });
   }
+
+  async upload<T>(endpoint: string, formData: FormData): Promise<T> {
+    const token = getAuthToken();
+    const headers: HeadersInit = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const url = `${this.baseUrl}${endpoint}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          clearAuthToken();
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+          throw new Error('Invalid or expired token');
+        }
+
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Upload failed');
+    }
+  }
 }
 
 export const apiClient = new ApiClient();

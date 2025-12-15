@@ -11,6 +11,9 @@ import LoginPage from './components/LoginPage';
 import { TransactionsView } from './components/TransactionsView';
 import { AdminManagementView } from './components/AdminManagementView';
 import { USSDAnalyticsView } from './components/USSDAnalyticsView';
+import StaffManagementView from './components/StaffManagementView';
+import PayrollManagementView from './components/PayrollManagementView';
+import PensionManagementView from './components/PensionManagementView';
 import { SuccessModal } from './components/SuccessModal';
 import { settingsApi } from './api/settings';
 import { SystemSettings } from './types';
@@ -156,6 +159,12 @@ const App: React.FC = () => {
         return <USSDAnalyticsView />;
       case 'admins':
         return <AdminManagementView />;
+      case 'staff':
+        return <StaffManagementView adminId={adminInfo?.id || ''} />;
+      case 'payroll':
+        return <PayrollManagementView />;
+      case 'pension':
+        return <PensionManagementView />;
       default:
         return <div className="p-10 text-center text-gray-500">Module under construction</div>;
     }
