@@ -118,7 +118,6 @@ export interface StaffLoanRequest {
   durationMonths: number;
   pickupLocation?: string;
   pickupDate?: string;
-  items?: LoanItem[];
 }
 
 // Admin management interfaces
@@ -556,14 +555,56 @@ class StaffApi {
    * Get loan types
    */
   async getLoanTypes(): Promise<LoanType[]> {
-    return this.client.get<LoanType[]>("/loans/types");
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/loans/types`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to get loan types" }));
+      throw new Error(error.message || "Failed to get loan types");
+    }
+
+    const data = await response.json();
+    return data && data.data ? data.data : data;
   }
 
   /**
    * Request a loan
    */
   async requestLoan(staffId: string, data: StaffLoanRequest): Promise<any> {
-    return this.client.post(`/staff/${staffId}/request-loan`, data);
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(
+      `${API_BASE_URL}/staff/${staffId}/request-loan`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to request loan" }));
+      throw new Error(error.message || "Failed to request loan");
+    }
+
+    const result = await response.json();
+    return result && result.data ? result.data : result;
   }
 }
 
@@ -614,16 +655,4 @@ export const uploadProfilePicture = async (
   file: File
 ): Promise<{ url: string; publicId: string }> => {
   return staffApi.uploadProfilePicture(file);
-};
-
-// Loan-related functions
-export const getLoanTypes = async (): Promise<LoanType[]> => {
-  return apiClient.get<LoanType[]>("/loans/types");
-};
-
-export const requestLoan = async (
-  staffId: string,
-  data: StaffLoanRequest
-): Promise<any> => {
-  return apiClient.post(`/staff/${staffId}/request-loan`, data);
 };

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import StaffLoginPage from "./components/StaffLoginPage";
 import { StaffPortal } from "./components/StaffPortal";
 import { getStaffAuthToken, clearStaffAuthToken } from "./utils/cookies";
+import { staffApi } from "./api/staff";
 import type { Staff } from "./api/staff";
 
 const StaffApp: React.FC = () => {
@@ -16,9 +17,17 @@ const StaffApp: React.FC = () => {
     const checkAuth = async () => {
       const token = getStaffAuthToken();
       if (token) {
-        // For staff, we'll assume the token is valid if present
-        // In a real app, you might want to validate the token
-        setIsAuthenticated(true);
+        try {
+          // Validate token by making a test API call
+          await staffApi.getProfile();
+          setIsAuthenticated(true);
+        } catch (err: any) {
+          // Token is invalid, clear it
+          clearStaffAuthToken();
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
       }
       setIsCheckingAuth(false);
     };
@@ -35,7 +44,7 @@ const StaffApp: React.FC = () => {
     clearStaffAuthToken();
     setIsAuthenticated(false);
     setStaffInfo(null);
-    navigate("login");
+    navigate("login", { replace: true });
   };
 
   if (isCheckingAuth) {
