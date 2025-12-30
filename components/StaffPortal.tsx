@@ -56,6 +56,25 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
   const [submittingLoanRequest, setSubmittingLoanRequest] = useState(false);
   const [showLoanSuccessModal, setShowLoanSuccessModal] = useState(false);
   const [loanSuccessData, setLoanSuccessData] = useState<any>(null);
+  const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
+  const [banks, setBanks] = useState<any[]>([]);
+  const [loadingBanks, setLoadingBanks] = useState(false);
+  const [verifyingAccount, setVerifyingAccount] = useState(false);
+  const [settingAccount, setSettingAccount] = useState(false);
+  const [bankForm, setBankForm] = useState({
+    bankCode: "",
+    accountNumber: "",
+    bvn: "",
+  });
+  const [verifiedAccountName, setVerifiedAccountName] = useState<string>("");
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
   const [loanRequestForm, setLoanRequestForm] = useState<StaffLoanRequest>({
     loanTypeId: "",
     principalAmount: 0,
@@ -173,13 +192,6 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(amount);
-  };
-
   const handleLogout = () => {
     clearStaffAuthToken();
     onLogout();
@@ -261,6 +273,93 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
   const handleOpenLoanRequest = () => {
     setShowLoanRequestModal(true);
     loadLoanTypes();
+  };
+
+  const loadBanks = async () => {
+    try {
+      setLoadingBanks(true);
+      const bankList = await staffApi.getSupportedBanks();
+      setBanks(bankList);
+    } catch (err: any) {
+      console.error("Failed to load banks:", err);
+    } finally {
+      setLoadingBanks(false);
+    }
+  };
+
+  const handleVerifyAccount = async () => {
+    if (!bankForm.accountNumber || !bankForm.bankCode) return;
+
+    try {
+      setVerifyingAccount(true);
+      setUploadError(null);
+      const result = await staffApi.verifyBankAccount({
+        accountNumber: bankForm.accountNumber,
+        bankCode: bankForm.bankCode,
+      });
+      setVerifiedAccountName(result.account_name || result.accountName || "");
+    } catch (err: any) {
+      setUploadError(err.message || "Failed to verify account");
+      setVerifiedAccountName("");
+    } finally {
+      setVerifyingAccount(false);
+    }
+  };
+
+  const handleSetBankAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile?.id || !verifiedAccountName) return;
+
+    try {
+      setSettingAccount(true);
+      setUploadError(null);
+
+      const selectedBank = banks.find(
+        (bank) => bank.code === bankForm.bankCode
+      );
+      const accountData = {
+        bankName: selectedBank?.name || "",
+        bankCode: bankForm.bankCode,
+        accountNumber: bankForm.accountNumber,
+        accountName: verifiedAccountName,
+        bvn: bankForm.bvn || undefined,
+      };
+
+      await staffApi.setWithdrawalAccount(accountData);
+
+      setShowBankDetailsModal(false);
+      setUploadSuccess(
+        <div>
+          <strong>Bank account added successfully!</strong>
+          <br />
+          Account: {verifiedAccountName}
+          <br />
+          Bank: {selectedBank?.name}
+          <br />
+          Number: {bankForm.accountNumber}
+        </div>
+      );
+
+      // Reset form
+      setBankForm({
+        bankCode: "",
+        accountNumber: "",
+        bvn: "",
+      });
+      setVerifiedAccountName("");
+
+      // Reload profile to get updated data
+      loadProfile();
+    } catch (err: any) {
+      setUploadError(err.message || "Failed to set bank account");
+    } finally {
+      setSettingAccount(false);
+    }
+  };
+
+  const handleOpenBankDetails = () => {
+    setShowBankDetailsModal(true);
+    loadBanks();
   };
 
   const menuItems = [
@@ -514,13 +613,22 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       case "balances":
         return (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                Account Balances
-              </h2>
-              <p className="text-gray-600 mt-1">
-                View your savings, pension, and wallet balances
-              </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Account Balances
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  View your savings, pension, and wallet balances
+                </p>
+              </div>
+              <button
+                onClick={handleOpenBankDetails}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Bank Details
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -1128,6 +1236,170 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bank Details Modal */}
+      {showBankDetailsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Add Bank Details
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowBankDetailsModal(false);
+                    setBankForm({ bankCode: "", accountNumber: "", bvn: "" });
+                    setVerifiedAccountName("");
+                    setUploadError(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSetBankAccount} className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bank *
+                  </label>
+                  <select
+                    value={bankForm.bankCode}
+                    onChange={(e) =>
+                      setBankForm({
+                        ...bankForm,
+                        bankCode: e.target.value,
+                        accountNumber: "", // Reset account number when bank changes
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    required
+                    disabled={loadingBanks}
+                  >
+                    <option value="">
+                      {loadingBanks ? "Loading banks..." : "Select bank..."}
+                    </option>
+                    {banks.map((bank) => (
+                      <option key={bank.code} value={bank.code}>
+                        {bank.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Account Number *
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={bankForm.accountNumber}
+                      onChange={(e) =>
+                        setBankForm({
+                          ...bankForm,
+                          accountNumber: e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 10),
+                        })
+                      }
+                      placeholder="1234567890"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      required
+                      maxLength={10}
+                      disabled={!bankForm.bankCode}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyAccount}
+                      disabled={
+                        !bankForm.accountNumber ||
+                        bankForm.accountNumber.length !== 10 ||
+                        !bankForm.bankCode ||
+                        verifyingAccount
+                      }
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {verifyingAccount ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Verify"
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {verifiedAccountName && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 mr-2" />
+                    <span className="text-sm font-medium text-green-800">
+                      Account Name: {verifiedAccountName}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  BVN (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={bankForm.bvn}
+                  onChange={(e) =>
+                    setBankForm({
+                      ...bankForm,
+                      bvn: e.target.value.replace(/\D/g, "").slice(0, 11),
+                    })
+                  }
+                  placeholder="12345678901"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  maxLength={11}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  BVN is required for some transactions and improves security
+                </p>
+              </div>
+
+              {uploadError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-center">
+                    <XCircle className="w-5 h-5 text-red-600 mr-2" />
+                    <span className="text-sm text-red-800">{uploadError}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBankDetailsModal(false);
+                    setBankForm({ bankCode: "", accountNumber: "", bvn: "" });
+                    setVerifiedAccountName("");
+                    setUploadError(null);
+                  }}
+                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!verifiedAccountName || settingAccount}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {settingAccount ? "Setting Account..." : "Add Bank Account"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

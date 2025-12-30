@@ -606,6 +606,92 @@ class StaffApi {
     const result = await response.json();
     return result && result.data ? result.data : result;
   }
+
+  /**
+   * Get supported banks
+   */
+  async getSupportedBanks(): Promise<any[]> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/staff/wallet/banks`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to get banks" }));
+      throw new Error(error.message || "Failed to get banks");
+    }
+
+    const result = await response.json();
+    return result && result.data ? result.data : result;
+  }
+
+  /**
+   * Verify bank account
+   */
+  async verifyBankAccount(data: {
+    accountNumber: string;
+    bankCode: string;
+  }): Promise<any> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(
+      `${API_BASE_URL}/staff/wallet/verify-account`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to verify account" }));
+      throw new Error(error.message || "Failed to verify account");
+    }
+
+    const result = await response.json();
+    return result && result.data ? result.data : result;
+  }
+
+  /**
+   * Set withdrawal account
+   */
+  async setWithdrawalAccount(data: any): Promise<any> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/staff/wallet/set-account`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to set account" }));
+      throw new Error(error.message || "Failed to set account");
+    }
+
+    const result = await response.json();
+    return result && result.data ? result.data : result;
+  }
 }
 
 export const staffApi = new StaffApi();
