@@ -22,6 +22,7 @@ import { staffApi, StaffProfile, StaffBalances } from "../api/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { logout } from "../api/auth";
+import { clearStaffAuthToken } from "../utils/cookies";
 
 type StaffViewType = "dashboard" | "profile" | "balances" | "documents";
 
@@ -131,7 +132,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
   };
 
   const handleLogout = () => {
-    logout();
+    clearStaffAuthToken();
     onLogout();
   };
 
