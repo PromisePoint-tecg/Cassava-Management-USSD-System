@@ -31,7 +31,7 @@ import { clearStaffAuthToken } from "../utils/cookies";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 
-type StaffViewType = "dashboard" | "profile" | "documents";
+type StaffViewType = "dashboard" | "documents";
 
 interface StaffPortalProps {
   onLogout: () => void;
@@ -272,10 +272,11 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       isRoute: false,
     },
     {
-      id: "profile" as StaffViewType,
+      id: "profile",
       label: "My Profile",
       icon: User,
-      isRoute: false,
+      isRoute: true,
+      path: "/staff/profile",
     },
     {
       id: "balances",
@@ -442,88 +443,6 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     </p>
                   )}
                 </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "profile":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800">My Profile</h2>
-                <p className="text-gray-600 mt-1">
-                  View and manage your personal information
-                </p>
-              </div>
-              <button
-                onClick={loadProfile}
-                className="flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </button>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                <User className="w-5 h-5 mr-2 text-blue-600" />
-                Personal Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Full Name</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {profile.firstName} {profile.lastName}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Email</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {profile.email}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Phone Number</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {profile.phone}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Role</p>
-                  <p className="text-sm font-medium text-gray-900 capitalize">
-                    {profile.role}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Status</p>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      profile.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {profile.isActive ? "Active" : "Inactive"}
-                  </span>
-                </div>
-                {profile.nin && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">NIN</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {profile.nin}
-                    </p>
-                  </div>
-                )}
-                {profile.bvn && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">BVN</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {profile.bvn}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
