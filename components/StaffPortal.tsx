@@ -234,12 +234,12 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     <span className="text-sm text-gray-600">Status</span>
                     <span
                       className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        profile.status === "active"
+                        profile.isActive
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {profile.status}
+                      {profile.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -345,12 +345,12 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   <p className="text-xs text-gray-500 mb-1">Status</p>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      profile.status === "active"
+                      profile.isActive
                         ? "bg-green-100 text-green-800"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {profile.status}
+                    {profile.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
                 {profile.nin && (
