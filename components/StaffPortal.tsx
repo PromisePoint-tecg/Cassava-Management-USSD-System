@@ -17,8 +17,16 @@ import {
   LogOut,
   Bell,
   Settings,
+  Plus,
+  DollarSign,
 } from "lucide-react";
-import { staffApi, StaffProfile, StaffBalances } from "../api/staff";
+import {
+  staffApi,
+  StaffProfile,
+  StaffBalances,
+  LoanType,
+  StaffLoanRequest,
+} from "../api/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { logout } from "../api/auth";
@@ -40,6 +48,20 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
   const [uploadingBVN, setUploadingBVN] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const [showLoanRequestModal, setShowLoanRequestModal] = useState(false);
+  const [loanTypes, setLoanTypes] = useState<LoanType[]>([]);
+  const [loadingLoanTypes, setLoadingLoanTypes] = useState(false);
+  const [submittingLoanRequest, setSubmittingLoanRequest] = useState(false);
+  const [loanRequestForm, setLoanRequestForm] = useState<StaffLoanRequest>({
+    loanTypeId: "",
+    principalAmount: 0,
+    interestRate: 0,
+    purpose: "",
+    durationMonths: 6,
+    pickupLocation: "",
+    pickupDate: "",
+    items: [{ name: "", quantity: 1, unit_price: 0, total_price: 0 }],
+  });
 
   useEffect(() => {
     loadProfile();
@@ -136,6 +158,73 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
     onLogout();
   };
 
+  const loadLoanTypes = async () => {
+    try {
+      setLoadingLoanTypes(true);
+      const data = await staffApi.getLoanTypes();
+      setLoanTypes(data.filter((type) => type.is_active));
+    } catch (err: any) {
+      console.error("Failed to load loan types:", err);
+    } finally {
+      setLoadingLoanTypes(false);
+    }
+  };
+
+  const handleLoanRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !profile?.id ||
+      !loanRequestForm.loanTypeId ||
+      !loanRequestForm.principalAmount
+    )
+      return;
+
+    try {
+      setSubmittingLoanRequest(true);
+      setUploadError(null);
+
+      // Convert amounts to kobo
+      const requestData = {
+        ...loanRequestForm,
+        principalAmount: Math.round(loanRequestForm.principalAmount * 100), // Convert to kobo
+        items: loanRequestForm.items?.map((item) => ({
+          ...item,
+          unit_price: Math.round(item.unit_price * 100), // Convert to kobo
+          total_price: Math.round(item.total_price * 100), // Convert to kobo
+        })),
+      };
+
+      await staffApi.requestLoan(profile.id, requestData);
+
+      setShowLoanRequestModal(false);
+      setUploadSuccess(
+        "Loan request submitted successfully! You will be notified once it's approved."
+      );
+      setTimeout(() => setUploadSuccess(null), 5000);
+
+      // Reset form
+      setLoanRequestForm({
+        loanTypeId: "",
+        principalAmount: 0,
+        interestRate: 0,
+        purpose: "",
+        durationMonths: 6,
+        pickupLocation: "",
+        pickupDate: "",
+        items: [{ name: "", quantity: 1, unit_price: 0, total_price: 0 }],
+      });
+    } catch (err: any) {
+      setUploadError(err.message || "Failed to submit loan request");
+    } finally {
+      setSubmittingLoanRequest(false);
+    }
+  };
+
+  const handleOpenLoanRequest = () => {
+    setShowLoanRequestModal(true);
+    loadLoanTypes();
+  };
+
   const menuItems = [
     {
       id: "dashboard" as StaffViewType,
@@ -170,13 +259,22 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       case "dashboard":
         return (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Welcome back, {profile.firstName}!
-              </h2>
-              <p className="text-gray-600">
-                Here's an overview of your account
-              </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  Welcome back, {profile.firstName}!
+                </h2>
+                <p className="text-gray-600">
+                  Here's an overview of your account
+                </p>
+              </div>
+              <button
+                onClick={handleOpenLoanRequest}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Request Loan
+              </button>
             </div>
 
             {/* Balance Cards */}
@@ -707,6 +805,290 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
         <div className="p-4 sm:p-6 lg:p-8">{renderContent()}</div>
       </main>
+
+      {/* Loan Request Modal */}
+      {showLoanRequestModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Request Loan
+                </h3>
+                <button
+                  onClick={() => setShowLoanRequestModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleLoanRequestSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Loan Type *
+                  </label>
+                  <select
+                    value={loanRequestForm.loanTypeId}
+                    onChange={(e) => {
+                      const selectedType = loanTypes.find(
+                        (type) => type.id === e.target.value
+                      );
+                      setLoanRequestForm({
+                        ...loanRequestForm,
+                        loanTypeId: e.target.value,
+                        interestRate: selectedType?.interest_rate || 0,
+                        durationMonths: selectedType?.duration_months || 6,
+                      });
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                    disabled={loadingLoanTypes}
+                  >
+                    <option value="">
+                      {loadingLoanTypes
+                        ? "Loading loan types..."
+                        : "Select loan type..."}
+                    </option>
+                    {loanTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name} - {type.interest_rate}% (
+                        {type.duration_months} months)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Principal Amount (₦) *
+                  </label>
+                  <input
+                    type="number"
+                    value={loanRequestForm.principalAmount}
+                    onChange={(e) =>
+                      setLoanRequestForm({
+                        ...loanRequestForm,
+                        principalAmount: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    placeholder="e.g., 100000"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                    min="1000"
+                    step="1000"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Interest Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={loanRequestForm.interestRate}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Duration (Months)
+                  </label>
+                  <input
+                    type="number"
+                    value={loanRequestForm.durationMonths}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Purpose *
+                </label>
+                <textarea
+                  value={loanRequestForm.purpose}
+                  onChange={(e) =>
+                    setLoanRequestForm({
+                      ...loanRequestForm,
+                      purpose: e.target.value,
+                    })
+                  }
+                  placeholder="Describe the purpose of this loan..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Pickup Location
+                  </label>
+                  <input
+                    type="text"
+                    value={loanRequestForm.pickupLocation}
+                    onChange={(e) =>
+                      setLoanRequestForm({
+                        ...loanRequestForm,
+                        pickupLocation: e.target.value,
+                      })
+                    }
+                    placeholder="e.g., Main Office, Branch A"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Pickup Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={loanRequestForm.pickupDate}
+                    onChange={(e) =>
+                      setLoanRequestForm({
+                        ...loanRequestForm,
+                        pickupDate: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Loan Items */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Loan Items (Optional)
+                </label>
+                {loanRequestForm.items?.map((item, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-2"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Item name"
+                      value={item.name}
+                      onChange={(e) => {
+                        const newItems = [...(loanRequestForm.items || [])];
+                        newItems[index].name = e.target.value;
+                        setLoanRequestForm({
+                          ...loanRequestForm,
+                          items: newItems,
+                        });
+                      }}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const newItems = [...(loanRequestForm.items || [])];
+                        const quantity = parseInt(e.target.value) || 1;
+                        newItems[index].quantity = quantity;
+                        newItems[index].total_price =
+                          quantity * newItems[index].unit_price;
+                        setLoanRequestForm({
+                          ...loanRequestForm,
+                          items: newItems,
+                        });
+                      }}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min="1"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Unit Price (₦)"
+                      value={item.unit_price}
+                      onChange={(e) => {
+                        const newItems = [...(loanRequestForm.items || [])];
+                        const unitPrice = parseFloat(e.target.value) || 0;
+                        newItems[index].unit_price = unitPrice;
+                        newItems[index].total_price =
+                          newItems[index].quantity * unitPrice;
+                        setLoanRequestForm({
+                          ...loanRequestForm,
+                          items: newItems,
+                        });
+                      }}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min="0"
+                    />
+                    <div className="flex items-center px-3 py-2 text-sm text-gray-600">
+                      ₦{item.total_price.toLocaleString()}
+                    </div>
+                    {(loanRequestForm.items?.length || 0) > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newItems = (loanRequestForm.items || []).filter(
+                            (_, i) => i !== index
+                          );
+                          setLoanRequestForm({
+                            ...loanRequestForm,
+                            items: newItems,
+                          });
+                        }}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoanRequestForm({
+                      ...loanRequestForm,
+                      items: [
+                        ...(loanRequestForm.items || []),
+                        {
+                          name: "",
+                          quantity: 1,
+                          unit_price: 0,
+                          total_price: 0,
+                        },
+                      ],
+                    });
+                  }}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  + Add Item
+                </button>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowLoanRequestModal(false)}
+                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingLoanRequest}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submittingLoanRequest ? "Submitting..." : "Submit Request"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

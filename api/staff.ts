@@ -88,6 +88,39 @@ export interface DeactivateStaffDto {
   reason: string;
 }
 
+// Loan-related interfaces
+export interface LoanType {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  interest_rate: number;
+  duration_months: number;
+  is_active: boolean;
+  times_issued: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LoanItem {
+  name: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  description?: string;
+}
+
+export interface StaffLoanRequest {
+  loanTypeId: string;
+  principalAmount: number;
+  interestRate: number;
+  purpose: string;
+  durationMonths: number;
+  pickupLocation?: string;
+  pickupDate?: string;
+  items?: LoanItem[];
+}
+
 // Admin management interfaces
 export interface StaffFilters {
   page?: number;
@@ -518,6 +551,20 @@ class StaffApi {
     );
     return response.data || response;
   }
+
+  /**
+   * Get loan types
+   */
+  async getLoanTypes(): Promise<LoanType[]> {
+    return this.client.get<LoanType[]>("/loans/types");
+  }
+
+  /**
+   * Request a loan
+   */
+  async requestLoan(staffId: string, data: StaffLoanRequest): Promise<any> {
+    return this.client.post(`/staff/${staffId}/request-loan`, data);
+  }
 }
 
 export const staffApi = new StaffApi();
@@ -567,4 +614,16 @@ export const uploadProfilePicture = async (
   file: File
 ): Promise<{ url: string; publicId: string }> => {
   return staffApi.uploadProfilePicture(file);
+};
+
+// Loan-related functions
+export const getLoanTypes = async (): Promise<LoanType[]> => {
+  return apiClient.get<LoanType[]>("/loans/types");
+};
+
+export const requestLoan = async (
+  staffId: string,
+  data: StaffLoanRequest
+): Promise<any> => {
+  return apiClient.post(`/staff/${staffId}/request-loan`, data);
 };
