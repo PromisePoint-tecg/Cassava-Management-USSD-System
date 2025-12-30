@@ -9,11 +9,11 @@ export const setCookie = (name: string, value: string, days: number = 1) => {
 };
 
 export const getCookie = (name: string): string | null => {
-  const nameEQ = name + '=';
-  const ca = document.cookie.split(';');
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(";");
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i];
-    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    while (c.charAt(0) === " ") c = c.substring(1, c.length);
     if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
   }
   return null;
@@ -24,13 +24,26 @@ export const deleteCookie = (name: string) => {
 };
 
 export const getAuthToken = (): string | null => {
-  return getCookie('admin_token');
+  return getCookie("admin_token");
 };
 
 export const setAuthToken = (token: string, days: number = 1) => {
-  setCookie('admin_token', token, days);
+  setCookie("admin_token", token, days);
 };
 
 export const clearAuthToken = () => {
-  deleteCookie('admin_token');
+  deleteCookie("admin_token");
+};
+
+// Staff token functions
+export const getStaffAuthToken = (): string | null => {
+  return getCookie("authToken");
+};
+
+export const setStaffAuthToken = (token: string, days: number = 1) => {
+  setCookie("authToken", token, days);
+};
+
+export const clearStaffAuthToken = () => {
+  deleteCookie("authToken");
 };

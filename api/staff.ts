@@ -2,7 +2,8 @@
  * Staff Management API functions
  */
 
-import { apiClient } from './client';
+import { apiClient } from "./client";
+import { getStaffAuthToken } from "../utils/cookies";
 
 export interface Staff {
   id: string;
@@ -17,7 +18,7 @@ export interface Staff {
   department?: string;
   employeeId?: string;
   isActive?: boolean;
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
   isApproved?: boolean;
   dateApproved?: string;
   approvedBy?: string;
@@ -93,7 +94,7 @@ export interface StaffFilters {
   limit?: number;
   search?: string;
   role?: string;
-  status?: 'active' | 'inactive' | 'all';
+  status?: "active" | "inactive" | "all";
   department?: string;
   is_approved?: boolean;
 }
@@ -145,54 +146,116 @@ class StaffApi {
   /**
    * Staff login
    */
-  async login(email: string, password: string): Promise<StaffLoginResponse> {
-    const response = await this.client.post<StaffLoginResponse>('/staff/login', {
-      email,
-      password
+  async login(phone: string, pin: string): Promise<StaffLoginResponse> {
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/staff/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ phone, pin }),
     });
-    return response;
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Login failed" }));
+      throw new Error(error.message || "Login failed");
+    }
+
+    const data = await response.json();
+
+    // The API returns { success, data: { accessToken, staff, ... }, ... }
+    if (data && data.data && data.data.accessToken && data.data.staff) {
+      return {
+        token: data.data.accessToken,
+        staff: data.data.staff,
+      };
+    }
+    // fallback to old format
+    return data;
   }
 
   /**
    * Get staff profile
    */
   async getProfile(): Promise<StaffProfile> {
-    const response = await this.client.get<StaffProfile>('/staff/profile');
-    return response;
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/staff/profile`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to get profile" }));
+      throw new Error(error.message || "Failed to get profile");
+    }
+
+    return response.json();
   }
 
   /**
    * Get staff balances
    */
   async getBalances(): Promise<StaffBalances> {
-    const response = await this.client.get<StaffBalances>('/staff/balances');
-    return response;
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/staff/balances`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to get balances" }));
+      throw new Error(error.message || "Failed to get balances");
+    }
+
+    return response.json();
   }
 
   /**
    * Upload NIN document
    */
-  async uploadNIN(file: File): Promise<{ ninDocumentUrl: string; message: string }> {
+  async uploadNIN(
+    file: File
+  ): Promise<{ ninDocumentUrl: string; message: string }> {
     const formData = new FormData();
-    formData.append('nin', file);
-    
+    formData.append("nin", file);
+
     const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('authToken='))
-      ?.split('=')[1];
-    
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      .split("; ")
+      .find((row) => row.startsWith("authToken="))
+      ?.split("=")[1];
+
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
     const response = await fetch(`${API_BASE_URL}/staff/upload/nin`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        ...(token && { Authorization: `Bearer ${token}` })
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
-      body: formData
+      body: formData,
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to upload NIN' }));
-      throw new Error(error.message || 'Failed to upload NIN');
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to upload NIN" }));
+      throw new Error(error.message || "Failed to upload NIN");
     }
 
     return response.json();
@@ -201,27 +264,32 @@ class StaffApi {
   /**
    * Upload BVN document
    */
-  async uploadBVN(file: File): Promise<{ bvnDocumentUrl: string; message: string }> {
+  async uploadBVN(
+    file: File
+  ): Promise<{ bvnDocumentUrl: string; message: string }> {
     const formData = new FormData();
-    formData.append('bvn', file);
-    
+    formData.append("bvn", file);
+
     const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('authToken='))
-      ?.split('=')[1];
-    
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      .split("; ")
+      .find((row) => row.startsWith("authToken="))
+      ?.split("=")[1];
+
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
     const response = await fetch(`${API_BASE_URL}/staff/upload/bvn`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        ...(token && { Authorization: `Bearer ${token}` })
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
-      body: formData
+      body: formData,
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to upload BVN' }));
-      throw new Error(error.message || 'Failed to upload BVN');
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to upload BVN" }));
+      throw new Error(error.message || "Failed to upload BVN");
     }
 
     return response.json();
@@ -233,22 +301,27 @@ class StaffApi {
    */
   async getAllStaff(filters: StaffFilters = {}): Promise<StaffResponse> {
     const params = new URLSearchParams();
-    if (filters.page) params.append('page', filters.page.toString());
-    if (filters.limit) params.append('limit', filters.limit.toString());
-    if (filters.search) params.append('search', filters.search);
-    if (filters.role) params.append('role', filters.role);
-    if (filters.status) params.append('status', filters.status);
-    if (filters.department) params.append('department', filters.department);
-    if (filters.is_approved !== undefined) params.append('is_approved', filters.is_approved.toString());
-    
+    if (filters.page) params.append("page", filters.page.toString());
+    if (filters.limit) params.append("limit", filters.limit.toString());
+    if (filters.search) params.append("search", filters.search);
+    if (filters.role) params.append("role", filters.role);
+    if (filters.status) params.append("status", filters.status);
+    if (filters.department) params.append("department", filters.department);
+    if (filters.is_approved !== undefined)
+      params.append("is_approved", filters.is_approved.toString());
+
     const queryString = params.toString();
-    
+
     // Try /admins/staff first, fallback to /staff
     try {
-      return await this.client.get<StaffResponse>(`/admins/staff?${queryString}`);
+      return await this.client.get<StaffResponse>(
+        `/admins/staff?${queryString}`
+      );
     } catch (error: any) {
-      if (error.message?.includes('500') || error.message?.includes('404')) {
-        const response: any = await this.client.get<PaginatedStaffResponse>(`/staff?${queryString}`);
+      if (error.message?.includes("500") || error.message?.includes("404")) {
+        const response: any = await this.client.get<PaginatedStaffResponse>(
+          `/staff?${queryString}`
+        );
         return response.data || response;
       }
       throw error;
@@ -262,9 +335,9 @@ class StaffApi {
     try {
       return await this.client.get<StaffProfile>(`/admins/staff/${staffId}`);
     } catch (error: any) {
-      if (error.message?.includes('404')) {
+      if (error.message?.includes("404")) {
         const response: any = await this.client.get<Staff>(`/staff/${staffId}`);
-        return { ...response.data || response, balances: undefined };
+        return { ...(response.data || response), balances: undefined };
       }
       throw error;
     }
@@ -275,20 +348,23 @@ class StaffApi {
    */
   async createStaff(data: CreateStaffData): Promise<Staff> {
     try {
-      return await this.client.post<Staff>('/admins/staff', data);
+      return await this.client.post<Staff>("/admins/staff", data);
     } catch (error: any) {
       // Fallback to register endpoint if create fails
-      if (error.message?.includes('404') || error.message?.includes('500')) {
+      if (error.message?.includes("404") || error.message?.includes("500")) {
         const registerData: RegisterStaffDto = {
           phone: data.phone,
           firstName: data.firstName,
           lastName: data.lastName,
-          lga: '',
+          lga: "",
           role: data.role,
-          department: '',
-          monthlySalary: 0
+          department: "",
+          monthlySalary: 0,
         };
-        const response: any = await this.client.post<Staff>('/staff/register', registerData);
+        const response: any = await this.client.post<Staff>(
+          "/staff/register",
+          registerData
+        );
         return response.data || response;
       }
       throw error;
@@ -298,12 +374,18 @@ class StaffApi {
   /**
    * Update staff (admin only)
    */
-  async updateStaff(staffId: string, data: UpdateStaffData | UpdateStaffDto): Promise<Staff> {
+  async updateStaff(
+    staffId: string,
+    data: UpdateStaffData | UpdateStaffDto
+  ): Promise<Staff> {
     try {
       return await this.client.patch<Staff>(`/admins/staff/${staffId}`, data);
     } catch (error: any) {
-      if (error.message?.includes('404')) {
-        const response: any = await this.client.patch<Staff>(`/staff/${staffId}`, data);
+      if (error.message?.includes("404")) {
+        const response: any = await this.client.patch<Staff>(
+          `/staff/${staffId}`,
+          data
+        );
         return response.data || response;
       }
       throw error;
@@ -315,11 +397,16 @@ class StaffApi {
    */
   async activateStaff(staffId: string): Promise<StaffActionResponse> {
     try {
-      return await this.client.patch<StaffActionResponse>(`/admins/staff/${staffId}/activate`, {});
+      return await this.client.patch<StaffActionResponse>(
+        `/admins/staff/${staffId}/activate`,
+        {}
+      );
     } catch (error: any) {
-      if (error.message?.includes('404')) {
-        const response: any = await this.client.post<Staff>(`/staff/${staffId}/reactivate`);
-        return { message: 'Staff activated', staff: response.data || response };
+      if (error.message?.includes("404")) {
+        const response: any = await this.client.post<Staff>(
+          `/staff/${staffId}/reactivate`
+        );
+        return { message: "Staff activated", staff: response.data || response };
       }
       throw error;
     }
@@ -328,13 +415,25 @@ class StaffApi {
   /**
    * Deactivate staff (admin only)
    */
-  async deactivateStaff(staffId: string, reason?: string): Promise<StaffActionResponse> {
+  async deactivateStaff(
+    staffId: string,
+    reason?: string
+  ): Promise<StaffActionResponse> {
     try {
-      return await this.client.patch<StaffActionResponse>(`/admins/staff/${staffId}/deactivate`, {});
+      return await this.client.patch<StaffActionResponse>(
+        `/admins/staff/${staffId}/deactivate`,
+        {}
+      );
     } catch (error: any) {
-      if (error.message?.includes('404')) {
-        const response: any = await this.client.post<Staff>(`/staff/${staffId}/deactivate`, { reason: reason || 'Deactivated by admin' });
-        return { message: 'Staff deactivated', staff: response.data || response };
+      if (error.message?.includes("404")) {
+        const response: any = await this.client.post<Staff>(
+          `/staff/${staffId}/deactivate`,
+          { reason: reason || "Deactivated by admin" }
+        );
+        return {
+          message: "Staff deactivated",
+          staff: response.data || response,
+        };
       }
       throw error;
     }
@@ -351,7 +450,10 @@ class StaffApi {
    * Register new staff (legacy endpoint)
    */
   async registerStaff(data: RegisterStaffDto): Promise<Staff> {
-    const response: any = await this.client.post<Staff>('/staff/register', data);
+    const response: any = await this.client.post<Staff>(
+      "/staff/register",
+      data
+    );
     return response.data || response;
   }
 
@@ -359,7 +461,10 @@ class StaffApi {
    * Approve staff registration
    */
   async approveStaff(staffId: string, data: ApproveStaffDto): Promise<Staff> {
-    const response: any = await this.client.post<Staff>(`/staff/${staffId}/approve`, data);
+    const response: any = await this.client.post<Staff>(
+      `/staff/${staffId}/approve`,
+      data
+    );
     return response.data || response;
   }
 
@@ -367,17 +472,24 @@ class StaffApi {
    * Reactivate staff (legacy endpoint)
    */
   async reactivateStaff(staffId: string): Promise<Staff> {
-    const response: any = await this.client.post<Staff>(`/staff/${staffId}/reactivate`);
+    const response: any = await this.client.post<Staff>(
+      `/staff/${staffId}/reactivate`
+    );
     return response.data || response;
   }
 
   /**
    * Upload profile picture
    */
-  async uploadProfilePicture(file: File): Promise<{ url: string; publicId: string }> {
+  async uploadProfilePicture(
+    file: File
+  ): Promise<{ url: string; publicId: string }> {
     const formData = new FormData();
-    formData.append('file', file);
-    const response: any = await this.client.post('/upload/profile-picture', formData);
+    formData.append("file", file);
+    const response: any = await this.client.post(
+      "/upload/profile-picture",
+      formData
+    );
     return response.data || response;
   }
 }
@@ -385,15 +497,9 @@ class StaffApi {
 export const staffApi = new StaffApi();
 
 // Legacy function exports for backward compatibility
-export const getAllStaff = async (params?: {
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-  role?: string;
-  department?: string;
-  is_approved?: boolean;
-}): Promise<PaginatedStaffResponse> => {
+export const getAllStaff = async (
+  params?: StaffFilters
+): Promise<PaginatedStaffResponse> => {
   return staffApi.getAllStaff(params);
 };
 
@@ -405,22 +511,34 @@ export const registerStaff = async (data: RegisterStaffDto): Promise<Staff> => {
   return staffApi.registerStaff(data);
 };
 
-export const approveStaff = async (staffId: string, data: ApproveStaffDto): Promise<Staff> => {
+export const approveStaff = async (
+  staffId: string,
+  data: ApproveStaffDto
+): Promise<Staff> => {
   return staffApi.approveStaff(staffId, data);
 };
 
-export const updateStaff = async (staffId: string, data: UpdateStaffDto): Promise<Staff> => {
+export const updateStaff = async (
+  staffId: string,
+  data: UpdateStaffDto
+): Promise<Staff> => {
   return staffApi.updateStaff(staffId, data);
 };
 
-export const deactivateStaff = async (staffId: string, data: DeactivateStaffDto): Promise<Staff> => {
-  return staffApi.deactivateStaff(staffId, data.reason);
+export const deactivateStaff = async (
+  staffId: string,
+  data: DeactivateStaffDto
+): Promise<Staff> => {
+  const response = await staffApi.deactivateStaff(staffId, data.reason);
+  return response.staff;
 };
 
 export const reactivateStaff = async (staffId: string): Promise<Staff> => {
   return staffApi.reactivateStaff(staffId);
 };
 
-export const uploadProfilePicture = async (file: File): Promise<{ url: string; publicId: string }> => {
+export const uploadProfilePicture = async (
+  file: File
+): Promise<{ url: string; publicId: string }> => {
   return staffApi.uploadProfilePicture(file);
 };

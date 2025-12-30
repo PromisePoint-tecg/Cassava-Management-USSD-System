@@ -1,34 +1,39 @@
-import React, { useState } from 'react';
-import { Lock, User, Loader2 } from 'lucide-react';
-import { staffApi } from '../api/staff';
-import type { Staff } from '../api/staff';
-import { setAuthToken } from '../utils/cookies';
+import React, { useState } from "react";
+import { Lock, User, Loader2 } from "lucide-react";
+import { staffApi } from "../api/staff";
+import type { Staff } from "../api/staff";
+import { setStaffAuthToken } from "../utils/cookies";
 
 interface StaffLoginPageProps {
   onLoginSuccess: (staff: Staff) => void;
 }
 
 const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState("");
+  const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      const response = await staffApi.login(email, password);
-      
+      const response = await staffApi.login(phone, pin);
       // Store token in cookie
-      setAuthToken(response.token);
-      
+      setStaffAuthToken(response.token);
       // Call parent callback with staff info
       onLoginSuccess(response.staff);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+    } catch (err: any) {
+      // Try to extract error message from API error response
+      let message = "Login failed. Please try again.";
+      if (err?.response?.data?.message) {
+        message = err.response.data.message;
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -54,13 +59,17 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Promise Point</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Promise Point
+          </h1>
           <p className="text-gray-600">Agrictech Solution - Staff Portal</p>
         </div>
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Staff Sign In</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Staff Sign In
+          </h2>
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -69,44 +78,54 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
+            {/* Phone Number Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Phone Number
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="email"
-                  type="email"
+                  id="phone"
+                  type="tel"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter your email"
+                  placeholder="Enter your phone number"
+                  pattern="[0-9]{10,11}"
+                  maxLength={11}
                 />
               </div>
             </div>
 
-            {/* Password Field */}
+            {/* PIN Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+              <label
+                htmlFor="pin"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                PIN
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="password"
+                  id="pin"
                   type="password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter your password"
+                  placeholder="Enter your PIN"
+                  pattern="[0-9]{4,6}"
+                  maxLength={6}
                 />
               </div>
             </div>
@@ -123,7 +142,7 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
           </form>
@@ -131,7 +150,10 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-600">
-          <p>&copy; {new Date().getFullYear()} Promise Point Agrictech Solution. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} Promise Point Agrictech Solution.
+            All rights reserved.
+          </p>
         </div>
       </div>
     </div>
@@ -139,5 +161,3 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
 };
 
 export default StaffLoginPage;
-
-
