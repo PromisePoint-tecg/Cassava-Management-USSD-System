@@ -199,7 +199,21 @@ class StaffApi {
       throw new Error(error.message || "Failed to get profile");
     }
 
-    return response.json();
+    const data = await response.json();
+
+    // Handle both wrapped and direct response formats
+    const profile = data && data.data ? data.data : data;
+
+    // Transform wallet data to balances format expected by the component
+    if (profile && profile.wallet) {
+      profile.balances = {
+        savings: profile.wallet.savings_balance || 0,
+        pension: profile.wallet.escrow_balance || 0, // Assuming escrow_balance is pension
+        wallet: profile.wallet.balance || 0,
+      };
+    }
+
+    return profile;
   }
 
   /**
@@ -224,7 +238,17 @@ class StaffApi {
       throw new Error(error.message || "Failed to get balances");
     }
 
-    return response.json();
+    const data = await response.json();
+
+    // Handle wrapped response format
+    const balances = data && data.data ? data.data : data;
+
+    // Transform if needed to match StaffBalances interface
+    return {
+      savings: balances.savings_balance || balances.savings || 0,
+      pension: balances.escrow_balance || balances.pension || 0,
+      wallet: balances.balance || balances.wallet || 0,
+    };
   }
 
   /**
