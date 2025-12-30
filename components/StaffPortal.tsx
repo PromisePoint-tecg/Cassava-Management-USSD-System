@@ -43,6 +43,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [uploadingNIN, setUploadingNIN] = useState(false);
   const [uploadingBVN, setUploadingBVN] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -737,8 +738,8 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   key={item.id}
                   onClick={() => {
                     if (item.isRoute && item.path) {
-                      // Navigate to external route
-                      window.location.href = item.path;
+                      // Navigate to route
+                      navigate(item.path);
                     } else {
                       // Switch internal view
                       setCurrentView(item.id as StaffViewType);
