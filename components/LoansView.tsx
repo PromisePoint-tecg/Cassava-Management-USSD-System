@@ -1,34 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Search, 
-  Eye, 
-  CheckCircle2, 
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Search,
+  Eye,
+  CheckCircle2,
   Clock,
   AlertTriangle,
   DollarSign,
   X,
-  Play
-} from 'lucide-react';
-import { 
-  loansApi, 
-  AdminLoanResponse, 
-  LoanKPIs, 
+  Play,
+} from "lucide-react";
+import {
+  loansApi,
+  AdminLoanResponse,
+  LoanKPIs,
   GetLoansQuery,
   ApproveLoanData,
   CreateLoanData,
-  LoanType
-} from '../api/loans';
-import { farmersApi, Farmer } from '../api/farmers';
-import { SuccessModal } from './SuccessModal';
+  LoanType,
+  CreateLoanTypeData,
+} from "../api/loans";
+import { farmersApi, Farmer } from "../api/farmers";
+import { SuccessModal } from "./SuccessModal";
 
 interface LoansViewProps {}
 
-type TabType = 'loans' | 'requests';
+type TabType = "loans" | "requests";
 
 export const LoansView: React.FC<LoansViewProps> = () => {
   // State management
-  const [activeTab, setActiveTab] = useState<TabType>('loans');
+  const [activeTab, setActiveTab] = useState<TabType>("loans");
   const [kpis, setKpis] = useState<LoanKPIs | null>(null);
   const [loans, setLoans] = useState<AdminLoanResponse[]>([]);
   const [loanRequests, setLoanRequests] = useState<AdminLoanResponse[]>([]);
@@ -38,45 +39,46 @@ export const LoansView: React.FC<LoansViewProps> = () => {
   const [loadingFarmers, setLoadingFarmers] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Modal states
-  const [selectedLoan, setSelectedLoan] = useState<AdminLoanResponse | null>(null);
+  const [selectedLoan, setSelectedLoan] = useState<AdminLoanResponse | null>(
+    null
+  );
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isCreateLoanTypeModalOpen, setIsCreateLoanTypeModalOpen] = useState(false);
+  const [isCreateLoanTypeModalOpen, setIsCreateLoanTypeModalOpen] =
+    useState(false);
   const [createLoanTypeLoading, setCreateLoanTypeLoading] = useState(false);
-  const [createLoanTypeForm, setCreateLoanTypeForm] = useState({
-    name: '',
-    category: '',
-    description: '',
-    interest_rate: 0,
-    duration_months: 0,
-    max_amount: 0,
-    min_amount: 0,
-    is_active: true
-  });
+  const [createLoanTypeForm, setCreateLoanTypeForm] =
+    useState<CreateLoanTypeData>({
+      name: "",
+      description: "",
+      category: "",
+      interest_rate: 0,
+      duration_months: 0,
+    });
   const [loanData, setLoanData] = useState<CreateLoanData>({
-    farmer_id: '',
-    loan_type_id: '',
+    farmer_id: "",
+    loan_type_id: "",
     principal_amount: 0,
-    items: [{ name: '', quantity: 1, unit_price: 0, total_price: 0 }],
-    purpose: '',
-    due_date: '',
+    items: [{ name: "", quantity: 1, unit_price: 0, total_price: 0 }],
+    purpose: "",
+    due_date: "",
     monthly_payment: 0,
-    notes: ''
+    notes: "",
   });
   const [approvalData, setApprovalData] = useState<ApproveLoanData>({
-    pickup_date: '',
-    pickup_location: '',
-    admin_notes: ''
+    pickup_date: "",
+    pickup_location: "",
+    admin_notes: "",
   });
-  
+
   // Filters and pagination
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -91,7 +93,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
   // Load data when filters change
   useEffect(() => {
-    if (activeTab === 'loans') {
+    if (activeTab === "loans") {
       loadLoans();
     } else {
       loadLoanRequests();
@@ -103,8 +105,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       const data = await loansApi.getLoanKPIs();
       setKpis(data);
     } catch (err) {
-      console.error('Failed to load loan KPIs:', err);
-      setError('Failed to load loan statistics');
+      console.error("Failed to load loan KPIs:", err);
+      setError("Failed to load loan statistics");
     }
   };
 
@@ -115,18 +117,18 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         page: currentPage,
         limit: 10,
         search: searchTerm || undefined,
-        status: statusFilter as any || undefined,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        status: (statusFilter as any) || undefined,
+        sortBy: "createdAt",
+        sortOrder: "desc",
       };
-      
+
       const data = await loansApi.getAllLoans(query);
       setLoans(data.loans);
       setTotalPages(data.totalPages);
       setTotal(data.total);
     } catch (err) {
-      console.error('Failed to load loans:', err);
-      setError('Failed to load loans');
+      console.error("Failed to load loans:", err);
+      setError("Failed to load loans");
     } finally {
       setLoading(false);
     }
@@ -139,17 +141,17 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         page: currentPage,
         limit: 10,
         search: searchTerm || undefined,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        sortBy: "createdAt",
+        sortOrder: "desc",
       };
-      
+
       const data = await loansApi.getLoanRequests(query);
       setLoanRequests(data.loanRequests);
       setTotalPages(data.totalPages);
       setTotal(data.total);
     } catch (err) {
-      console.error('Failed to load loan requests:', err);
-      setError('Failed to load loan requests');
+      console.error("Failed to load loan requests:", err);
+      setError("Failed to load loan requests");
     } finally {
       setLoading(false);
     }
@@ -161,7 +163,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       const data = await loansApi.getLoanTypes({ is_active: true });
       setLoanTypes(data);
     } catch (err) {
-      console.error('Failed to load loan types:', err);
+      console.error("Failed to load loan types:", err);
     } finally {
       setLoadingLoanTypes(false);
     }
@@ -170,10 +172,13 @@ export const LoansView: React.FC<LoansViewProps> = () => {
   const loadFarmers = async () => {
     try {
       setLoadingFarmers(true);
-      const result = await farmersApi.getAllFarmers({ limit: 100, status: 'active' });
+      const result = await farmersApi.getAllFarmers({
+        limit: 100,
+        status: "active",
+      });
       setFarmers(result.farmers);
     } catch (err) {
-      console.error('Failed to load farmers:', err);
+      console.error("Failed to load farmers:", err);
     } finally {
       setLoadingFarmers(false);
     }
@@ -184,26 +189,23 @@ export const LoansView: React.FC<LoansViewProps> = () => {
     try {
       setCreateLoanTypeLoading(true);
       setError(null);
-      
+
       await loansApi.createLoanType(createLoanTypeForm);
-      
+
       setIsCreateLoanTypeModalOpen(false);
       setCreateLoanTypeForm({
-        name: '',
-        category: '',
-        description: '',
+        name: "",
+        description: "",
+        category: "",
         interest_rate: 0,
         duration_months: 0,
-        max_amount: 0,
-        min_amount: 0,
-        is_active: true
       });
-      
-      setSuccessMessage('Loan type created successfully!');
+
+      setSuccessMessage("Loan type created successfully!");
       setIsSuccessModalOpen(true);
       loadLoanTypes();
     } catch (err: any) {
-      setError(err.message || 'Failed to create loan type');
+      setError(err.message || "Failed to create loan type");
     } finally {
       setCreateLoanTypeLoading(false);
     }
@@ -218,9 +220,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
     setSelectedLoan(loan);
     setIsApprovalModalOpen(true);
     setApprovalData({
-      pickup_date: '',
-      pickup_location: '',
-      admin_notes: ''
+      pickup_date: "",
+      pickup_location: "",
+      admin_notes: "",
     });
   };
 
@@ -232,34 +234,36 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       await loansApi.approveLoanRequest(selectedLoan.id, approvalData);
       setIsApprovalModalOpen(false);
       setSelectedLoan(null);
-      
+
       // Show success message
-      setSuccessMessage(`Loan request approved successfully!\nActive loan created and SMS notification sent to ${selectedLoan.farmer_name}.\nThe loan will be activated when the farmer picks up the inputs.`);
+      setSuccessMessage(
+        `Loan request approved successfully!\nActive loan created and SMS notification sent to ${selectedLoan.farmer_name}.\nThe loan will be activated when the farmer picks up the inputs.`
+      );
       setIsSuccessModalOpen(true);
-      
+
       // Refresh data
       loadKPIs();
       loadLoanRequests();
-      if (activeTab === 'loans') {
+      if (activeTab === "loans") {
         loadLoans();
       }
     } catch (err) {
-      console.error('Failed to approve loan:', err);
-      alert('Failed to approve loan request. Please try again.');
+      console.error("Failed to approve loan:", err);
+      alert("Failed to approve loan request. Please try again.");
     }
   };
 
   const handleCreateNewLoan = () => {
     setSelectedLoan(null); // Clear any selected loan
     setLoanData({
-      farmer_id: '',
-      loan_type_id: '',
+      farmer_id: "",
+      loan_type_id: "",
       principal_amount: 0,
-      items: [{ name: '', quantity: 1, unit_price: 0, total_price: 0 }],
-      purpose: '',
-      due_date: '',
+      items: [{ name: "", quantity: 1, unit_price: 0, total_price: 0 }],
+      purpose: "",
+      due_date: "",
       monthly_payment: 0,
-      notes: ''
+      notes: "",
     });
     setShowCreateModal(true);
     // Load farmers and loan types when opening modal
@@ -276,106 +280,130 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       const loanDataInKobo = {
         ...loanData,
         principal_amount: Math.round(loanData.principal_amount * 100), // Convert to kobo
-        monthly_payment: loanData.monthly_payment ? Math.round(loanData.monthly_payment * 100) : undefined,
-        items: loanData.items.map(item => ({
+        monthly_payment: loanData.monthly_payment
+          ? Math.round(loanData.monthly_payment * 100)
+          : undefined,
+        items: loanData.items.map((item) => ({
           ...item,
           unit_price: Math.round(item.unit_price * 100), // Convert to kobo
-          total_price: Math.round(item.total_price * 100) // Convert to kobo
-        }))
+          total_price: Math.round(item.total_price * 100), // Convert to kobo
+        })),
       };
 
       await loansApi.createLoan(loanDataInKobo);
       setShowCreateModal(false);
       setSelectedLoan(null);
-      setSuccessMessage('Loan created successfully!');
+      setSuccessMessage("Loan created successfully!");
       setIsSuccessModalOpen(true);
       await loadLoans();
       await loadLoanRequests();
       await loadKPIs();
     } catch (err: any) {
-      console.error('Failed to create loan:', err);
-      const errorMessage = err?.response?.data?.message || err?.message || 'Unknown error occurred';
+      console.error("Failed to create loan:", err);
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Unknown error occurred";
       alert(`Failed to create loan: ${errorMessage}`);
     }
   };
 
   const handleActivateLoan = async (loan: AdminLoanResponse) => {
-    if (loan.status !== 'approved') {
-      alert('Only approved loans can be activated.');
+    if (loan.status !== "approved") {
+      alert("Only approved loans can be activated.");
       return;
     }
 
     // Check if pickup date has passed
     if (loan.pickup_date && new Date() < new Date(loan.pickup_date)) {
-      const pickupDate = new Date(loan.pickup_date).toLocaleDateString('en-NG');
+      const pickupDate = new Date(loan.pickup_date).toLocaleDateString("en-NG");
       alert(`Cannot activate loan before pickup date: ${pickupDate}`);
       return;
     }
 
     const confirmMessage = `Are you sure you want to activate loan ${loan.reference} for ${loan.farmer_name}?\n\nThis will change the status to 'Active' and the farmer will start making monthly payments.`;
-    
+
     if (!window.confirm(confirmMessage)) {
       return;
     }
 
     try {
       await loansApi.activateLoan(loan.id);
-      
+
       // Show success message
-      setSuccessMessage(`Loan ${loan.reference} activated successfully!\nThe farmer ${loan.farmer_name} has been notified via SMS.\nMonthly payments will now commence.`);
+      setSuccessMessage(
+        `Loan ${loan.reference} activated successfully!\nThe farmer ${loan.farmer_name} has been notified via SMS.\nMonthly payments will now commence.`
+      );
       setIsSuccessModalOpen(true);
-      
+
       // Refresh data
       loadKPIs();
       loadLoans();
       loadLoanRequests();
     } catch (err: any) {
-      console.error('Failed to activate loan:', err);
-      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to activate loan';
+      console.error("Failed to activate loan:", err);
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to activate loan";
       alert(`Failed to activate loan: ${errorMessage}`);
     }
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'requested': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pending' },
-      'approved': { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Approved' },
-      'active': { bg: 'bg-green-100', text: 'text-green-800', label: 'Active' },
-      'completed': { bg: 'bg-emerald-100', text: 'text-emerald-800', label: 'Completed' },
-      'defaulted': { bg: 'bg-red-100', text: 'text-red-800', label: 'Defaulted' },
+      requested: {
+        bg: "bg-yellow-100",
+        text: "text-yellow-800",
+        label: "Pending",
+      },
+      approved: { bg: "bg-blue-100", text: "text-blue-800", label: "Approved" },
+      active: { bg: "bg-green-100", text: "text-green-800", label: "Active" },
+      completed: {
+        bg: "bg-emerald-100",
+        text: "text-emerald-800",
+        label: "Completed",
+      },
+      defaulted: { bg: "bg-red-100", text: "text-red-800", label: "Defaulted" },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.requested;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] ||
+      statusConfig.requested;
 
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${config.bg} ${config.text} flex items-center gap-1`}>
+      <span
+        className={`px-2 py-1 text-xs font-medium rounded-full ${config.bg} ${config.text} flex items-center gap-1`}
+      >
         {config.label}
       </span>
     );
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN'
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
     }).format(amount);
   };
 
   const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(date).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
-  const currentData = activeTab === 'loans' ? loans : loanRequests;
+  const currentData = activeTab === "loans" ? loans : loanRequests;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Loan Management</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+          Loan Management
+        </h2>
         <div className="flex gap-2">
           <button
             onClick={() => setIsCreateLoanTypeModalOpen(true)}
@@ -400,20 +428,28 @@ export const LoansView: React.FC<LoansViewProps> = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-gray-500 text-sm font-medium">Total Outstanding</h3>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(kpis.totalOutstanding)}</p>
+                <h3 className="text-gray-500 text-sm font-medium">
+                  Total Outstanding
+                </h3>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(kpis.totalOutstanding)}
+                </p>
               </div>
               <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-gray-500 text-sm font-medium">Active Loans</h3>
-                <p className="text-2xl font-bold text-gray-900">{kpis.activeLoans}</p>
+                <h3 className="text-gray-500 text-sm font-medium">
+                  Active Loans
+                </h3>
+                <p className="text-2xl font-bold text-gray-900">
+                  {kpis.activeLoans}
+                </p>
               </div>
               <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
                 <CheckCircle2 className="w-6 h-6" />
@@ -424,8 +460,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-gray-500 text-sm font-medium">Pending Requests</h3>
-                <p className="text-2xl font-bold text-gray-900">{kpis.pendingRequests}</p>
+                <h3 className="text-gray-500 text-sm font-medium">
+                  Pending Requests
+                </h3>
+                <p className="text-2xl font-bold text-gray-900">
+                  {kpis.pendingRequests}
+                </p>
               </div>
               <div className="p-3 bg-yellow-50 text-yellow-600 rounded-lg">
                 <Clock className="w-6 h-6" />
@@ -436,8 +476,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-gray-500 text-sm font-medium">Default Rate</h3>
-                <p className="text-2xl font-bold text-gray-900">{kpis.defaultRate.toFixed(1)}%</p>
+                <h3 className="text-gray-500 text-sm font-medium">
+                  Default Rate
+                </h3>
+                <p className="text-2xl font-bold text-gray-900">
+                  {kpis.defaultRate.toFixed(1)}%
+                </p>
               </div>
               <div className="p-3 bg-red-50 text-red-600 rounded-lg">
                 <AlertTriangle className="w-6 h-6" />
@@ -452,30 +496,30 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => {
-              setActiveTab('loans');
+              setActiveTab("loans");
               setCurrentPage(1);
-              setSearchTerm('');
-              setStatusFilter('');
+              setSearchTerm("");
+              setStatusFilter("");
             }}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'loans'
-                ? 'border-emerald-500 text-emerald-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              activeTab === "loans"
+                ? "border-emerald-500 text-emerald-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
             All Loans ({kpis ? kpis.totalLoanRequests : 0})
           </button>
           <button
             onClick={() => {
-              setActiveTab('requests');
+              setActiveTab("requests");
               setCurrentPage(1);
-              setSearchTerm('');
-              setStatusFilter('');
+              setSearchTerm("");
+              setStatusFilter("");
             }}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'requests'
-                ? 'border-emerald-500 text-emerald-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              activeTab === "requests"
+                ? "border-emerald-500 text-emerald-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
             Loan Requests ({kpis ? kpis.pendingRequests : 0})
@@ -495,8 +539,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
         </div>
-        
-        {activeTab === 'loans' && (
+
+        {activeTab === "loans" && (
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -556,8 +600,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   <tr key={loan.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{loan.farmer_name}</div>
-                        <div className="text-sm text-gray-500">{loan.farmer_phone}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {loan.farmer_name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {loan.farmer_phone}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -588,7 +636,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        {loan.status === 'requested' && (
+                        {loan.status === "requested" && (
                           <button
                             onClick={() => handleApprove(loan)}
                             className="text-blue-600 hover:text-blue-900 p-1"
@@ -597,7 +645,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                             <CheckCircle2 className="w-4 h-4" />
                           </button>
                         )}
-                        {loan.status === 'approved' && (
+                        {loan.status === "approved" && (
                           <button
                             onClick={() => handleActivateLoan(loan)}
                             className="text-green-600 hover:text-green-900 p-1"
@@ -618,7 +666,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
           {currentData.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-500">
-                {activeTab === 'loans' ? 'No loans found' : 'No loan requests found'}
+                {activeTab === "loans"
+                  ? "No loans found"
+                  : "No loan requests found"}
               </p>
             </div>
           )}
@@ -638,7 +688,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   Previous
                 </button>
                 <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                 >
@@ -667,11 +719,13 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* Farmer Info */}
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Farmer Information</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">
+                  Farmer Information
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Name</p>
@@ -686,7 +740,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
               {/* Loan Info */}
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Loan Information</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">
+                  Loan Information
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Loan Type</p>
@@ -694,7 +750,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Principal Amount</p>
-                    <p className="font-medium">{formatCurrency(selectedLoan.principal_amount)}</p>
+                    <p className="font-medium">
+                      {formatCurrency(selectedLoan.principal_amount)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Interest Rate</p>
@@ -702,31 +760,45 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Total Repayment</p>
-                    <p className="font-medium">{formatCurrency(selectedLoan.total_repayment)}</p>
+                    <p className="font-medium">
+                      {formatCurrency(selectedLoan.total_repayment)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Duration</p>
-                    <p className="font-medium">{selectedLoan.duration_months} months</p>
+                    <p className="font-medium">
+                      {selectedLoan.duration_months} months
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Monthly Payment</p>
-                    <p className="font-medium">{formatCurrency(selectedLoan.monthly_payment)}</p>
+                    <p className="font-medium">
+                      {formatCurrency(selectedLoan.monthly_payment)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Amount Paid</p>
-                    <p className="font-medium text-green-600">{formatCurrency(selectedLoan.amount_paid)}</p>
+                    <p className="font-medium text-green-600">
+                      {formatCurrency(selectedLoan.amount_paid)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Outstanding</p>
-                    <p className="font-medium text-orange-600">{formatCurrency(selectedLoan.amount_outstanding)}</p>
+                    <p className="font-medium text-orange-600">
+                      {formatCurrency(selectedLoan.amount_outstanding)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Status</p>
-                    <div className="font-medium">{getStatusBadge(selectedLoan.status)}</div>
+                    <div className="font-medium">
+                      {getStatusBadge(selectedLoan.status)}
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Due Date</p>
-                    <p className="font-medium">{formatDate(selectedLoan.due_date)}</p>
+                    <p className="font-medium">
+                      {formatDate(selectedLoan.due_date)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -734,18 +806,24 @@ export const LoansView: React.FC<LoansViewProps> = () => {
               {/* Pickup Information */}
               {(selectedLoan.pickup_date || selectedLoan.pickup_location) && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Pickup Information</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    Pickup Information
+                  </h4>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedLoan.pickup_date && (
                       <div>
                         <p className="text-sm text-gray-500">Pickup Date</p>
-                        <p className="font-medium">{formatDate(selectedLoan.pickup_date)}</p>
+                        <p className="font-medium">
+                          {formatDate(selectedLoan.pickup_date)}
+                        </p>
                       </div>
                     )}
                     {selectedLoan.pickup_location && (
                       <div>
                         <p className="text-sm text-gray-500">Pickup Location</p>
-                        <p className="font-medium">{selectedLoan.pickup_location}</p>
+                        <p className="font-medium">
+                          {selectedLoan.pickup_location}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -755,35 +833,49 @@ export const LoansView: React.FC<LoansViewProps> = () => {
               {/* Purpose */}
               {selectedLoan.purpose && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Purpose</h4>
-                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedLoan.purpose}</p>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    Purpose
+                  </h4>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    {selectedLoan.purpose}
+                  </p>
                 </div>
               )}
 
               {/* Dates */}
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Important Dates</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">
+                  Important Dates
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Created</p>
-                    <p className="font-medium">{formatDate(selectedLoan.createdAt)}</p>
+                    <p className="font-medium">
+                      {formatDate(selectedLoan.createdAt)}
+                    </p>
                   </div>
                   {selectedLoan.approved_at && (
                     <div>
                       <p className="text-sm text-gray-500">Approved</p>
-                      <p className="font-medium">{formatDate(selectedLoan.approved_at)}</p>
+                      <p className="font-medium">
+                        {formatDate(selectedLoan.approved_at)}
+                      </p>
                     </div>
                   )}
                   {selectedLoan.disbursed_at && (
                     <div>
                       <p className="text-sm text-gray-500">Disbursed</p>
-                      <p className="font-medium">{formatDate(selectedLoan.disbursed_at)}</p>
+                      <p className="font-medium">
+                        {formatDate(selectedLoan.disbursed_at)}
+                      </p>
                     </div>
                   )}
                   {selectedLoan.completed_at && (
                     <div>
                       <p className="text-sm text-gray-500">Completed</p>
-                      <p className="font-medium">{formatDate(selectedLoan.completed_at)}</p>
+                      <p className="font-medium">
+                        {formatDate(selectedLoan.completed_at)}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -810,11 +902,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 </button>
               </div>
             </div>
-            
+
             <form onSubmit={handleApprovalSubmit} className="p-6 space-y-4">
               <div>
                 <p className="text-sm text-gray-600 mb-4">
-                  Approving loan for {selectedLoan.farmer_name} - {formatCurrency(selectedLoan.principal_amount)}
+                  Approving loan for {selectedLoan.farmer_name} -{" "}
+                  {formatCurrency(selectedLoan.principal_amount)}
                 </p>
               </div>
 
@@ -825,7 +918,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 <input
                   type="datetime-local"
                   value={approvalData.pickup_date}
-                  onChange={(e) => setApprovalData({ ...approvalData, pickup_date: e.target.value })}
+                  onChange={(e) =>
+                    setApprovalData({
+                      ...approvalData,
+                      pickup_date: e.target.value,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   required
                 />
@@ -838,7 +936,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 <input
                   type="text"
                   value={approvalData.pickup_location}
-                  onChange={(e) => setApprovalData({ ...approvalData, pickup_location: e.target.value })}
+                  onChange={(e) =>
+                    setApprovalData({
+                      ...approvalData,
+                      pickup_location: e.target.value,
+                    })
+                  }
                   placeholder="e.g., Main Office, Warehouse A, etc."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
@@ -850,7 +953,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 </label>
                 <textarea
                   value={approvalData.admin_notes}
-                  onChange={(e) => setApprovalData({ ...approvalData, admin_notes: e.target.value })}
+                  onChange={(e) =>
+                    setApprovalData({
+                      ...approvalData,
+                      admin_notes: e.target.value,
+                    })
+                  }
                   placeholder="Any special instructions for the farmer..."
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -884,7 +992,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {selectedLoan ? `Create Loan for ${selectedLoan.farmer_name}` : 'Issue New Loan'}
+                  {selectedLoan
+                    ? `Create Loan for ${selectedLoan.farmer_name}`
+                    : "Issue New Loan"}
                 </h3>
                 <button
                   onClick={() => setShowCreateModal(false)}
@@ -894,7 +1004,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 </button>
               </div>
             </div>
-            
+
             <form onSubmit={handleCreateLoan} className="p-6 space-y-4">
               {/* Farmer Selection (only for new loans) */}
               {!selectedLoan && (
@@ -904,12 +1014,18 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   </label>
                   <select
                     value={loanData.farmer_id}
-                    onChange={(e) => setLoanData({ ...loanData, farmer_id: e.target.value })}
+                    onChange={(e) =>
+                      setLoanData({ ...loanData, farmer_id: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                     disabled={loadingFarmers}
                   >
-                    <option value="">{loadingFarmers ? 'Loading farmers...' : 'Select farmer...'}</option>
+                    <option value="">
+                      {loadingFarmers
+                        ? "Loading farmers..."
+                        : "Select farmer..."}
+                    </option>
                     {farmers.map((farmer) => (
                       <option key={farmer.id} value={farmer.id}>
                         {farmer.fullName} ({farmer.phone}) - {farmer.lga}
@@ -926,15 +1042,22 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 </label>
                 <select
                   value={loanData.loan_type_id}
-                  onChange={(e) => setLoanData({ ...loanData, loan_type_id: e.target.value })}
+                  onChange={(e) =>
+                    setLoanData({ ...loanData, loan_type_id: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   required
                   disabled={loadingLoanTypes}
                 >
-                  <option value="">{loadingLoanTypes ? 'Loading loan types...' : 'Select loan type...'}</option>
+                  <option value="">
+                    {loadingLoanTypes
+                      ? "Loading loan types..."
+                      : "Select loan type..."}
+                  </option>
                   {loanTypes.map((loanType) => (
                     <option key={loanType.id} value={loanType.id}>
-                      {loanType.name} - {loanType.interest_rate}% ({loanType.duration_months} months)
+                      {loanType.name} - {loanType.interest_rate}% (
+                      {loanType.duration_months} months)
                     </option>
                   ))}
                 </select>
@@ -949,7 +1072,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   <input
                     type="number"
                     value={loanData.principal_amount}
-                    onChange={(e) => setLoanData({ ...loanData, principal_amount: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setLoanData({
+                        ...loanData,
+                        principal_amount: parseFloat(e.target.value) || 0,
+                      })
+                    }
                     placeholder="e.g., 100000"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
@@ -965,10 +1093,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   <input
                     type="date"
                     value={loanData.due_date}
-                    onChange={(e) => setLoanData({ ...loanData, due_date: e.target.value })}
+                    onChange={(e) =>
+                      setLoanData({ ...loanData, due_date: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
-                    min={new Date().toISOString().split('T')[0]}
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
               </div>
@@ -979,7 +1109,10 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   Loan Items
                 </label>
                 {loanData.items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
+                  <div
+                    key={index}
+                    className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2"
+                  >
                     <input
                       type="text"
                       placeholder="Item name"
@@ -1000,7 +1133,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                         const newItems = [...loanData.items];
                         const quantity = parseInt(e.target.value) || 1;
                         newItems[index].quantity = quantity;
-                        newItems[index].total_price = quantity * newItems[index].unit_price;
+                        newItems[index].total_price =
+                          quantity * newItems[index].unit_price;
                         setLoanData({ ...loanData, items: newItems });
                       }}
                       className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -1015,7 +1149,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                         const newItems = [...loanData.items];
                         const unitPrice = parseFloat(e.target.value) || 0;
                         newItems[index].unit_price = unitPrice;
-                        newItems[index].total_price = newItems[index].quantity * unitPrice;
+                        newItems[index].total_price =
+                          newItems[index].quantity * unitPrice;
                         setLoanData({ ...loanData, items: newItems });
                       }}
                       className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -1023,12 +1158,16 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                       min="0"
                     />
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">₦{item.total_price.toLocaleString()}</span>
+                      <span className="text-sm text-gray-600">
+                        ₦{item.total_price.toLocaleString()}
+                      </span>
                       {loanData.items.length > 1 && (
                         <button
                           type="button"
                           onClick={() => {
-                            const newItems = loanData.items.filter((_, i) => i !== index);
+                            const newItems = loanData.items.filter(
+                              (_, i) => i !== index
+                            );
                             setLoanData({ ...loanData, items: newItems });
                           }}
                           className="text-red-600 hover:text-red-800 ml-2"
@@ -1044,7 +1183,15 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   onClick={() => {
                     setLoanData({
                       ...loanData,
-                      items: [...loanData.items, { name: '', quantity: 1, unit_price: 0, total_price: 0 }]
+                      items: [
+                        ...loanData.items,
+                        {
+                          name: "",
+                          quantity: 1,
+                          unit_price: 0,
+                          total_price: 0,
+                        },
+                      ],
                     });
                   }}
                   className="text-emerald-600 hover:text-emerald-800 text-sm font-medium"
@@ -1060,7 +1207,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 </label>
                 <textarea
                   value={loanData.purpose}
-                  onChange={(e) => setLoanData({ ...loanData, purpose: e.target.value })}
+                  onChange={(e) =>
+                    setLoanData({ ...loanData, purpose: e.target.value })
+                  }
                   placeholder="Purpose of the loan (optional)"
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -1074,7 +1223,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 </label>
                 <textarea
                   value={loanData.notes}
-                  onChange={(e) => setLoanData({ ...loanData, notes: e.target.value })}
+                  onChange={(e) =>
+                    setLoanData({ ...loanData, notes: e.target.value })
+                  }
                   placeholder="Internal notes (optional)"
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -1106,19 +1257,18 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-800">Create Loan Type</h3>
+              <h3 className="text-xl font-bold text-gray-800">
+                Create Loan Type
+              </h3>
               <button
                 onClick={() => {
                   setIsCreateLoanTypeModalOpen(false);
                   setCreateLoanTypeForm({
-                    name: '',
-                    category: '',
-                    description: '',
+                    name: "",
+                    description: "",
+                    category: "",
                     interest_rate: 0,
                     duration_months: 0,
-                    max_amount: 0,
-                    min_amount: 0,
-                    is_active: true
                   });
                 }}
                 className="text-gray-400 hover:text-gray-600"
@@ -1126,7 +1276,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             <form onSubmit={handleCreateLoanType} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -1137,24 +1287,37 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     type="text"
                     required
                     value={createLoanTypeForm.name}
-                    onChange={(e) => setCreateLoanTypeForm({ ...createLoanTypeForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setCreateLoanTypeForm({
+                        ...createLoanTypeForm,
+                        name: e.target.value,
+                      })
+                    }
                     placeholder="e.g., Equipment Loan"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category *
                   </label>
-                  <input
-                    type="text"
-                    required
+                  <select
                     value={createLoanTypeForm.category}
-                    onChange={(e) => setCreateLoanTypeForm({ ...createLoanTypeForm, category: e.target.value })}
-                    placeholder="e.g., Equipment, Input, Emergency"
+                    onChange={(e) =>
+                      setCreateLoanTypeForm({
+                        ...createLoanTypeForm,
+                        category: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
+                    required
+                  >
+                    <option value="">Select category...</option>
+                    <option value="input_credit">Input Credit</option>
+                    <option value="farm_tools">Farm Tools</option>
+                    <option value="equipment">Equipment</option>
+                  </select>
                 </div>
               </div>
 
@@ -1164,8 +1327,13 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 </label>
                 <textarea
                   value={createLoanTypeForm.description}
-                  onChange={(e) => setCreateLoanTypeForm({ ...createLoanTypeForm, description: e.target.value })}
-                  placeholder="Describe the loan type..."
+                  onChange={(e) =>
+                    setCreateLoanTypeForm({
+                      ...createLoanTypeForm,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Describe the loan type and its purpose..."
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -1183,11 +1351,16 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     max="100"
                     step="0.1"
                     value={createLoanTypeForm.interest_rate}
-                    onChange={(e) => setCreateLoanTypeForm({ ...createLoanTypeForm, interest_rate: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setCreateLoanTypeForm({
+                        ...createLoanTypeForm,
+                        interest_rate: parseFloat(e.target.value) || 0,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Duration (Months) *
@@ -1197,53 +1370,15 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     required
                     min="1"
                     value={createLoanTypeForm.duration_months}
-                    onChange={(e) => setCreateLoanTypeForm({ ...createLoanTypeForm, duration_months: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setCreateLoanTypeForm({
+                        ...createLoanTypeForm,
+                        duration_months: parseInt(e.target.value) || 0,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Minimum Amount (₦) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    value={createLoanTypeForm.min_amount}
-                    onChange={(e) => setCreateLoanTypeForm({ ...createLoanTypeForm, min_amount: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Maximum Amount (₦) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    value={createLoanTypeForm.max_amount}
-                    onChange={(e) => setCreateLoanTypeForm({ ...createLoanTypeForm, max_amount: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={createLoanTypeForm.is_active}
-                  onChange={(e) => setCreateLoanTypeForm({ ...createLoanTypeForm, is_active: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="is_active" className="ml-2 text-sm text-gray-700">
-                  Active (available for new loans)
-                </label>
               </div>
 
               <div className="flex space-x-3 pt-4">
@@ -1252,14 +1387,11 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   onClick={() => {
                     setIsCreateLoanTypeModalOpen(false);
                     setCreateLoanTypeForm({
-                      name: '',
-                      category: '',
-                      description: '',
+                      name: "",
+                      description: "",
+                      category: "",
                       interest_rate: 0,
                       duration_months: 0,
-                      max_amount: 0,
-                      min_amount: 0,
-                      is_active: true
                     });
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -1271,7 +1403,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   disabled={createLoanTypeLoading}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {createLoanTypeLoading ? 'Creating...' : 'Create Loan Type'}
+                  {createLoanTypeLoading ? "Creating..." : "Create Loan Type"}
                 </button>
               </div>
             </form>

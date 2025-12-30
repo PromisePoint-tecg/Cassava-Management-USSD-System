@@ -1,4 +1,4 @@
-import { ApiClient } from './client';
+import { ApiClient } from "./client";
 
 export interface LoanKPIs {
   totalLoanRequests: number;
@@ -49,14 +49,14 @@ export interface AdminLoanResponse {
   loan_type_name: string;
   principal_amount: number; // in naira
   interest_rate: number;
-  interest_amount: number; // in naira  
+  interest_amount: number; // in naira
   total_repayment: number; // in naira
   purpose: string;
   duration_months: number;
   monthly_payment: number; // in naira
   amount_paid: number; // in naira
   amount_outstanding: number; // in naira
-  status: 'requested' | 'approved' | 'active' | 'completed' | 'defaulted';
+  status: "requested" | "approved" | "active" | "completed" | "defaulted";
   reference: string;
   pickup_date?: Date;
   pickup_location?: string;
@@ -74,9 +74,9 @@ export interface GetLoansQuery {
   page?: number;
   limit?: number;
   search?: string;
-  status?: 'requested' | 'approved' | 'active' | 'completed' | 'defaulted';
-  sortBy?: 'createdAt' | 'due_date' | 'principal_amount' | 'farmer_name';
-  sortOrder?: 'asc' | 'desc';
+  status?: "requested" | "approved" | "active" | "completed" | "defaulted";
+  sortBy?: "createdAt" | "due_date" | "principal_amount" | "farmer_name";
+  sortOrder?: "asc" | "desc";
 }
 
 export interface LoansResponse {
@@ -106,6 +106,14 @@ export interface CreateLoanData {
   notes?: string;
 }
 
+export interface CreateLoanTypeData {
+  name: string;
+  description: string;
+  category: string;
+  interest_rate: number;
+  duration_months: number;
+}
+
 export interface ApproveLoanData {
   pickup_date: string; // ISO 8601
   pickup_location?: string;
@@ -123,25 +131,28 @@ export class LoansApi {
    * Get loan KPIs for dashboard
    */
   async getLoanKPIs(): Promise<LoanKPIs> {
-    return this.client.get<LoanKPIs>('/admins/loans/kpis');
+    return this.client.get<LoanKPIs>("/admins/loans/kpis");
   }
 
   /**
    * Get all loan types
    */
-  async getLoanTypes(filters: { category?: string; is_active?: boolean } = {}): Promise<LoanType[]> {
+  async getLoanTypes(
+    filters: { category?: string; is_active?: boolean } = {}
+  ): Promise<LoanType[]> {
     const params = new URLSearchParams();
-    if (filters.category) params.append('category', filters.category);
-    if (filters.is_active !== undefined) params.append('is_active', filters.is_active.toString());
-    
+    if (filters.category) params.append("category", filters.category);
+    if (filters.is_active !== undefined)
+      params.append("is_active", filters.is_active.toString());
+
     return this.client.get<LoanType[]>(`/loans/types?${params.toString()}`);
   }
 
   /**
    * Create a new loan type
    */
-  async createLoanType(data: Omit<LoanType, 'id' | 'createdAt' | 'updatedAt' | 'created_by'>): Promise<LoanType> {
-    return this.client.post<LoanType>('/admins/loans/types', data);
+  async createLoanType(data: CreateLoanTypeData): Promise<LoanType> {
+    return this.client.post<LoanType>("/loans/types", data);
   }
 
   /**
@@ -149,35 +160,39 @@ export class LoansApi {
    */
   async getAllLoans(query: GetLoansQuery = {}): Promise<LoansResponse> {
     const params = new URLSearchParams();
-    
-    if (query.page) params.append('page', query.page.toString());
-    if (query.limit) params.append('limit', query.limit.toString());
-    if (query.search) params.append('search', query.search);
-    if (query.status) params.append('status', query.status);
-    if (query.sortBy) params.append('sortBy', query.sortBy);
-    if (query.sortOrder) params.append('sortOrder', query.sortOrder);
+
+    if (query.page) params.append("page", query.page.toString());
+    if (query.limit) params.append("limit", query.limit.toString());
+    if (query.search) params.append("search", query.search);
+    if (query.status) params.append("status", query.status);
+    if (query.sortBy) params.append("sortBy", query.sortBy);
+    if (query.sortOrder) params.append("sortOrder", query.sortOrder);
 
     const queryString = params.toString();
-    const endpoint = `/admins/loans${queryString ? `?${queryString}` : ''}`;
-    
+    const endpoint = `/admins/loans${queryString ? `?${queryString}` : ""}`;
+
     return this.client.get<LoansResponse>(endpoint);
   }
 
   /**
    * Get all loan requests (pending approval)
    */
-  async getLoanRequests(query: GetLoansQuery = {}): Promise<LoanRequestsResponse> {
+  async getLoanRequests(
+    query: GetLoansQuery = {}
+  ): Promise<LoanRequestsResponse> {
     const params = new URLSearchParams();
-    
-    if (query.page) params.append('page', query.page.toString());
-    if (query.limit) params.append('limit', query.limit.toString());
-    if (query.search) params.append('search', query.search);
-    if (query.sortBy) params.append('sortBy', query.sortBy);
-    if (query.sortOrder) params.append('sortOrder', query.sortOrder);
+
+    if (query.page) params.append("page", query.page.toString());
+    if (query.limit) params.append("limit", query.limit.toString());
+    if (query.search) params.append("search", query.search);
+    if (query.sortBy) params.append("sortBy", query.sortBy);
+    if (query.sortOrder) params.append("sortOrder", query.sortOrder);
 
     const queryString = params.toString();
-    const endpoint = `/admins/loan-requests${queryString ? `?${queryString}` : ''}`;
-    
+    const endpoint = `/admins/loan-requests${
+      queryString ? `?${queryString}` : ""
+    }`;
+
     return this.client.get<LoanRequestsResponse>(endpoint);
   }
 
@@ -192,21 +207,30 @@ export class LoansApi {
    * Create a new loan
    */
   async createLoan(data: CreateLoanData): Promise<AdminLoanResponse> {
-    return this.client.post<AdminLoanResponse>('/admins/loans', data);
+    return this.client.post<AdminLoanResponse>("/admins/loans", data);
   }
 
   /**
    * Approve a loan request
    */
-  async approveLoanRequest(id: string, data: ApproveLoanData): Promise<AdminLoanResponse> {
-    return this.client.patch<AdminLoanResponse>(`/admins/loans/${id}/approve`, data);
+  async approveLoanRequest(
+    id: string,
+    data: ApproveLoanData
+  ): Promise<AdminLoanResponse> {
+    return this.client.patch<AdminLoanResponse>(
+      `/admins/loans/${id}/approve`,
+      data
+    );
   }
 
   /**
    * Activate an approved loan
    */
   async activateLoan(id: string): Promise<AdminLoanResponse> {
-    return this.client.patch<AdminLoanResponse>(`/admins/loans/${id}/activate`, {});
+    return this.client.patch<AdminLoanResponse>(
+      `/admins/loans/${id}/activate`,
+      {}
+    );
   }
 }
 
