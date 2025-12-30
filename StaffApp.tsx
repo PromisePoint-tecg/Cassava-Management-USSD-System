@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import StaffLoginPage from "./components/StaffLoginPage";
 import { StaffPortal } from "./components/StaffPortal";
+import { BalancesPage } from "./components/BalancesPage";
 import { getStaffAuthToken, clearStaffAuthToken } from "./utils/cookies";
 import { staffApi } from "./api/staff";
 import type { Staff } from "./api/staff";
@@ -68,7 +69,7 @@ const StaffApp: React.FC = () => {
         }
       />
       <Route
-        path="*"
+        path="dashboard"
         element={
           isAuthenticated ? (
             <StaffPortal onLogout={handleLogout} />
@@ -77,7 +78,18 @@ const StaffApp: React.FC = () => {
           )
         }
       />
-      <Route path="" element={<Navigate to="login" replace />} />
+      <Route
+        path="balances"
+        element={
+          isAuthenticated ? (
+            <BalancesPage onLogout={handleLogout} />
+          ) : (
+            <Navigate to="login" replace />
+          )
+        }
+      />
+      <Route path="" element={<Navigate to="dashboard" replace />} />
+      <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );
 };
