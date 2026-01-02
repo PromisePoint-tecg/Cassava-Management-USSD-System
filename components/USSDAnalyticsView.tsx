@@ -1,45 +1,71 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Phone, RefreshCw, TrendingUp, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
-import { LoadingSpinner } from './LoadingSpinner';
-import { ErrorMessage } from './ErrorMessage';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { ussdApi, USSDSession, USSDStats } from '../api/ussd';
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Phone,
+  RefreshCw,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
+import { LoadingSpinner } from "./LoadingSpinner";
+import { ErrorMessage } from "./ErrorMessage";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
+import {
+  ussdApi,
+  USSDSession,
+  USSDStats,
+  USSDAnalytics,
+  GetUSSDAnalyticsParams,
+} from "../api/ussd";
 
 interface USSDAnalyticsData {
-  sessions: USSDSession[];
-  stats: USSDStats | null;
+  analytics: USSDAnalytics | null;
   loading: boolean;
   error: string | null;
 }
 
 export const USSDAnalyticsView: React.FC = () => {
   const [data, setData] = useState<USSDAnalyticsData>({
-    sessions: [],
-    stats: null,
+    analytics: null,
     loading: true,
     error: null,
   });
 
-  const loadUSSDData = async () => {
-    setData(prev => ({ ...prev, loading: true, error: null }));
-    try {
-      const [sessionsResponse, statsResponse] = await Promise.allSettled([
-        ussdApi.getAllSessions({ page: 1, limit: 50, sortBy: 'createdAt', sortOrder: 'desc' }),
-        ussdApi.getUSSDStats(),
-      ]);
+  const [filters, setFilters] = useState<GetUSSDAnalyticsParams>({
+    timeRange: "month", // default to last 30 days
+  });
 
+  const loadUSSDData = async () => {
+    setData((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      const analytics = await ussdApi.getUSSDAnalytics(filters);
       setData({
-        sessions: sessionsResponse.status === 'fulfilled' ? sessionsResponse.value.sessions : [],
-        stats: statsResponse.status === 'fulfilled' ? statsResponse.value : null,
+        analytics,
         loading: false,
         error: null,
       });
     } catch (error) {
-      console.error('Error loading USSD data:', error);
-      setData(prev => ({
+      console.error("Error loading USSD analytics:", error);
+      setData((prev) => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to load USSD data',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to load USSD analytics",
       }));
     }
   };
@@ -48,92 +74,71 @@ export const USSDAnalyticsView: React.FC = () => {
     loadUSSDData();
   }, []);
 
-  // Process network data from sessions
+  useEffect(() => {
+    loadUSSDData();
+  }, [filters]);
+
+  // Process network data
   const networkData = useMemo(() => {
-    if (!data.sessions || data.sessions.length === 0) {
+    if (!data.analytics?.networkTraffic) {
       return [];
     }
 
-    const networkCounts: { [key: string]: number } = {};
-    data.sessions.forEach(session => {
-      const network = session.network || session.networkOperator || 'Unknown';
-      const networkKey = network.toUpperCase();
-      networkCounts[networkKey] = (networkCounts[networkKey] || 0) + 1;
-    });
-
     const colors: { [key: string]: string } = {
-      'MTN': '#FFC400',
-      'AIRTEL': '#FF0000',
-      'GLO': '#00AA00',
-      '9MOBILE': '#005500',
-      'NMOBILE': '#005500',
+      MTN: "#FFC400",
+      AIRTEL: "#FF0000",
+      GLO: "#00AA00",
+      "9MOBILE": "#005500",
+      NMOBILE: "#005500",
     };
 
-    return Object.entries(networkCounts)
-      .map(([name, value]) => ({
-        name,
-        value,
-        color: colors[name] || '#6b7280',
-      }))
-      .sort((a, b) => b.value - a.value);
-  }, [data.sessions]);
+    return data.analytics.networkTraffic.map((item) => ({
+      name: item.network,
+      value: item.sessions,
+      color: colors[item.network] || "#6b7280",
+    }));
+  }, [data.analytics?.networkTraffic]);
 
   // Process status data
   const statusData = useMemo(() => {
-    if (!data.sessions || data.sessions.length === 0) {
+    if (!data.analytics?.sessionStatus) {
       return { success: 0, failed: 0, timeout: 0, total: 0 };
     }
 
-    let success = 0;
-    let failed = 0;
-    let timeout = 0;
-
-    data.sessions.forEach(session => {
-      const status = (session.status || '').toLowerCase();
-      if (status === 'success' || status === 'completed') {
-        success++;
-      } else if (status === 'failed' || status === 'error') {
-        failed++;
-      } else if (status === 'timeout') {
-        timeout++;
-      }
+    const statusMap: { [key: string]: number } = {};
+    data.analytics.sessionStatus.forEach((item) => {
+      statusMap[item.status] = item.count;
     });
 
-    return { success, failed, timeout, total: data.sessions.length };
-  }, [data.sessions]);
+    return {
+      success: statusMap.completed || 0,
+      failed: statusMap.failed || 0,
+      timeout: statusMap.timeout || 0,
+      total: data.analytics.totalSessions,
+    };
+  }, [data.analytics?.sessionStatus, data.analytics?.totalSessions]);
 
   // Calculate average duration
   const averageDuration = useMemo(() => {
-    if (!data.sessions || data.sessions.length === 0) return 0;
-    const durations = data.sessions
-      .map(s => s.duration || 0)
-      .filter(d => d > 0);
-    if (durations.length === 0) return 0;
-    return Math.round(durations.reduce((a, b) => a + b, 0) / durations.length);
-  }, [data.sessions]);
+    return data.analytics?.avgDuration || 0;
+  }, [data.analytics?.avgDuration]);
 
   // Process action data
   const actionData = useMemo(() => {
-    if (!data.sessions || data.sessions.length === 0) {
+    if (!data.analytics?.topActions) {
       return [];
     }
 
-    const actionCounts: { [key: string]: number } = {};
-    data.sessions.forEach(session => {
-      const action = session.action || session.menuOption || 'Unknown';
-      actionCounts[action] = (actionCounts[action] || 0) + 1;
-    });
-
-    return Object.entries(actionCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-  }, [data.sessions]);
+    return data.analytics.topActions.map((item) => ({
+      name: item.action,
+      value: item.count,
+    }));
+  }, [data.analytics?.topActions]);
 
   // Get recent sessions
   const recentSessions = useMemo(() => {
-    return data.sessions.slice(0, 10);
-  }, [data.sessions]);
+    return data.analytics?.recentSessions || [];
+  }, [data.analytics?.recentSessions]);
 
   if (data.loading) {
     return <LoadingSpinner message="Loading USSD analytics..." />;
@@ -149,16 +154,18 @@ export const USSDAnalyticsView: React.FC = () => {
     );
   }
 
-  const successRate = statusData.total > 0 
-    ? ((statusData.success / statusData.total) * 100).toFixed(1)
-    : '0';
+  const successRate = data.analytics?.successRate || 0;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800">USSD & Network Analytics</h2>
-          <p className="text-xs text-gray-500">Real-time USSD session monitoring</p>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+            USSD & Network Analytics
+          </h2>
+          <p className="text-xs text-gray-500">
+            Real-time USSD session monitoring
+          </p>
         </div>
         <button
           onClick={loadUSSDData}
@@ -170,6 +177,82 @@ export const USSDAnalyticsView: React.FC = () => {
         </button>
       </div>
 
+      {/* Filters */}
+      <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-800 mb-3">Filters</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Time Range
+            </label>
+            <select
+              value={filters.timeRange || ""}
+              onChange={(e) => {
+                const value = e.target
+                  .value as GetUSSDAnalyticsParams["timeRange"];
+                setFilters((prev) => ({
+                  ...prev,
+                  timeRange: value || undefined,
+                  startDate: value ? undefined : prev.startDate,
+                  endDate: value ? undefined : prev.endDate,
+                }));
+              }}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="">Custom Range</option>
+              <option value="realtime">Real-time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">Last 30 Days</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Start Date
+            </label>
+            <input
+              type="datetime-local"
+              value={filters.startDate || ""}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  startDate: e.target.value || undefined,
+                  timeRange: undefined,
+                }))
+              }
+              disabled={!!filters.timeRange}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              End Date
+            </label>
+            <input
+              type="datetime-local"
+              value={filters.endDate || ""}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  endDate: e.target.value || undefined,
+                  timeRange: undefined,
+                }))
+              }
+              disabled={!!filters.timeRange}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={() => setFilters({ timeRange: "month" })}
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
@@ -178,8 +261,12 @@ export const USSDAnalyticsView: React.FC = () => {
               <Phone className="w-4 h-4 text-blue-600" />
             </div>
           </div>
-          <h3 className="text-xs text-gray-500 font-medium mb-1">Total Sessions</h3>
-          <p className="text-xl font-bold text-gray-900">{statusData.total.toLocaleString()}</p>
+          <h3 className="text-xs text-gray-500 font-medium mb-1">
+            Total Sessions
+          </h3>
+          <p className="text-xl font-bold text-gray-900">
+            {(data.analytics?.totalSessions || 0).toLocaleString()}
+          </p>
         </div>
 
         <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
@@ -188,7 +275,9 @@ export const USSDAnalyticsView: React.FC = () => {
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             </div>
           </div>
-          <h3 className="text-xs text-gray-500 font-medium mb-1">Success Rate</h3>
+          <h3 className="text-xs text-gray-500 font-medium mb-1">
+            Success Rate
+          </h3>
           <p className="text-xl font-bold text-gray-900">{successRate}%</p>
         </div>
 
@@ -198,7 +287,9 @@ export const USSDAnalyticsView: React.FC = () => {
               <Clock className="w-4 h-4 text-purple-600" />
             </div>
           </div>
-          <h3 className="text-xs text-gray-500 font-medium mb-1">Avg Duration</h3>
+          <h3 className="text-xs text-gray-500 font-medium mb-1">
+            Avg Duration
+          </h3>
           <p className="text-xl font-bold text-gray-900">{averageDuration}s</p>
         </div>
 
@@ -208,8 +299,12 @@ export const USSDAnalyticsView: React.FC = () => {
               <XCircle className="w-4 h-4 text-red-600" />
             </div>
           </div>
-          <h3 className="text-xs text-gray-500 font-medium mb-1">Failed Sessions</h3>
-          <p className="text-xl font-bold text-gray-900">{statusData.failed.toLocaleString()}</p>
+          <h3 className="text-xs text-gray-500 font-medium mb-1">
+            Failed Sessions
+          </h3>
+          <p className="text-xl font-bold text-gray-900">
+            {(data.analytics?.failedSessions || 0).toLocaleString()}
+          </p>
         </div>
       </div>
 
@@ -217,7 +312,9 @@ export const USSDAnalyticsView: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Network Distribution */}
         <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Traffic by Network Operator</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+            Traffic by Network Operator
+          </h3>
           <div className="h-56 w-full">
             {networkData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -235,7 +332,12 @@ export const USSDAnalyticsView: React.FC = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => [`${value} sessions`, 'Count']} />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} sessions`,
+                      "Count",
+                    ]}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -249,17 +351,31 @@ export const USSDAnalyticsView: React.FC = () => {
 
         {/* Status Distribution */}
         <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Session Status</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+            Session Status
+          </h3>
           <div className="h-56 w-full">
             {statusData.total > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'Success', value: statusData.success, color: '#10b981' },
-                      { name: 'Failed', value: statusData.failed, color: '#ef4444' },
-                      { name: 'Timeout', value: statusData.timeout, color: '#f59e0b' },
-                    ].filter(item => item.value > 0)}
+                      {
+                        name: "Success",
+                        value: statusData.success,
+                        color: "#10b981",
+                      },
+                      {
+                        name: "Failed",
+                        value: statusData.failed,
+                        color: "#ef4444",
+                      },
+                      {
+                        name: "Timeout",
+                        value: statusData.timeout,
+                        color: "#f59e0b",
+                      },
+                    ].filter((item) => item.value > 0)}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
@@ -268,14 +384,33 @@ export const USSDAnalyticsView: React.FC = () => {
                     dataKey="value"
                   >
                     {[
-                      { name: 'Success', value: statusData.success, color: '#10b981' },
-                      { name: 'Failed', value: statusData.failed, color: '#ef4444' },
-                      { name: 'Timeout', value: statusData.timeout, color: '#f59e0b' },
-                    ].filter(item => item.value > 0).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+                      {
+                        name: "Success",
+                        value: statusData.success,
+                        color: "#10b981",
+                      },
+                      {
+                        name: "Failed",
+                        value: statusData.failed,
+                        color: "#ef4444",
+                      },
+                      {
+                        name: "Timeout",
+                        value: statusData.timeout,
+                        color: "#f59e0b",
+                      },
+                    ]
+                      .filter((item) => item.value > 0)
+                      .map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => [`${value} sessions`, 'Count']} />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} sessions`,
+                      "Count",
+                    ]}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -292,17 +427,43 @@ export const USSDAnalyticsView: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Top Actions */}
         <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Top Actions</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+            Top Actions
+          </h3>
           <div className="h-56 w-full">
             {actionData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={actionData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} angle={-45} textAnchor="end" height={60} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 11}} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
-                    formatter={(value: number) => [`${value} sessions`, 'Count']}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f1f5f9"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#64748b", fontSize: 10 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#64748b", fontSize: 11 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#fff",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "12px",
+                    }}
+                    formatter={(value: number) => [
+                      `${value} sessions`,
+                      "Count",
+                    ]}
                   />
                   <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -317,43 +478,55 @@ export const USSDAnalyticsView: React.FC = () => {
 
         {/* Recent Sessions */}
         <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Recent Sessions</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+            Recent Sessions
+          </h3>
           <div className="space-y-2.5 max-h-56 overflow-y-auto">
             {recentSessions.length > 0 ? (
               recentSessions.map((session) => {
-                const date = new Date(session.timestamp || session.createdAt || new Date());
+                const date = new Date(session.startTime);
                 const timeAgo = getTimeAgo(date);
-                const network = session.network || session.networkOperator || 'Unknown';
-                const status = (session.status || '').toLowerCase();
-                const isSuccess = status === 'success' || status === 'completed';
-                const isFailed = status === 'failed' || status === 'error';
-                
+                const network = session.network;
+                const isSuccess = session.status === "completed";
+                const isFailed = session.status === "failed";
+
                 return (
-                  <div key={session.id} className="flex items-start pb-2.5 border-b border-gray-50 last:border-0 last:pb-0">
-                    <div className={`w-1.5 h-1.5 mt-2 rounded-full mr-2.5 flex-shrink-0 ${
-                      isSuccess ? 'bg-emerald-500' :
-                      isFailed ? 'bg-red-500' :
-                      'bg-yellow-500'
-                    }`}></div>
+                  <div
+                    key={session.id}
+                    className="flex items-start pb-2.5 border-b border-gray-50 last:border-0 last:pb-0"
+                  >
+                    <div
+                      className={`w-1.5 h-1.5 mt-2 rounded-full mr-2.5 flex-shrink-0 ${
+                        isSuccess
+                          ? "bg-emerald-500"
+                          : isFailed
+                          ? "bg-red-500"
+                          : "bg-yellow-500"
+                      }`}
+                    ></div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-xs text-gray-800 font-medium truncate">
-                          {session.msisdn || session.phoneNumber || 'Unknown'}
+                          {session.phoneNumber}
                         </p>
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                          isSuccess ? 'bg-green-100 text-green-700' :
-                          isFailed ? 'bg-red-100 text-red-700' :
-                          'bg-yellow-100 text-yellow-700'
-                        }`}>
+                        <span
+                          className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                            isSuccess
+                              ? "bg-green-100 text-green-700"
+                              : isFailed
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
                           {session.status}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 truncate">
-                        {network} • {session.action || session.menuOption || 'N/A'}
+                        {network} • {session.action}
                       </p>
                       <div className="flex items-center justify-between mt-0.5">
                         <p className="text-xs text-gray-400">
-                          {session.duration ? `${session.duration}s` : 'N/A'}
+                          {session.duration}s
                         </p>
                         <p className="text-xs text-gray-400">{timeAgo}</p>
                       </div>
@@ -377,12 +550,12 @@ export const USSDAnalyticsView: React.FC = () => {
 function getTimeAgo(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return 'Just now';
+
+  if (diffInSeconds < 60) return "Just now";
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} mins ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  if (diffInSeconds < 86400)
+    return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 604800)
+    return `${Math.floor(diffInSeconds / 86400)} days ago`;
   return date.toLocaleDateString();
 }
-
-

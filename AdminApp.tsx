@@ -144,12 +144,6 @@ const AdminApp: React.FC = () => {
             >
               <Menu className="w-6 h-6" />
             </button>
-            <div className="flex items-center text-gray-500 text-sm">
-              <span className="hidden sm:inline">Branch:</span>
-              <span className="font-semibold text-gray-800 ml-0 sm:ml-2">
-                Ogun State HQ
-              </span>
-            </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="flex items-center bg-emerald-50 text-emerald-700 px-2 sm:px-3 py-1.5 rounded-full text-xs font-bold">
