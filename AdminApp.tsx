@@ -19,7 +19,12 @@ import { settingsApi } from "./api/settings";
 import { SystemSettings } from "./types";
 import { Signal, Menu } from "lucide-react";
 import { getAuthToken } from "./utils/cookies";
-import { introspect, logout as apiLogout } from "./api/auth";
+import {
+  introspect,
+  logout as apiLogout,
+  getProfile,
+  AdminProfile,
+} from "./api/auth";
 import type { AdminInfo } from "./api/auth";
 import SuccessModal from "./components/SuccessModal";
 
@@ -28,6 +33,7 @@ const AdminApp: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [adminInfo, setAdminInfo] = useState<AdminInfo | null>(null);
+  const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSuccess, setSettingsSuccess] = useState<{
@@ -51,6 +57,14 @@ const AdminApp: React.FC = () => {
           const admin = await introspect();
           setAdminInfo(admin);
           setIsAuthenticated(true);
+
+          // Fetch profile for avatar initials
+          try {
+            const profile = await getProfile();
+            setAdminProfile(profile);
+          } catch (profileError) {
+            console.warn("Failed to fetch profile:", profileError);
+          }
         } catch (error) {
           console.error("Token validation failed:", error);
           setIsAuthenticated(false);
@@ -68,6 +82,7 @@ const AdminApp: React.FC = () => {
     const handleUnauthorized = () => {
       setIsAuthenticated(false);
       setAdminInfo(null);
+      setAdminProfile(null);
     };
 
     window.addEventListener("auth:unauthorized", handleUnauthorized);
@@ -77,15 +92,37 @@ const AdminApp: React.FC = () => {
     };
   }, []);
 
-  const handleLoginSuccess = (admin: AdminInfo) => {
+  const handleLoginSuccess = async (admin: AdminInfo) => {
     setAdminInfo(admin);
     setIsAuthenticated(true);
+
+    // Fetch profile for avatar initials
+    try {
+      const profile = await getProfile();
+      setAdminProfile(profile);
+    } catch (profileError) {
+      console.warn("Failed to fetch profile:", profileError);
+    }
   };
 
   const handleLogout = () => {
     apiLogout();
     setAdminInfo(null);
+    setAdminProfile(null);
     setIsAuthenticated(false);
+  };
+
+  // Generate initials from profile
+  const getInitials = () => {
+    if (adminProfile?.firstName && adminProfile?.lastName) {
+      return `${adminProfile.firstName.charAt(0)}${adminProfile.lastName.charAt(
+        0
+      )}`.toUpperCase();
+    }
+    if (adminInfo?.email) {
+      return adminInfo.email.charAt(0).toUpperCase();
+    }
+    return "A"; // Default fallback
   };
 
   const handleUpdateSettings = async (newSettings: SystemSettings) => {
@@ -158,7 +195,7 @@ const AdminApp: React.FC = () => {
               className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold border border-gray-300 hover:bg-gray-300 transition-colors cursor-pointer"
               title="View Profile"
             >
-              SA
+              {getInitials()}
             </button>
           </div>
         </header>
