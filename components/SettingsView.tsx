@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Save,
   Bell,
@@ -8,9 +8,11 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { SystemSettings } from "../types";
+import { settingsApi } from "../api/settings";
+import { LoadingSpinner } from "./LoadingSpinner";
+import { ErrorMessage } from "./ErrorMessage";
 
 interface SettingsViewProps {
-  settings: SystemSettings;
   onSave: (settings: SystemSettings) => void;
   loading?: boolean;
 }
@@ -54,12 +56,39 @@ const Toggle = ({
 );
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
-  settings,
   onSave,
   loading = false,
 }) => {
-  const [formData, setFormData] = useState<SystemSettings>(settings);
+  const [settings, setSettings] = useState<SystemSettings | null>(null);
+  const [formData, setFormData] = useState<SystemSettings>({
+    cassavaPricePerKg: 0,
+    cassavaPricePerTon: 0,
+    taxRate: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const settingsData = await settingsApi.getSettings();
+        setSettings(settingsData);
+        setFormData(settingsData);
+      } catch (err) {
+        console.error("Error loading settings:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load settings"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   const handleChange = (field: keyof SystemSettings, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -72,6 +101,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
+
+  if (isLoading) {
+    return <LoadingSpinner message="Loading system settings..." />;
+  }
+
+  if (error) {
+    return (
+      <ErrorMessage
+        title="Error Loading Settings"
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl">
