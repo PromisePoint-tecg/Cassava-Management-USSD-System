@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { Dashboard } from "./components/Dashboard";
 import { FarmersDirectory } from "./components/FarmersDirectory";
@@ -14,15 +14,17 @@ import StaffManagementView from "./components/StaffManagementView";
 import { USSDAnalyticsView } from "./components/USSDAnalyticsView";
 import PayrollManagementView from "./components/PayrollManagementView";
 import PensionManagementView from "./components/PensionManagementView";
-import { SuccessModal } from "./components/SuccessModal";
+import { AdminProfilePage } from "./components/AdminProfilePage";
 import { settingsApi } from "./api/settings";
 import { SystemSettings } from "./types";
 import { Signal, Menu } from "lucide-react";
 import { getAuthToken } from "./utils/cookies";
 import { introspect, logout as apiLogout } from "./api/auth";
 import type { AdminInfo } from "./api/auth";
+import SuccessModal from "./components/SuccessModal";
 
 const AdminApp: React.FC = () => {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [adminInfo, setAdminInfo] = useState<AdminInfo | null>(null);
@@ -151,9 +153,13 @@ const AdminApp: React.FC = () => {
               <span className="hidden sm:inline">System Operational</span>
               <span className="sm:hidden">Operational</span>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold border border-gray-300">
+            <button
+              onClick={() => navigate("/profile")}
+              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold border border-gray-300 hover:bg-gray-300 transition-colors cursor-pointer"
+              title="View Profile"
+            >
               SA
-            </div>
+            </button>
           </div>
         </header>
         <div className="p-4 sm:p-6 lg:p-8">
@@ -170,6 +176,7 @@ const AdminApp: React.FC = () => {
             <Route path="/payroll" element={<PayrollManagementView />} />
             <Route path="/pension" element={<PensionManagementView />} />
             <Route path="/ussd" element={<USSDAnalyticsView />} />
+            <Route path="/profile" element={<AdminProfilePage />} />
             <Route
               path="/settings"
               element={
