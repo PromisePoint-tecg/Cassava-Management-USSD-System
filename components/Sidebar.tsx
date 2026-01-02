@@ -15,6 +15,8 @@ import {
   Briefcase,
   DollarSign,
   PiggyBank,
+  Package,
+  ShoppingCart,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -33,8 +35,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "farmers", label: "Farmers", icon: Users },
-    { id: "products", label: "Products", icon: Scale },
-    { id: "purchases", label: "Purchases", icon: Scale },
+    { id: "products", label: "Products", icon: Package },
+    { id: "purchases", label: "Purchases", icon: ShoppingCart },
     { id: "loans", label: "Loans", icon: CreditCard },
     { id: "transactions", label: "Transactions", icon: Receipt },
     { id: "admins", label: "Admin Management", icon: Shield },
