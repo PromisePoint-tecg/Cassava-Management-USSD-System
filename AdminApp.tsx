@@ -15,6 +15,7 @@ import { USSDAnalyticsView } from "./components/USSDAnalyticsView";
 import PayrollManagementView from "./components/PayrollManagementView";
 import PensionManagementView from "./components/PensionManagementView";
 import { AdminProfilePage } from "./components/AdminProfilePage";
+import AdminForgotPassword from "./components/AdminForgotPassword";
 import { settingsApi } from "./api/settings";
 import { SystemSettings } from "./types";
 import { Signal, Menu } from "lucide-react";
@@ -36,6 +37,7 @@ const AdminApp: React.FC = () => {
   const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [settingsSuccess, setSettingsSuccess] = useState<{
     isOpen: boolean;
     message: string;
@@ -163,7 +165,19 @@ const AdminApp: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    if (showForgotPassword) {
+      return (
+        <AdminForgotPassword
+          onBackToLogin={() => setShowForgotPassword(false)}
+        />
+      );
+    }
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        onForgotPassword={() => setShowForgotPassword(true)}
+      />
+    );
   }
 
   return (

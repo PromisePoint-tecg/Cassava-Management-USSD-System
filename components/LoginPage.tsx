@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
-import { Lock, User, Loader2 } from 'lucide-react';
-import { login, introspect } from '../api/auth';
-import type { AdminInfo } from '../api/auth';
+import React, { useState } from "react";
+import { Lock, User, Loader2 } from "lucide-react";
+import { login, introspect } from "../api/auth";
+import type { AdminInfo } from "../api/auth";
 
 interface LoginPageProps {
   onLoginSuccess: (admin: AdminInfo) => void;
+  onForgotPassword?: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const LoginPage: React.FC<LoginPageProps> = ({
+  onLoginSuccess,
+  onForgotPassword,
+}) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -28,7 +32,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       // Step 3: Call parent callback with admin info
       onLoginSuccess(adminInfo);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      setError(
+        err instanceof Error ? err.message : "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -54,7 +60,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Promise Point</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Promise Point
+          </h1>
           <p className="text-gray-600">Agrictech Solution - Admin Portal</p>
         </div>
 
@@ -71,7 +79,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Email
               </label>
               <div className="relative">
@@ -93,7 +104,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -125,10 +139,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
           </form>
+
+          {/* Forgot Password Link */}
+          {onForgotPassword && (
+            <div className="mt-6 text-center">
+              <button
+                onClick={onForgotPassword}
+                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
