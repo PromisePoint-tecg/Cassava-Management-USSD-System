@@ -1,34 +1,34 @@
-
 export enum UserRole {
-  SUPER_ADMIN = 'SUPER_ADMIN',
-  ADMIN = 'ADMIN',
-  FINANCE_OFFICER = 'FINANCE_OFFICER',
+  SUPER_ADMIN = "SUPER_ADMIN",
+  ADMIN = "ADMIN",
+  FINANCE_OFFICER = "FINANCE_OFFICER",
 }
 
 export enum TransactionStatus {
-  PENDING = 'PENDING',
-  SUCCESS = 'SUCCESS',
-  FAILED = 'FAILED',
+  PENDING = "PENDING",
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
 }
 
 export enum LoanStatus {
-  REQUESTED = 'requested',
-  APPROVED = 'approved', 
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-  DEFAULTED = 'defaulted',
+  REQUESTED = "requested",
+  APPROVED = "approved",
+  ACTIVE = "active",
+  COMPLETED = "completed",
+  DEFAULTED = "defaulted",
 }
 
 export enum NetworkOperator {
-  MTN = 'MTN',
-  AIRTEL = 'AIRTEL',
-  GLO = 'GLO',
-  NMOBILE = '9MOBILE',
+  MTN = "MTN",
+  AIRTEL = "AIRTEL",
+  GLO = "GLO",
+  NMOBILE = "9MOBILE",
 }
 
 export interface SystemSettings {
   cassavaPricePerKg: number;
   cassavaPricePerTon: number;
+  taxRate: number;
 }
 
 export interface Farmer {
@@ -39,7 +39,7 @@ export interface Farmer {
   nationalId: string;
   walletNumber: string;
   walletBalance: number;
-  status: 'Active' | 'Inactive';
+  status: "Active" | "Inactive";
   registrationDate: string;
 }
 
@@ -94,10 +94,10 @@ export interface USSDSession {
   id: string;
   msisdn: string;
   network: NetworkOperator;
-  status: 'Success' | 'Failed' | 'Timeout';
+  status: "Success" | "Failed" | "Timeout";
   duration: number; // seconds
   timestamp: string;
-  action: 'Check Balance' | 'Loan Request' | 'Mini Statement';
+  action: "Check Balance" | "Loan Request" | "Mini Statement";
 }
 
 export interface KPIData {

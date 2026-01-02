@@ -1,7 +1,13 @@
-
-import React, { useState } from 'react';
-import { Save, Bell, Shield, Sliders, Smartphone, AlertTriangle } from 'lucide-react';
-import { SystemSettings } from '../types';
+import React, { useState } from "react";
+import {
+  Save,
+  Bell,
+  Shield,
+  Sliders,
+  Smartphone,
+  AlertTriangle,
+} from "lucide-react";
+import { SystemSettings } from "../types";
 
 interface SettingsViewProps {
   settings: SystemSettings;
@@ -9,8 +15,24 @@ interface SettingsViewProps {
   loading?: boolean;
 }
 
-const Toggle = ({ label, description, checked, onChange, disabled = false }: { label: string, description: string, checked: boolean, onChange: (val: boolean) => void, disabled?: boolean }) => (
-  <div className={`flex items-center justify-between py-4 ${disabled ? 'opacity-50' : ''}`}>
+const Toggle = ({
+  label,
+  description,
+  checked,
+  onChange,
+  disabled = false,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (val: boolean) => void;
+  disabled?: boolean;
+}) => (
+  <div
+    className={`flex items-center justify-between py-4 ${
+      disabled ? "opacity-50" : ""
+    }`}
+  >
     <div>
       <h3 className="text-sm font-medium text-gray-900">{label}</h3>
       <p className="text-sm text-gray-500">{description}</p>
@@ -19,24 +41,28 @@ const Toggle = ({ label, description, checked, onChange, disabled = false }: { l
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-        checked ? 'bg-emerald-600' : 'bg-gray-200'
+        checked ? "bg-emerald-600" : "bg-gray-200"
       }`}
     >
       <span
         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-          checked ? 'translate-x-5' : 'translate-x-0'
+          checked ? "translate-x-5" : "translate-x-0"
         }`}
       />
     </button>
   </div>
 );
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, loading = false }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({
+  settings,
+  onSave,
+  loading = false,
+}) => {
   const [formData, setFormData] = useState<SystemSettings>(settings);
   const [isSaved, setIsSaved] = useState(false);
 
   const handleChange = (field: keyof SystemSettings, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setIsSaved(false);
   };
 
@@ -50,14 +76,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, lo
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">System Configuration</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+          System Configuration
+        </h2>
         <button
           type="submit"
           disabled={loading}
           className="flex items-center px-4 sm:px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm focus:ring-4 focus:ring-emerald-100 w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4 mr-2" />
-          {loading ? 'Saving...' : isSaved ? 'Saved Successfully!' : 'Save Changes'}
+          {loading
+            ? "Saving..."
+            : isSaved
+            ? "Saved Successfully!"
+            : "Save Changes"}
         </button>
       </div>
 
@@ -68,12 +100,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, lo
             <div className="p-2 bg-emerald-50 rounded-lg mr-3">
               <Sliders className="w-5 h-5 text-emerald-600" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800">Cassava Pricing Configuration</h3>
+            <h3 className="text-lg font-bold text-gray-800">
+              Cassava Pricing Configuration
+            </h3>
           </div>
-          
+
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price per Kilogram (₦/kg)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price per Kilogram (₦/kg)
+              </label>
               <div className="relative rounded-md shadow-sm">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <span className="text-gray-500 sm:text-sm">₦</span>
@@ -85,14 +121,46 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, lo
                   step="0.01"
                   className="block w-full rounded-lg border-gray-300 pl-8 py-2.5 focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
                   value={formData.cassavaPricePerKg}
-                  onChange={(e) => handleChange('cassavaPricePerKg', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    handleChange(
+                      "cassavaPricePerKg",
+                      parseFloat(e.target.value)
+                    )
+                  }
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">Price for small-scale purchases (under 1000kg).</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Price for small-scale purchases (under 1000kg).
+              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price per Ton (₦/ton)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Payroll Tax Rate (%)
+              </label>
+              <div className="relative rounded-md shadow-sm">
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  className="block w-full rounded-lg border-gray-300 pr-8 py-2.5 focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+                  value={formData.taxRate}
+                  onChange={(e) =>
+                    handleChange("taxRate", parseFloat(e.target.value))
+                  }
+                />
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <span className="text-gray-500 sm:text-sm">%</span>
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Tax rate applied to payroll calculations (e.g., 7.5 for 7.5%).
+              </p>
+            </div>
+
+            <div>
               <div className="relative rounded-md shadow-sm">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <span className="text-gray-500 sm:text-sm">₦</span>
@@ -104,24 +172,48 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, lo
                   step="1"
                   className="block w-full rounded-lg border-gray-300 pl-8 py-2.5 focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
                   value={formData.cassavaPricePerTon}
-                  onChange={(e) => handleChange('cassavaPricePerTon', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    handleChange(
+                      "cassavaPricePerTon",
+                      parseFloat(e.target.value)
+                    )
+                  }
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">Bulk pricing for large purchases (1000kg and above). 1 ton = 1000kg.</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Bulk pricing for large purchases (1000kg and above). 1 ton =
+                1000kg.
+              </p>
             </div>
 
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <Sliders className="h-5 w-5 text-blue-400" aria-hidden="true" />
+                  <Sliders
+                    className="h-5 w-5 text-blue-400"
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">Pricing Logic</h3>
+                  <h3 className="text-sm font-medium text-blue-800">
+                    System Configuration Summary
+                  </h3>
                   <div className="mt-2 text-sm text-blue-700">
-                    <p>The system automatically applies:</p>
+                    <p>Current settings:</p>
                     <ul className="list-disc list-inside mt-1 space-y-1">
-                      <li><strong>Retail pricing</strong> (₦{formData.cassavaPricePerKg}/kg) for orders under 1000kg</li>
-                      <li><strong>Bulk pricing</strong> (₦{(formData.cassavaPricePerTon / 1000).toFixed(2)}/kg) for orders 1000kg and above</li>
+                      <li>
+                        <strong>Retail pricing:</strong> ₦
+                        {formData.cassavaPricePerKg}/kg for orders under 1000kg
+                      </li>
+                      <li>
+                        <strong>Bulk pricing:</strong> ₦
+                        {(formData.cassavaPricePerTon / 1000).toFixed(2)}/kg for
+                        orders 1000kg and above
+                      </li>
+                      <li>
+                        <strong>Payroll tax rate:</strong> {formData.taxRate}%
+                        applied to all payroll calculations
+                      </li>
                     </ul>
                   </div>
                 </div>
