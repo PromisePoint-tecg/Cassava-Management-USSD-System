@@ -227,29 +227,26 @@ const PayrollManagementView: React.FC = () => {
 
             {/* Payroll Table - Flex grow to fill remaining space */}
             <div className="flex-1 flex flex-col bg-white rounded-lg shadow overflow-hidden min-h-0">
-                <div className="flex-1 overflow-x-auto overflow-y-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                <div className="flex-1 overflow-y-auto">
+                    <table className="w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50 sticky top-0 z-10">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
                                     Period
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Staff Count
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                                    Staff
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Gross Amount
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                                     Net Amount
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32 hidden lg:table-cell">
                                     Pension
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                                     Status
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
@@ -257,68 +254,57 @@ const PayrollManagementView: React.FC = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {payrolls.map((payroll) => (
                                 <tr key={payroll.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-4 py-4">
                                         <div>
                                             <div className="text-sm font-medium text-gray-900">{payroll.periodLabel}</div>
-                                            <div className="text-sm text-gray-500">
-                                                {new Date(payroll.periodStart).toLocaleDateString()} - {new Date(payroll.periodEnd).toLocaleDateString()}
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                {new Date(payroll.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(payroll.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">{payroll.totalStaffCount}</div>
-                                        <div className="text-xs text-gray-500">
-                                            ✓ {payroll.processedStaffCount} | ✗ {payroll.failedStaffCount}
+                                    <td className="px-4 py-4">
+                                        <div className="text-sm font-semibold text-gray-900">{payroll.totalStaffCount}</div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            <span className="text-green-600">✓{payroll.processedStaffCount}</span> <span className="text-red-600">✗{payroll.failedStaffCount}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {formatCurrency(payroll.totalGrossAmount)}
+                                    <td className="px-4 py-4 text-right">
+                                        <div className="text-sm font-medium text-gray-900">
+                                            {formatCurrency(payroll.totalNetAmount)}
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            Gross: {formatCurrency(payroll.totalGrossAmount)}
+                                        </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {formatCurrency(payroll.totalNetAmount)}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-4 py-4 text-right text-sm text-gray-900 hidden lg:table-cell">
                                         {formatCurrency(payroll.totalPensionAmount)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-4 py-4">
                                         {getStatusBadge(payroll.status)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                        <button
-                                            onClick={() => {
-                                                setSelectedPayroll(payroll);
-                                                setShowDetailsModal(true);
-                                            }}
-                                            className="text-blue-600 hover:text-blue-900"
-                                        >
-                                            Details
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setSelectedPayroll(payroll);
-                                                setShowTransactionsModal(true);
-                                            }}
-                                            className="text-purple-600 hover:text-purple-900"
-                                        >
-                                            Transactions
-                                        </button>
-                                        {payroll.status === 'pending' && (
+                                    <td className="px-4 py-4">
+                                        <div className="flex flex-col gap-1">
                                             <button
                                                 onClick={() => {
                                                     setSelectedPayroll(payroll);
-                                                    setShowProcessModal(true);
+                                                    setShowDetailsModal(true);
                                                 }}
-                                                className="text-green-600 hover:text-green-900"
+                                                className="text-xs text-blue-600 hover:text-blue-900 text-left"
                                             >
-                                                Process
+                                                View Details
                                             </button>
-                                        )}
-                                        <button
-                                            onClick={() => loadStatistics(payroll.id)}
-                                            className="text-gray-600 hover:text-gray-900"
-                                        >
-                                            Stats
-                                        </button>
+                                            {payroll.status === 'pending' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedPayroll(payroll);
+                                                        setShowProcessModal(true);
+                                                    }}
+                                                    className="text-xs text-green-600 hover:text-green-900 font-medium text-left"
+                                                >
+                                                    Process Now
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -647,46 +633,43 @@ const PayrollTransactionsModal: React.FC<{
                         <LoadingSpinner />
                     ) : (
                         <>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                            <div className="overflow-y-auto max-h-96">
+                                <table className="w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50 sticky top-0">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Staff</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gross Salary</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deductions</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net Salary</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pension</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                            <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Staff</th>
+                                            <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Net Salary</th>
+                                            <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Pension</th>
+                                            <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                            <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {transactions.map((txn) => (
                                             <tr key={txn.id} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 whitespace-nowrap">
+                                                <td className="px-3 py-3">
                                                     <div className="text-sm font-medium text-gray-900">{txn.staffFullName}</div>
-                                                    <div className="text-xs text-gray-500">{txn.staffEmployeeId}</div>
+                                                    <div className="text-xs text-gray-500 mt-1">{txn.staffEmployeeId}</div>
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                    {formatCurrency(txn.grossSalary)}
+                                                <td className="px-3 py-3 text-right">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {formatCurrency(txn.netSalary)}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 mt-1">
+                                                        Gross: {formatCurrency(txn.grossSalary)}
+                                                    </div>
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                    {formatCurrency(txn.totalDeductions)}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                    {formatCurrency(txn.netSalary)}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                <td className="px-3 py-3 text-right text-sm text-gray-900 hidden md:table-cell">
                                                     {formatCurrency(txn.totalPensionContribution)}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap">
+                                                <td className="px-3 py-3">
                                                     {getStatusBadge(txn.paymentStatus)}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                                                <td className="px-3 py-3 text-sm font-medium">
                                                     {txn.paymentStatus === 'failed' && (
                                                         <button
                                                             onClick={() => onRetry(txn.id)}
-                                                            className="text-blue-600 hover:text-blue-900"
+                                                            className="text-blue-600 hover:text-blue-900 text-xs"
                                                         >
                                                             Retry
                                                         </button>
