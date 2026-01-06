@@ -12,6 +12,7 @@ import {
   type PayrollStatistics as Stats,
   type CreatePayrollDto,
 } from "../api/payroll";
+import { adminApi, type FundOrganizationWalletData } from "../api/admin";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { SuccessModal } from "./SuccessModal";
@@ -32,6 +33,7 @@ const PayrollManagementView: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProcessModal, setShowProcessModal] = useState(false);
   const [showStatisticsModal, setShowStatisticsModal] = useState(false);
+  const [showFundWalletModal, setShowFundWalletModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -109,13 +111,26 @@ const PayrollManagementView: React.FC = () => {
     }
   };
 
-  const loadStatistics = async (payrollId: string) => {
+  const handleFundOrganizationWallet = async (
+    data: FundOrganizationWalletData
+  ) => {
     try {
-      const stats = await getPayrollStatistics(payrollId);
-      setStatistics(stats);
-      setShowStatisticsModal(true);
-    } catch (err) {
-      setError("Failed to load statistics. Please try again.");
+      setError(null);
+      const response = await adminApi.fundOrganizationWallet(data);
+      setSuccessMessage(
+        `Organization wallet funded successfully! New balance: ₦${(
+          response.wallet.balance / 100
+        ).toLocaleString()}`
+      );
+      setShowSuccessModal(true);
+      setShowFundWalletModal(false);
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to fund organization wallet";
+      setError(errorMessage);
+      console.error("Error funding organization wallet:", err);
     }
   };
 
@@ -224,13 +239,21 @@ const PayrollManagementView: React.FC = () => {
             </select>
           </div>
 
-          {/* Create Button */}
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
-          >
-            + Create Payroll
-          </button>
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowFundWalletModal(true)}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+            >
+              💰 Fund Organization Wallet
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
+            >
+              + Create Payroll
+            </button>
+          </div>
         </div>
       </div>
 
@@ -478,6 +501,14 @@ const PayrollManagementView: React.FC = () => {
           isOpen={showSuccessModal}
           message={successMessage}
           onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {showFundWalletModal && (
+        <FundWalletModal
+          isOpen={showFundWalletModal}
+          onClose={() => setShowFundWalletModal(false)}
+          onSubmit={handleFundOrganizationWallet}
         />
       )}
     </div>
@@ -1265,6 +1296,124 @@ const PayrollStatisticsModal: React.FC<{
               Close
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FundWalletModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: FundOrganizationWalletData) => void;
+}> = ({ isOpen, onClose, onSubmit }) => {
+  const [formData, setFormData] = useState<FundOrganizationWalletData>({
+    amount: 0,
+    reason: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.amount < 1000) {
+      alert("Minimum amount is ₦1,000");
+      return;
+    }
+    setLoading(true);
+    try {
+      await onSubmit(formData);
+      setFormData({ amount: 0, reason: "" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-md w-full">
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Fund Organization Wallet
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Amount (₦) *
+              </label>
+              <input
+                type="number"
+                required
+                min="1000"
+                step="100"
+                value={formData.amount || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    amount: parseFloat(e.target.value) || 0,
+                  })
+                }
+                placeholder="Enter amount in Naira (minimum ₦1,000)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">Minimum: ₦1,000</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Reason (Optional)
+              </label>
+              <textarea
+                value={formData.reason || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, reason: e.target.value })
+                }
+                placeholder="Describe why you're funding the organization wallet"
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                disabled={loading || formData.amount < 1000}
+              >
+                {loading ? "Funding..." : "Fund Wallet"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

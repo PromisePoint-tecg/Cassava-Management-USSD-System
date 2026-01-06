@@ -1,13 +1,13 @@
-import { getAuthToken } from '../utils/cookies';
+import { getAuthToken } from "../utils/cookies";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 // Types and Enums
 export enum AdminRole {
-  SUPER_ADMIN = 'super_admin',
-  SUPPORT = 'support',
-  VERIFIER = 'verifier',
-  FINANCE = 'finance',
+  SUPER_ADMIN = "super_admin",
+  SUPPORT = "support",
+  VERIFIER = "verifier",
+  FINANCE = "finance",
 }
 
 export interface Admin {
@@ -28,8 +28,8 @@ export interface AdminFilters {
   page?: number;
   limit?: number;
   search?: string;
-  role?: AdminRole | '';
-  status?: 'active' | 'inactive' | 'all';
+  role?: AdminRole | "";
+  status?: "active" | "inactive" | "all";
 }
 
 export interface AdminsResponse {
@@ -59,32 +59,47 @@ export interface AdminActionResponse {
   admin: Admin;
 }
 
+export interface FundOrganizationWalletData {
+  amount: number; // Amount in Naira (not kobo)
+  reason?: string; // Optional description
+}
+
+export interface FundOrganizationWalletResponse {
+  message: string;
+  wallet: {
+    balance: number;
+    totalDeposited: number;
+  };
+}
+
 class AdminAPI {
   private getHeaders() {
     const token = getAuthToken();
     return {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }),
     };
   }
 
   async getAllAdmins(filters: AdminFilters = {}): Promise<AdminsResponse> {
     const params = new URLSearchParams();
-    
-    if (filters.page) params.append('page', filters.page.toString());
-    if (filters.limit) params.append('limit', filters.limit.toString());
-    if (filters.search) params.append('search', filters.search);
-    if (filters.role) params.append('role', filters.role);
-    if (filters.status) params.append('status', filters.status);
+
+    if (filters.page) params.append("page", filters.page.toString());
+    if (filters.limit) params.append("limit", filters.limit.toString());
+    if (filters.search) params.append("search", filters.search);
+    if (filters.role) params.append("role", filters.role);
+    if (filters.status) params.append("status", filters.status);
 
     const response = await fetch(`${API_BASE_URL}/admins?${params}`, {
-      method: 'GET',
+      method: "GET",
       headers: this.getHeaders(),
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to fetch admins' }));
-      throw new Error(error.message || 'Failed to fetch admins');
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to fetch admins" }));
+      throw new Error(error.message || "Failed to fetch admins");
     }
 
     return response.json();
@@ -92,44 +107,59 @@ class AdminAPI {
 
   async createAdmin(data: CreateAdminData): Promise<Admin> {
     const response = await fetch(`${API_BASE_URL}/admins`, {
-      method: 'POST',
+      method: "POST",
       headers: this.getHeaders(),
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to create admin' }));
-      throw new Error(error.message || 'Failed to create admin');
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to create admin" }));
+      throw new Error(error.message || "Failed to create admin");
     }
 
     return response.json();
   }
 
-  async activateAdmin(adminId: string, data: ActivateAdminData = {}): Promise<AdminActionResponse> {
+  async activateAdmin(
+    adminId: string,
+    data: ActivateAdminData = {}
+  ): Promise<AdminActionResponse> {
     const response = await fetch(`${API_BASE_URL}/admins/${adminId}/activate`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: this.getHeaders(),
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to activate admin' }));
-      throw new Error(error.message || 'Failed to activate admin');
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to activate admin" }));
+      throw new Error(error.message || "Failed to activate admin");
     }
 
     return response.json();
   }
 
-  async deactivateAdmin(adminId: string, data: ActivateAdminData = {}): Promise<AdminActionResponse> {
-    const response = await fetch(`${API_BASE_URL}/admins/${adminId}/deactivate`, {
-      method: 'PATCH',
-      headers: this.getHeaders(),
-      body: JSON.stringify(data),
-    });
+  async deactivateAdmin(
+    adminId: string,
+    data: ActivateAdminData = {}
+  ): Promise<AdminActionResponse> {
+    const response = await fetch(
+      `${API_BASE_URL}/admins/${adminId}/deactivate`,
+      {
+        method: "PATCH",
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to deactivate admin' }));
-      throw new Error(error.message || 'Failed to deactivate admin');
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to deactivate admin" }));
+      throw new Error(error.message || "Failed to deactivate admin");
     }
 
     return response.json();
@@ -137,13 +167,37 @@ class AdminAPI {
 
   async deleteAdmin(adminId: string): Promise<Admin> {
     const response = await fetch(`${API_BASE_URL}/admins/${adminId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: this.getHeaders(),
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to delete admin' }));
-      throw new Error(error.message || 'Failed to delete admin');
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to delete admin" }));
+      throw new Error(error.message || "Failed to delete admin");
+    }
+
+    return response.json();
+  }
+
+  async fundOrganizationWallet(
+    data: FundOrganizationWalletData
+  ): Promise<FundOrganizationWalletResponse> {
+    const response = await fetch(
+      `${API_BASE_URL}/admins/wallet/organization/fund`,
+      {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to fund organization wallet" }));
+      throw new Error(error.message || "Failed to fund organization wallet");
     }
 
     return response.json();
@@ -153,13 +207,13 @@ class AdminAPI {
   getRoleDisplayName(role: AdminRole): string {
     switch (role) {
       case AdminRole.SUPER_ADMIN:
-        return 'Super Admin';
+        return "Super Admin";
       case AdminRole.SUPPORT:
-        return 'Support';
+        return "Support";
       case AdminRole.VERIFIER:
-        return 'Verifier';
+        return "Verifier";
       case AdminRole.FINANCE:
-        return 'Finance';
+        return "Finance";
       default:
         return role;
     }
@@ -168,15 +222,15 @@ class AdminAPI {
   getRoleColor(role: AdminRole): string {
     switch (role) {
       case AdminRole.SUPER_ADMIN:
-        return 'bg-purple-100 text-purple-800';
+        return "bg-purple-100 text-purple-800";
       case AdminRole.SUPPORT:
-        return 'bg-blue-100 text-blue-800';
+        return "bg-blue-100 text-blue-800";
       case AdminRole.VERIFIER:
-        return 'bg-green-100 text-green-800';
+        return "bg-green-100 text-green-800";
       case AdminRole.FINANCE:
-        return 'bg-yellow-100 text-yellow-800';
+        return "bg-yellow-100 text-yellow-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   }
 }
