@@ -1,4 +1,4 @@
-import { ApiClient } from './client';
+import { ApiClient } from "./client";
 
 export interface PurchaseItem {
   _id: string;
@@ -6,12 +6,12 @@ export interface PurchaseItem {
   farmerName: string;
   farmerPhone: string;
   weightKg: number;
-  unit: 'kg' | 'ton';
-  pricePerUnit: number; // in naira
+  unit: "kg" | "ton";
+  pricePerKg: number; // in naira
   totalAmount: number; // in naira
-  status: 'pending' | 'completed' | 'failed' | 'cancelled';
-  paymentMethod: 'cash' | 'bank_transfer' | 'wallet';
-  paymentStatus: 'pending' | 'paid' | 'failed';
+  status: "pending" | "completed" | "failed" | "cancelled";
+  paymentMethod: "cash" | "bank_transfer" | "wallet";
+  paymentStatus: "pending" | "paid" | "failed";
   recordedBy: string;
   recordedById: string;
   location?: string;
@@ -26,8 +26,8 @@ export interface CreatePurchaseData {
   farmerPhone: string;
   weightKg: number;
   pricePerKg: number;
-  unit: 'kg' | 'ton';
-  paymentMethod: 'cash' | 'bank_transfer' | 'wallet';
+  unit: "kg" | "ton";
+  paymentMethod: "cash" | "bank_transfer" | "wallet";
   location?: string;
   notes?: string;
 }
@@ -36,11 +36,11 @@ export interface GetPurchasesQuery {
   page?: number;
   limit?: number;
   search?: string;
-  status?: 'pending' | 'completed' | 'failed' | 'cancelled';
-  paymentStatus?: 'pending' | 'paid' | 'failed';
+  status?: "pending" | "completed" | "failed" | "cancelled";
+  paymentStatus?: "pending" | "paid" | "failed";
   farmerId?: string;
-  sortBy?: 'createdAt' | 'totalAmount' | 'weightKg' | 'farmerName';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "createdAt" | "totalAmount" | "weightKg" | "farmerName";
+  sortOrder?: "asc" | "desc";
   startDate?: string;
   endDate?: string;
 }
@@ -81,21 +81,22 @@ export class PurchasesApi {
    */
   async getAllPurchases(query?: GetPurchasesQuery): Promise<PurchasesResponse> {
     const queryParams = new URLSearchParams();
-    
-    if (query?.page) queryParams.append('page', query.page.toString());
-    if (query?.limit) queryParams.append('limit', query.limit.toString());
-    if (query?.search) queryParams.append('search', query.search);
-    if (query?.status) queryParams.append('status', query.status);
-    if (query?.paymentStatus) queryParams.append('paymentStatus', query.paymentStatus);
-    if (query?.farmerId) queryParams.append('farmerId', query.farmerId);
-    if (query?.sortBy) queryParams.append('sortBy', query.sortBy);
-    if (query?.sortOrder) queryParams.append('sortOrder', query.sortOrder);
-    if (query?.startDate) queryParams.append('startDate', query.startDate);
-    if (query?.endDate) queryParams.append('endDate', query.endDate);
+
+    if (query?.page) queryParams.append("page", query.page.toString());
+    if (query?.limit) queryParams.append("limit", query.limit.toString());
+    if (query?.search) queryParams.append("search", query.search);
+    if (query?.status) queryParams.append("status", query.status);
+    if (query?.paymentStatus)
+      queryParams.append("paymentStatus", query.paymentStatus);
+    if (query?.farmerId) queryParams.append("farmerId", query.farmerId);
+    if (query?.sortBy) queryParams.append("sortBy", query.sortBy);
+    if (query?.sortOrder) queryParams.append("sortOrder", query.sortOrder);
+    if (query?.startDate) queryParams.append("startDate", query.startDate);
+    if (query?.endDate) queryParams.append("endDate", query.endDate);
 
     const queryString = queryParams.toString();
-    const url = `/purchases${queryString ? `?${queryString}` : ''}`;
-    
+    const url = `/purchases${queryString ? `?${queryString}` : ""}`;
+
     const response = await this.client.get<PurchasesResponse>(url);
     return response;
   }
@@ -104,7 +105,7 @@ export class PurchasesApi {
    * Get purchase KPIs
    */
   async getPurchaseKPIs(): Promise<PurchaseKPIs> {
-    const response = await this.client.get<PurchaseKPIs>('/purchases/kpis');
+    const response = await this.client.get<PurchaseKPIs>("/purchases/kpis");
     return response;
   }
 
@@ -112,7 +113,7 @@ export class PurchasesApi {
    * Create a new purchase
    */
   async createPurchase(data: CreatePurchaseData): Promise<PurchaseItem> {
-    const response = await this.client.post<PurchaseItem>('/purchases', data);
+    const response = await this.client.post<PurchaseItem>("/purchases", data);
     return response;
   }
 
@@ -127,16 +128,28 @@ export class PurchasesApi {
   /**
    * Update purchase status
    */
-  async updatePurchaseStatus(id: string, status: PurchaseItem['status']): Promise<PurchaseItem> {
-    const response = await this.client.patch<PurchaseItem>(`/purchases/${id}/status`, { status });
+  async updatePurchaseStatus(
+    id: string,
+    status: PurchaseItem["status"]
+  ): Promise<PurchaseItem> {
+    const response = await this.client.patch<PurchaseItem>(
+      `/purchases/${id}/status`,
+      { status }
+    );
     return response;
   }
 
   /**
    * Update payment status
    */
-  async updatePaymentStatus(id: string, paymentStatus: PurchaseItem['paymentStatus']): Promise<PurchaseItem> {
-    const response = await this.client.patch<PurchaseItem>(`/purchases/${id}/payment`, { paymentStatus });
+  async updatePaymentStatus(
+    id: string,
+    paymentStatus: PurchaseItem["paymentStatus"]
+  ): Promise<PurchaseItem> {
+    const response = await this.client.patch<PurchaseItem>(
+      `/purchases/${id}/payment`,
+      { paymentStatus }
+    );
     return response;
   }
 
@@ -146,21 +159,26 @@ export class PurchasesApi {
   async getCassavaPricing(): Promise<CassavaPricing> {
     try {
       // Get from settings endpoint
-      const response = await this.client.get<{ success: boolean; data: { cassavaPricePerKg: number; cassavaPricePerTon: number } }>('/settings/cassava-pricing');
+      const response = await this.client.get<{
+        success: boolean;
+        data: { cassavaPricePerKg: number; cassavaPricePerTon: number };
+      }>("/settings/cassava-pricing");
       return {
         pricePerKg: response.data.cassavaPricePerKg,
         pricePerTon: response.data.cassavaPricePerTon,
         effectiveDate: new Date(),
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       // Fallback to default pricing
-      console.warn('Using fallback cassava pricing - backend endpoint not available');
+      console.warn(
+        "Using fallback cassava pricing - backend endpoint not available"
+      );
       return {
         pricePerKg: 500,
         pricePerTon: 450000,
         effectiveDate: new Date(),
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     }
   }
@@ -168,8 +186,14 @@ export class PurchasesApi {
   /**
    * Update cassava pricing
    */
-  async updateCassavaPricing(data: { pricePerKg: number; pricePerTon: number }): Promise<CassavaPricing> {
-    const response = await this.client.put<CassavaPricing>('/admins/settings/cassava-pricing', data);
+  async updateCassavaPricing(data: {
+    pricePerKg: number;
+    pricePerTon: number;
+  }): Promise<CassavaPricing> {
+    const response = await this.client.put<CassavaPricing>(
+      "/admins/settings/cassava-pricing",
+      data
+    );
     return response;
   }
 
@@ -177,15 +201,23 @@ export class PurchasesApi {
    * Delete purchase (admin only)
    */
   async deletePurchase(id: string): Promise<{ message: string }> {
-    const response = await this.client.delete<{ message: string }>(`/purchases/${id}`);
+    const response = await this.client.delete<{ message: string }>(
+      `/purchases/${id}`
+    );
     return response;
   }
 
   /**
    * Retry a failed purchase
    */
-  async retryPurchase(id: string): Promise<{ success: boolean; message: string; data: PurchaseItem }> {
-    const response = await this.client.post<{ success: boolean; message: string; data: PurchaseItem }>(`/purchases/${id}/retry`);
+  async retryPurchase(
+    id: string
+  ): Promise<{ success: boolean; message: string; data: PurchaseItem }> {
+    const response = await this.client.post<{
+      success: boolean;
+      message: string;
+      data: PurchaseItem;
+    }>(`/purchases/${id}/retry`);
     return response;
   }
 }
