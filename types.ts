@@ -106,3 +106,45 @@ export interface KPIData {
   activeFarmers: number;
   outstandingLoans: number;
 }
+
+export interface PayrollTransaction {
+  id: string;
+  payrollId: string;
+  staffId: string;
+  userId: string;
+  employeeId: string;
+  staffName: string;
+  staffFullName: string;
+  staffEmployeeId: string;
+  department: string;
+  role: string;
+  grossSalary: number;
+  pensionEmployeeContribution: number;
+  pensionEmployerContribution: number;
+  employeePensionContribution: number;
+  employerPensionContribution: number;
+  totalPensionContribution: number;
+  taxDeduction: number;
+  otherDeductions: number;
+  totalDeductions: number;
+  netSalary: number;
+  savingsDeduction: number;
+  creditedSalary: number;
+  status: string;
+  paymentStatus: string;
+  paymentReference: string;
+  paidAt: string;
+  paymentDate: string;
+  payrollPeriodLabel: string;
+  failedReason: string;
+  retryCount: number;
+  createdAt: string;
+}
+
+export interface PaginatedTransactionResponse {
+  transactions: PayrollTransaction[];
+  total: number;
+  page: number;
+  pages: number;
+  totalPages: number;
+}

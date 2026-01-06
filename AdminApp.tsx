@@ -199,11 +199,6 @@ const AdminApp: React.FC = () => {
             </button>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="flex items-center bg-emerald-50 text-emerald-700 px-2 sm:px-3 py-1.5 rounded-full text-xs font-bold">
-              <Signal className="w-3 h-3 mr-1" />
-              <span className="hidden sm:inline">System Operational</span>
-              <span className="sm:hidden">Operational</span>
-            </div>
             <button
               onClick={() => navigate("/profile")}
               className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold border border-gray-300 hover:bg-gray-300 transition-colors cursor-pointer"
