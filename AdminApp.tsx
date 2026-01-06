@@ -223,7 +223,10 @@ const AdminApp: React.FC = () => {
             <Route path="/loans" element={<LoansView />} />
             <Route path="/transactions" element={<TransactionsView />} />
             <Route path="/admins" element={<AdminManagementView />} />
-            <Route path="/staff" element={<StaffManagementView />} />
+            <Route
+              path="/staff-management"
+              element={<StaffManagementView adminId={adminInfo?.id || ""} />}
+            />
             <Route path="/payroll" element={<PayrollManagementView />} />
             <Route path="/pension" element={<PensionManagementView />} />
             <Route path="/ussd" element={<USSDAnalyticsView />} />
