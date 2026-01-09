@@ -215,7 +215,7 @@ class StaffApi {
   async getProfile(): Promise<StaffProfile> {
     const token = getStaffAuthToken();
     const API_BASE_URL =
-      import.meta.env.VITE_API_URL || "http://localhost:3000";
+      import.meta.env.VITE_API_URL || "http://localhost:3001";
     const response = await fetch(`${API_BASE_URL}/staff/profile`, {
       method: "GET",
       headers: {
@@ -351,6 +351,33 @@ class StaffApi {
     }
 
     return response.json();
+  }
+
+  /**
+   * Add BVN number
+   */
+  async addBVN(bvn: string): Promise<{ message: string }> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/staff/add-bvn`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ bvn }),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to add BVN" }));
+      throw new Error(error.message || "Failed to add BVN");
+    }
+
+    const data = await response.json();
+    return data;
   }
 
   // Admin management endpoints - try both /staff and /admins/staff
