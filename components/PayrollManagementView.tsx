@@ -26,6 +26,10 @@ const PayrollManagementView: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [statistics, setStatistics] = useState<Stats | null>(null);
 
+  const [organizationWallet, setOrganizationWallet] = useState<{ balance: number; organizationName: string } | null>(null);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [walletError, setWalletError] = useState<string | null>(null);
+
   // Modals
   const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -39,7 +43,30 @@ const PayrollManagementView: React.FC = () => {
 
   useEffect(() => {
     fetchPayrolls();
+    fetchOrganizationWallet();
   }, [page, filterStatus]);
+
+  const fetchOrganizationWallet = async () => {
+    try {
+      setWalletLoading(true);
+      setWalletError(null);
+      console.log("Fetching organization wallet...");
+      const wallet = await adminApi.getOrganizationWallet();
+      console.log("Organization wallet received:", wallet);
+      setOrganizationWallet(wallet);
+    } catch (err: any) {
+      console.error("Failed to fetch organization wallet:", err);
+      const errorMsg = err?.response?.data?.message || err?.message || "Wallet not found";
+      if (errorMsg.includes("not found") || errorMsg.includes("not a function")) {
+        setWalletError("No payroll wallet. Click 'Fund Payroll Wallet' to create one.");
+      } else {
+        setWalletError(errorMsg);
+      }
+      setOrganizationWallet(null);
+    } finally {
+      setWalletLoading(false);
+    }
+  };
 
   const fetchPayrolls = async () => {
     try {
@@ -116,14 +143,19 @@ const PayrollManagementView: React.FC = () => {
   ) => {
     try {
       setError(null);
+      console.log("Funding organization wallet with:", data);
       const response = await adminApi.fundOrganizationWallet(data);
+      console.log("Fund wallet response:", response);
+      const newBalance = response?.wallet?.balance || response?.balance || 0;
       setSuccessMessage(
         `Organization wallet funded successfully! New balance: ₦${(
-          response.wallet.balance / 100
+          newBalance / 100
         ).toLocaleString()}`
       );
       setShowSuccessModal(true);
       setShowFundWalletModal(false);
+      // Refresh wallet balance
+      await fetchOrganizationWallet();
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.message ||
@@ -146,22 +178,22 @@ const PayrollManagementView: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const badges = {
       pending: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
           Pending
         </span>
       ),
       processing: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
           Processing
         </span>
       ),
       completed: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
           Completed
         </span>
       ),
       failed: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
           Failed
         </span>
       ),
@@ -243,9 +275,9 @@ const PayrollManagementView: React.FC = () => {
           <div className="flex gap-3">
             <button
               onClick={() => setShowFundWalletModal(true)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+              className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap"
             >
-              💰 Fund Organization Wallet
+              💰 Fund Payroll Wallet
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
@@ -259,63 +291,80 @@ const PayrollManagementView: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="text-sm text-gray-600 mb-1">Total Payrolls</div>
-          <div className="text-3xl font-bold text-gray-900">
-            {payrolls.length}
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg shadow-sm border border-emerald-200 p-5 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium text-emerald-700">Payroll Wallet Balance</div>
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="mt-2">
+            {walletLoading ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-emerald-600"></div>
+                <span className="text-lg text-emerald-600 font-medium">Loading...</span>
+              </div>
+            ) : walletError ? (
+              <div className="text-sm text-red-600 font-medium">{walletError}</div>
+            ) : (
+              <div className="text-2xl font-bold text-emerald-900 tracking-tight break-words">
+                {formatCurrency(organizationWallet?.balance || 0)}
+              </div>
+            )}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-1">
             <div className="text-sm text-gray-600">Pending</div>
-            <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-amber-600">
+          <div className="text-3xl font-bold text-gray-600">
             {payrolls.filter((p) => p.status === "pending").length}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-1">
             <div className="text-sm text-gray-600">Completed</div>
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-green-600">
+          <div className="text-3xl font-bold text-emerald-600">
             {payrolls.filter((p) => p.status === "completed").length}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-1">
             <div className="text-sm text-gray-600">Failed</div>
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-red-600">
+          <div className="text-3xl font-bold text-gray-700">
             {payrolls.filter((p) => p.status === "failed").length}
           </div>
         </div>
       </div>
 
-      {/* Payroll Table - Flex grow to fill remaining space */}
+      {/* Payroll Table - Full width */}
       <div className="flex-1 flex flex-col bg-white rounded-lg shadow overflow-hidden min-h-0">
-        <div className="flex-1 overflow-y-auto">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Payroll Records</h2>
+        </div>
+        <div className="flex-1 overflow-x-auto overflow-y-auto">
           <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0 z-10">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Period
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Staff
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Net Amount
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32 hidden lg:table-cell">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Pension
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -323,12 +372,12 @@ const PayrollManagementView: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {payrolls.map((payroll) => (
                 <tr key={payroll.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
                         {payroll.periodLabel}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500">
                         {new Date(payroll.periodStart).toLocaleDateString(
                           "en-US",
                           { month: "short", day: "numeric" }
@@ -341,53 +390,53 @@ const PayrollManagementView: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-semibold text-gray-900">
                       {payroll.totalStaffCount}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      <span className="text-green-600">
+                    <div className="text-xs text-gray-500">
+                      <span className="text-emerald-600">
                         ✓{payroll.processedStaffCount}
                       </span>{" "}
-                      <span className="text-red-600">
+                      <span className="text-gray-600">
                         ✗{payroll.failedStaffCount}
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-right">
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {formatCurrency(payroll.totalNetAmount)}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-gray-500">
                       Gross: {formatCurrency(payroll.totalGrossAmount)}
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-right text-sm text-gray-900 hidden lg:table-cell">
+                  <td className="px-6 py-4 text-right text-sm font-medium text-emerald-600 whitespace-nowrap">
                     {formatCurrency(payroll.totalPensionAmount)}
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(payroll.status)}
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex flex-col gap-1">
                       <button
                         onClick={() => {
                           setSelectedPayroll(payroll);
                           setShowDetailsModal(true);
                         }}
-                        className="text-xs text-blue-600 hover:text-blue-900 text-left"
+                        className="text-emerald-600 hover:text-emerald-900 text-left"
                       >
                         View Details
                       </button>
-                      {payroll.status === "pending" && (
+                      {(payroll.status === "pending" || payroll.status === "failed") && (
                         <button
                           onClick={() => {
                             setSelectedPayroll(payroll);
                             setShowProcessModal(true);
                           }}
-                          className="text-xs text-green-600 hover:text-green-900 font-medium text-left"
+                          className="text-emerald-600 hover:text-emerald-900 font-medium text-left"
                         >
-                          Process Now
+                          {payroll.status === "failed" ? "Retry Processing" : "Process Now"}
                         </button>
                       )}
                     </div>
@@ -765,22 +814,22 @@ const PayrollTransactionsModal: React.FC<{
   const getStatusBadge = (status: string) => {
     const badges = {
       pending: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
           Pending
         </span>
       ),
       processing: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
           Processing
         </span>
       ),
       completed: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
           Completed
         </span>
       ),
       failed: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
           Failed
         </span>
       ),
@@ -873,7 +922,7 @@ const PayrollTransactionsModal: React.FC<{
                           {txn.paymentStatus === "failed" && (
                             <button
                               onClick={() => onRetry(txn.id)}
-                              className="text-blue-600 hover:text-blue-900 text-xs"
+                              className="text-emerald-600 hover:text-emerald-900 text-xs"
                             >
                               Retry
                             </button>
@@ -987,8 +1036,8 @@ const CreatePayrollModal: React.FC<{
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+              <p className="text-sm text-emerald-800">
                 This will create a payroll period for all active, approved staff
                 members. The payroll will be in "pending" status and can be
                 processed after creation.
@@ -1061,11 +1110,11 @@ const ProcessPayrollModal: React.FC<{
           </div>
 
           <div className="space-y-4">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-sm text-yellow-800 font-medium mb-2">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+              <p className="text-sm text-emerald-800 font-medium mb-2">
                 Confirm Payroll Processing
               </p>
-              <p className="text-sm text-yellow-700">
+              <p className="text-sm text-emerald-700">
                 You are about to process payroll for{" "}
                 <strong>{payroll.periodLabel}</strong>
               </p>
@@ -1164,32 +1213,32 @@ const PayrollStatisticsModal: React.FC<{
 
           <div className="grid grid-cols-2 gap-6">
             {/* Staff Stats */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-blue-900 mb-3">
+            <div className="bg-emerald-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-emerald-900 mb-3">
                 Staff Statistics
               </h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-blue-700">Total Staff:</span>
-                  <span className="font-medium text-blue-900">
+                  <span className="text-emerald-700">Total Staff:</span>
+                  <span className="font-medium text-emerald-900">
                     {statistics.totalStaffCount || 0}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-blue-700">Processed:</span>
-                  <span className="font-medium text-green-600">
+                  <span className="text-emerald-700">Processed:</span>
+                  <span className="font-medium text-emerald-600">
                     {statistics.processedCount || 0}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-blue-700">Failed:</span>
-                  <span className="font-medium text-red-600">
+                  <span className="text-emerald-700">Failed:</span>
+                  <span className="font-medium text-gray-600">
                     {statistics.failedCount || 0}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-blue-700">Success Rate:</span>
-                  <span className="font-medium text-blue-900">
+                  <span className="text-emerald-700">Success Rate:</span>
+                  <span className="font-medium text-emerald-900">
                     {(typeof statistics.successRate === "number"
                       ? statistics.successRate
                       : 0
@@ -1407,7 +1456,7 @@ const FundWalletModal: React.FC<{
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
                 disabled={loading || formData.amount < 1000}
               >
                 {loading ? "Funding..." : "Fund Wallet"}

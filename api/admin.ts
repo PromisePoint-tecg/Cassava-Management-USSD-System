@@ -60,8 +60,8 @@ export interface AdminActionResponse {
 }
 
 export interface FundOrganizationWalletData {
-  amount: number; // Amount in Naira (not kobo)
-  reason?: string; // Optional description
+  amount: number;
+  reason?: string;
 }
 
 export interface FundOrganizationWalletResponse {
@@ -70,6 +70,17 @@ export interface FundOrganizationWalletResponse {
     balance: number;
     totalDeposited: number;
   };
+}
+
+export interface OrganizationWallet {
+  id: string;
+  type: string;
+  balance: number;
+  totalDeposited: number;
+  totalWithdrawn: number;
+  currency: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 class AdminAPI {
@@ -181,6 +192,27 @@ class AdminAPI {
     return response.json();
   }
 
+  async getOrganizationWallet(): Promise<OrganizationWallet> {
+    const response = await fetch(
+      `${API_BASE_URL}/admins/wallet/organization`,
+      {
+        method: "GET",
+        headers: this.getHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to get organization wallet" }));
+      throw new Error(error.message || "Failed to get organization wallet");
+    }
+
+    const result = await response.json();
+    // Handle both direct wallet response and wrapped response
+    return result.data || result;
+  }
+
   async fundOrganizationWallet(
     data: FundOrganizationWalletData
   ): Promise<FundOrganizationWalletResponse> {
@@ -200,7 +232,8 @@ class AdminAPI {
       throw new Error(error.message || "Failed to fund organization wallet");
     }
 
-    return response.json();
+    const result = await response.json();
+    return result.data || result;
   }
 
   // Role utility functions

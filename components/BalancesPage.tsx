@@ -346,7 +346,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
                         !bankForm.bankCode ||
                         verifyingAccount
                       }
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {verifyingAccount ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -582,7 +582,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
                           useSavedAccount: e.target.checked,
                         })
                       }
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
                     />
                     <label
                       htmlFor="useSavedAccount"
@@ -593,8 +593,8 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
                   </div>
 
                   {withdrawalForm.useSavedAccount && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <div className="text-sm text-blue-800">
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                      <div className="text-sm text-emerald-800">
                         <strong>Account:</strong> {savedAccount.accountName}
                         <br />
                         <strong>Bank:</strong> {savedAccount.bankName}
@@ -623,7 +623,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
                           })
                         }
                         placeholder="United Bank For Africa"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         required
                       />
                     </div>
@@ -644,7 +644,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
                           })
                         }
                         placeholder="1234567890"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         required
                         maxLength={10}
                       />
@@ -665,7 +665,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
                         })
                       }
                       placeholder="JOHN DOE"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                       required
                     />
                   </div>
@@ -694,7 +694,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
                 <button
                   type="submit"
                   disabled={requestingWithdrawal}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {requestingWithdrawal
                     ? "Requesting..."

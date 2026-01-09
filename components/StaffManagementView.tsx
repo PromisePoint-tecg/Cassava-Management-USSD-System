@@ -256,7 +256,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
           {/* Register Button */}
           <button
             onClick={() => setShowRegisterModal(true)}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+            className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap"
           >
             + Register Staff
           </button>
@@ -301,9 +301,9 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-1">
             <div className="text-sm text-gray-600">Deactivated</div>
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-red-600">
+          <div className="text-3xl font-bold text-gray-600">
             {staff?.filter(s => !s.isActive && s.isApproved).length || 0}
           </div>
         </div>
@@ -365,7 +365,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
                           setSelectedStaff(member);
                           setShowDetailsModal(true);
                         }}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-emerald-600 hover:text-emerald-800 font-medium"
                         title="View Details"
                       >
                         View
@@ -807,7 +807,7 @@ const RegisterStaffModal: React.FC<{
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
               >
                 Register
               </button>
@@ -1095,7 +1095,7 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, o
             </button>
           </div>
 
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mb-6 p-4 bg-emerald-50 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-2">{staff.fullName}</h3>
             <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
               <div><span className="font-medium">Phone:</span> {staff.phone}</div>
