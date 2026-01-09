@@ -69,7 +69,7 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
       setUploadError(null);
       setUploadSuccess(null);
 
-      await staffApi.uploadNIN(file);
+      await staffApi.uploadNINToCloudinary(file);
 
       setUploadSuccess("NIN document uploaded successfully!");
       await loadProfile();

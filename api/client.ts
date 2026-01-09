@@ -2,9 +2,9 @@
  * API Client for Promise Point Agrictech Solution Backend
  */
 
-import { getAuthToken, clearAuthToken } from '../utils/cookies';
+import { getAuthToken, clearAuthToken } from "../utils/cookies";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 interface ApiError {
   message: string;
@@ -17,14 +17,18 @@ export class ApiClient {
   private maxRetries: number;
   private retryDelay: number;
 
-  constructor(baseUrl: string = API_BASE_URL, maxRetries: number = 3, retryDelay: number = 1000) {
+  constructor(
+    baseUrl: string = API_BASE_URL,
+    maxRetries: number = 3,
+    retryDelay: number = 1000
+  ) {
     this.baseUrl = baseUrl;
     this.maxRetries = maxRetries;
     this.retryDelay = retryDelay;
   }
 
   private async sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private shouldRetry(status: number, attempt: number): boolean {
@@ -43,16 +47,16 @@ export class ApiClient {
   ): Promise<T> {
     const token = getAuthToken();
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
     };
 
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     try {
       const response = await fetch(url, {
         ...options,
@@ -63,13 +67,15 @@ export class ApiClient {
         // Handle 401 Unauthorized - clear token and throw specific error (no retry)
         if (response.status === 401) {
           clearAuthToken();
-          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
-          
+          window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+
           try {
             const errorData: ApiError = await response.json();
-            throw new Error(errorData.message || errorData.error || 'Invalid or expired token');
+            throw new Error(
+              errorData.message || errorData.error || "Invalid or expired token"
+            );
           } catch {
-            throw new Error('Invalid or expired token');
+            throw new Error("Invalid or expired token");
           }
         }
 
@@ -83,16 +89,22 @@ export class ApiClient {
         // Handle other errors (no retry)
         try {
           const errorData: ApiError = await response.json();
-          throw new Error(errorData.message || errorData.error || `HTTP ${response.status}`);
+          throw new Error(
+            errorData.message || errorData.error || `HTTP ${response.status}`
+          );
         } catch {
-          throw new Error(`HTTP ${response.status}: ${response.statusText || 'An error occurred'}`);
+          throw new Error(
+            `HTTP ${response.status}: ${
+              response.statusText || "An error occurred"
+            }`
+          );
         }
       }
 
       return await response.json();
     } catch (error) {
       // Retry on network errors
-      if (error instanceof TypeError && error.message.includes('fetch')) {
+      if (error instanceof TypeError && error.message.includes("fetch")) {
         if (this.shouldRetry(0, retryAttempt)) {
           const delay = this.retryDelay * Math.pow(2, retryAttempt);
           await this.sleep(delay);
@@ -103,37 +115,37 @@ export class ApiClient {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Network error occurred');
+      throw new Error("Network error occurred");
     }
   }
 
   async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+    return this.request<T>(endpoint, { method: "GET" });
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   async patch<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PATCH',
+      method: "PATCH",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   async put<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+    return this.request<T>(endpoint, { method: "DELETE" });
   }
 
   async upload<T>(endpoint: string, formData: FormData): Promise<T> {
@@ -141,14 +153,14 @@ export class ApiClient {
     const headers: HeadersInit = {};
 
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     const url = `${this.baseUrl}${endpoint}`;
 
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: formData,
       });
@@ -156,8 +168,8 @@ export class ApiClient {
       if (!response.ok) {
         if (response.status === 401) {
           clearAuthToken();
-          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
-          throw new Error('Invalid or expired token');
+          window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+          throw new Error("Invalid or expired token");
         }
 
         const errorData = await response.json();
@@ -169,7 +181,7 @@ export class ApiClient {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Upload failed');
+      throw new Error("Upload failed");
     }
   }
 }
