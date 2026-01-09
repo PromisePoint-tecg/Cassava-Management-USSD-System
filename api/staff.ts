@@ -50,6 +50,8 @@ export interface StaffBalances {
 
 export interface StaffProfile extends Staff {
   balances?: StaffBalances;
+  hasBvn?: boolean;
+  hasNin?: boolean;
 }
 
 export interface StaffLoginResponse {

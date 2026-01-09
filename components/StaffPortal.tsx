@@ -84,8 +84,6 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
     }
   };
 
-
-
   const loadLoanTypes = async () => {
     try {
       setLoadingLoanTypes(true);
@@ -290,7 +288,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">NIN Document</span>
-                {profile.ninDocumentUrl ? (
+                {profile.hasNin ? (
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
                 ) : (
                   <XCircle className="w-5 h-5 text-gray-400" />
@@ -298,13 +296,13 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">BVN Document</span>
-                {profile.bvnDocumentUrl ? (
+                {profile.hasBvn ? (
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
                 ) : (
                   <XCircle className="w-5 h-5 text-gray-400" />
                 )}
               </div>
-              {(!profile.ninDocumentUrl || !profile.bvnDocumentUrl) && (
+              {(!profile.hasNin || !profile.hasBvn) && (
                 <p className="text-xs text-amber-600 mt-2">
                   Please upload missing documents in the Documents section
                 </p>
