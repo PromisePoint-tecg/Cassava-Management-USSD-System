@@ -84,7 +84,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({
               }}
               className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                 currentPath === item.path
-                  ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
+                  ? "bg-green-100 text-green-700 border-r-2 border-green-700"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >

@@ -178,7 +178,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
 
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <User className="w-5 h-5 mr-2 text-blue-600" />
+            <User className="w-5 h-5 mr-2 text-green-600" />
             Personal Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -240,7 +240,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
         {/* Documents Section */}
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <FileText className="w-5 h-5 mr-2 text-blue-600" />
+            <FileText className="w-5 h-5 mr-2 text-green-600" />
             Identity Documents
           </h3>
           <p className="text-gray-600 mb-6">
@@ -292,10 +292,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
                     disabled={uploadingNIN}
                     className="hidden"
                   />
-                  <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
+                  <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors">
                     {uploadingNIN ? (
                       <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin text-blue-600" />
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin text-green-600" />
                         <span className="text-sm text-gray-700">
                           Uploading...
                         </span>
@@ -344,10 +344,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
                     disabled={uploadingBVN}
                     className="hidden"
                   />
-                  <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
+                  <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors">
                     {uploadingBVN ? (
                       <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin text-blue-600" />
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin text-green-600" />
                         <span className="text-sm text-gray-700">
                           Uploading...
                         </span>

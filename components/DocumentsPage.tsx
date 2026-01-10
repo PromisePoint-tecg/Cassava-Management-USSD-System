@@ -226,10 +226,10 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
                     disabled={uploadingNIN}
                     className="hidden"
                   />
-                  <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
+                  <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors">
                     {uploadingNIN ? (
                       <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin text-blue-600" />
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin text-green-600" />
                         <span className="text-sm text-gray-700">
                           Uploading...
                         </span>
@@ -251,7 +251,7 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
                     href={profile.ninDocumentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50"
+                    className="block text-center px-4 py-2 text-sm text-green-600 hover:text-green-700 border border-green-300 rounded-lg hover:bg-green-50"
                   >
                     View Document
                   </a>
@@ -293,14 +293,14 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
                     }
                     placeholder="Enter 11-digit BVN"
                     disabled={submittingBVN || !!profile.bvn}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
                   />
                   <button
                     onClick={handleBVNSubmit}
                     disabled={
                       submittingBVN || !bvnInput.trim() || !!profile.bvn
                     }
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
                   >
                     {submittingBVN ? (
                       <>
