@@ -52,13 +52,13 @@ const ViewAdminModal: React.FC<ViewAdminModalProps> = ({ isOpen, onClose, admin 
   const getRoleColor = (role: AdminRole): string => {
     switch (role) {
       case AdminRole.SUPER_ADMIN:
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-green-200 text-green-900';
       case AdminRole.SUPPORT:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-green-100 text-green-800';
       case AdminRole.VERIFIER:
         return 'bg-green-100 text-green-800';
       case AdminRole.FINANCE:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-green-100 text-green-700';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -95,7 +95,7 @@ const ViewAdminModal: React.FC<ViewAdminModalProps> = ({ isOpen, onClose, admin 
                 <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                   admin.isActive
                     ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
+                    : 'bg-gray-100 text-gray-800'
                 }`}>
                   {admin.isActive ? 'Active' : 'Inactive'}
                 </span>
@@ -211,8 +211,8 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 text-sm">{error}</p>
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 text-sm">{error}</p>
             </div>
           )}
 
@@ -343,7 +343,7 @@ const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({ admin, onAction }) 
                 onAction('view', admin);
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center"
+              className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center"
             >
               <Eye className="w-4 h-4 mr-2" />
               View Details
@@ -354,7 +354,7 @@ const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({ admin, onAction }) 
                   onAction('deactivate', admin);
                   setIsOpen(false);
                 }}
-                className="w-full px-4 py-2 text-left text-sm text-orange-600 hover:bg-orange-50 flex items-center"
+                className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center"
               >
                 <UserX className="w-4 h-4 mr-2" />
                 Deactivate
@@ -376,7 +376,7 @@ const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({ admin, onAction }) 
                 onAction('delete', admin);
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+              className="w-full px-4 py-2 text-left text-sm text-green-700 hover:bg-green-50 flex items-center"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete
@@ -638,7 +638,7 @@ export const AdminManagementView: React.FC = () => {
       {/* Admin Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-visible">
         {error && (
-          <div className="p-4 bg-red-50 border-b border-red-200">
+          <div className="p-4 bg-green-50 border-b border-green-200">
             <p className="text-red-800 text-sm">{error}</p>
           </div>
         )}
@@ -701,7 +701,7 @@ export const AdminManagementView: React.FC = () => {
                           <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                             admin.isActive
                               ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800'
                           }`}>
                             {admin.isActive ? 'Active' : 'Inactive'}
                           </span>

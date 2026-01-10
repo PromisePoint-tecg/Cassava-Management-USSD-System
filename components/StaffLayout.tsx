@@ -60,7 +60,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({
           </div>
           <div className="flex items-center gap-4">
             {profile && (
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-300">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold border border-green-300">
                 {profile.firstName[0]}
                 {profile.lastName[0]}
               </div>

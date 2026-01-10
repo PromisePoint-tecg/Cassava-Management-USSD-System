@@ -141,10 +141,10 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
 
   const getStatusBadge = (staff: Staff) => {
     if (!staff.isApproved) {
-      return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Pending Approval</span>;
+      return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Pending Approval</span>;
     }
     if (!staff.isActive) {
-      return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Deactivated</span>;
+      return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Deactivated</span>;
     }
     return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>;
   };
@@ -187,7 +187,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
 
       {/* Error Message with improved styling */}
       {error && (
-        <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg animate-in fade-in duration-300">
+        <div className="mb-4 bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg animate-in fade-in duration-300">
           <div className="flex items-start">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
@@ -603,7 +603,7 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
                       )}
                     </div>
                   ) : (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                       Not Uploaded
                     </span>
                   )}
@@ -620,7 +620,7 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
                       </span>
                     </div>
                   ) : (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                       Not Provided
                     </span>
                   )}
@@ -1048,7 +1048,7 @@ const DeactivateStaffModal: React.FC<{
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 Deactivate
               </button>
