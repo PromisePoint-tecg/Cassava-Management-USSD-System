@@ -98,8 +98,8 @@ const UserModal: React.FC<UserModalProps> = ({
           <div className="space-y-6">
             {/* User Basic Info */}
             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <User className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <User className="w-6 h-6 text-green-700" />
               </div>
               <div>
                 <h4 className="font-medium text-gray-800">{user.name}</h4>
@@ -110,7 +110,7 @@ const UserModal: React.FC<UserModalProps> = ({
             {/* Minimalized wallet/financial sections - keep them compact */}
             {detailsLoading ? (
               <div className="p-4 text-center">
-                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-2"></div>
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mb-2"></div>
                 <p className="text-sm text-gray-600">
                   Loading wallet information...
                 </p>
@@ -136,7 +136,7 @@ const UserModal: React.FC<UserModalProps> = ({
                       className={`text-xs px-2 py-1 rounded-full ${
                         userFinancialDetails.wallet.isActive
                           ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
+                          : "bg-gray-200 text-gray-800"
                       }`}
                     >
                       {userFinancialDetails.wallet.isActive
@@ -170,7 +170,7 @@ const UserModal: React.FC<UserModalProps> = ({
               </h5>
               {loading ? (
                 <div className="text-center py-4">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -196,10 +196,10 @@ const UserModal: React.FC<UserModalProps> = ({
                             <span
                               className={`text-xs px-2 py-1 rounded-full ${
                                 transaction.status === "completed"
-                                  ? "bg-green-100 text-green-700"
+                                  ? "bg-green-100 text-green-800"
                                   : transaction.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-red-100 text-red-700"
+                                  ? "bg-green-50 text-green-700"
+                                  : "bg-gray-200 text-gray-800"
                               }`}
                             >
                               {transaction.status}
@@ -276,7 +276,7 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
           {transaction.user ? (
             <button
               onClick={() => onUserClick(transaction.user, transaction.userId)}
-              className="text-left hover:text-blue-600 transition-colors"
+              className="text-left hover:text-green-700 transition-colors"
             >
               <div className="text-sm font-medium text-gray-800">
                 {transaction.user.name}
@@ -306,11 +306,11 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
           <span
             className={`text-xs px-2 py-1 rounded-full ${
               transaction.status === "completed"
-                ? "bg-green-100 text-green-700"
+                ? "bg-green-100 text-green-800"
                 : transaction.status === "pending"
-                ? "bg-yellow-100 text-yellow-700"
+                ? "bg-green-50 text-green-700"
                 : transaction.status === "failed"
-                ? "bg-red-100 text-red-700"
+                ? "bg-gray-200 text-gray-800"
                 : "bg-gray-100 text-gray-700"
             }`}
           >
@@ -389,10 +389,10 @@ const MobileTxCard: React.FC<{
             <span
               className={`inline-block text-xs px-2 py-1 rounded-full ${
                 tx.status === "completed"
-                  ? "bg-green-100 text-green-700"
+                  ? "bg-green-100 text-green-800"
                   : tx.status === "pending"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-red-100 text-red-700"
+                  ? "bg-green-50 text-green-700"
+                  : "bg-gray-200 text-gray-800"
               }`}
             >
               {tx.status}
@@ -404,7 +404,7 @@ const MobileTxCard: React.FC<{
       <div className="flex items-center justify-between mt-3">
         <button
           onClick={() => onUserClick(tx.user, tx.userId)}
-          className="text-xs text-blue-600"
+          className="text-xs text-green-700"
         >
           View user
         </button>
@@ -481,11 +481,11 @@ const PayrollTransactionRow: React.FC<{ transaction: PayrollTransaction }> = ({
             className={`text-xs px-2 py-1 rounded-full ${
               transaction.paymentStatus === "success" ||
               transaction.status === "completed"
-                ? "bg-green-100 text-green-700"
+                ? "bg-green-100 text-green-800"
                 : transaction.paymentStatus === "pending" ||
                   transaction.status === "pending"
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-red-100 text-red-700"
+                ? "bg-green-50 text-green-700"
+                : "bg-gray-200 text-gray-800"
             }`}
           >
             {transaction.paymentStatus || transaction.status}
@@ -496,7 +496,7 @@ const PayrollTransactionRow: React.FC<{ transaction: PayrollTransaction }> = ({
           <div className="text-sm text-gray-600">
             Period: {transaction.payrollPeriodLabel}
             {transaction.failedReason && (
-              <div className="text-xs text-red-600 mt-1">
+              <div className="text-xs text-green-900 mt-1">
                 Failed: {transaction.failedReason}
               </div>
             )}
@@ -603,10 +603,10 @@ const PayrollMobileTxCard: React.FC<{ tx: PayrollTransaction }> = ({ tx }) => {
             <span
               className={`inline-block text-xs px-2 py-1 rounded-full ${
                 tx.paymentStatus === "success" || tx.status === "completed"
-                  ? "bg-green-100 text-green-700"
+                  ? "bg-green-100 text-green-800"
                   : tx.paymentStatus === "pending" || tx.status === "pending"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-red-100 text-red-700"
+                  ? "bg-green-50 text-green-700"
+                  : "bg-gray-200 text-gray-800"
               }`}
             >
               {tx.paymentStatus || tx.status}
@@ -944,13 +944,13 @@ export const TransactionsView: React.FC = () => {
           </div>
           <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="text-sm text-gray-600">Pending</div>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-green-500">
               {stats.pendingTransactions.toLocaleString()}
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="text-sm text-gray-600">Failed</div>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-green-900">
               {stats.failedTransactions.toLocaleString()}
             </div>
           </div>
@@ -972,7 +972,7 @@ export const TransactionsView: React.FC = () => {
                   placeholder="Search reference, description..."
                   value={filters.search || ""}
                   onChange={(e) => handleFilterChange("search", e.target.value)}
-                  className="pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-full focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -984,7 +984,7 @@ export const TransactionsView: React.FC = () => {
               <select
                 value={filters.status || ""}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="">All Status</option>
                 <option value="pending">Pending</option>
@@ -1001,7 +1001,7 @@ export const TransactionsView: React.FC = () => {
               <select
                 value={filters.userType || ""}
                 onChange={(e) => handleFilterChange("userType", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="">All Users</option>
                 <option value="farmer">Farmers</option>
@@ -1020,7 +1020,7 @@ export const TransactionsView: React.FC = () => {
                   onChange={(e) =>
                     handleFilterChange("startDate", e.target.value)
                   }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
                 <input
                   type="date"
@@ -1028,7 +1028,7 @@ export const TransactionsView: React.FC = () => {
                   onChange={(e) =>
                     handleFilterChange("endDate", e.target.value)
                   }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -1044,8 +1044,8 @@ export const TransactionsView: React.FC = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "border-blue-500 text-blue-600"
+                  activeTab === tab.id
+                    ? "border-green-600 text-green-700"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -1063,14 +1063,14 @@ export const TransactionsView: React.FC = () => {
       {/* Transactions Table / Cards - responsive: cards on small screens to prevent horizontal scroll */}
       <div className="bg-white rounded-lg border border-gray-200">
         {error && (
-          <div className="p-4 bg-red-50 border-b border-red-200">
-            <p className="text-red-800 text-sm">{error}</p>
+          <div className="p-4 bg-green-50 border-b border-green-200">
+            <p className="text-green-900 text-sm">{error}</p>
           </div>
         )}
 
         {initialLoading || tabLoading ? (
           <div className="p-8 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-4"></div>
             <p className="text-gray-600">
               {initialLoading ? "Loading transactions..." : "Updating..."}
             </p>
@@ -1193,7 +1193,7 @@ export const TransactionsView: React.FC = () => {
                       onClick={() => handlePageChange(page)}
                       className={`px-3 py-1 rounded text-sm ${
                         page === pagination.currentPage
-                          ? "bg-blue-500 text-white"
+                          ? "bg-green-600 text-white"
                           : "border border-gray-300 text-gray-600 hover:bg-gray-50"
                       }`}
                     >

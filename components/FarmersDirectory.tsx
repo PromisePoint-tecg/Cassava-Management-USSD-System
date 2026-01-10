@@ -193,7 +193,7 @@ export const FarmersDirectory: React.FC = () => {
               <div key={farmer.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-800">{farmer.fullName}</h3>
+                    <h3 className="font-semibold text-gray-800">{farmer.fullName.toUpperCase()}</h3>
                     <p className="text-sm text-gray-600">{farmer.phone}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ export const FarmersDirectory: React.FC = () => {
                     <tr key={farmer.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-gray-800">{farmer.fullName}</p>
+                          <p className="font-medium text-gray-800">{farmer.fullName.toUpperCase()}</p>
                           <p className="text-xs text-gray-500">ID: {farmer.id.substring(0, 8)}...</p>
                         </div>
                       </td>
@@ -327,7 +327,7 @@ export const FarmersDirectory: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium">{viewingFarmer.fullName}</p>
+                    <p className="font-medium">{viewingFarmer.fullName.toUpperCase()}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Phone Number</p>
@@ -441,7 +441,7 @@ export const FarmersDirectory: React.FC = () => {
               )}
 
               <p className="text-gray-700">
-                Are you sure you want to deactivate <strong>{deactivatingFarmer.fullName}</strong>? 
+                Are you sure you want to deactivate <strong>{deactivatingFarmer.fullName.toUpperCase()}</strong>? 
                 This will suspend their account and they won't be able to access the system.
               </p>
 
