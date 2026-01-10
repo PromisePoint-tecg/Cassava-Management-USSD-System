@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   User,
@@ -71,14 +71,13 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       setProfile(data);
     } catch (err: any) {
       if (
-        err.message?.includes("Invalid or expired token") ||
-        err.message?.includes("401")
+        err?.message?.includes("Invalid or expired token") ||
+        err?.message?.includes("401")
       ) {
-        // Token is invalid, logout
         onLogout();
         return;
       }
-      setError(err.message || "Failed to load profile");
+      setError(err?.message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -88,11 +87,13 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
     try {
       setLoadingLoanTypes(true);
       const data = await staffApi.getLoanTypes();
-      setLoanTypes(data.filter((type) => type.is_active));
+      setLoanTypes(
+        (data || []).filter((type: LoanType) => (type as any).is_active)
+      );
     } catch (err: any) {
       if (
-        err.message?.includes("Invalid or expired token") ||
-        err.message?.includes("401")
+        err?.message?.includes("Invalid or expired token") ||
+        err?.message?.includes("401")
       ) {
         onLogout();
         return;
@@ -119,17 +120,17 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       setSubmittingLoanRequest(true);
       setError(null);
 
-      // Convert principal to kobo (server expects lowest currency unit)
+      // Convert principal to minor unit expected by server
       const requestData = {
         ...loanRequestForm,
         principalAmount: Math.round(loanRequestForm.principalAmount * 100),
-      };
+      } as any;
 
       const response = await staffApi.requestLoan(profile.id, requestData);
 
       setShowLoanRequestModal(false);
 
-      const loanData = response.data || response;
+      const loanData = response?.data ?? response;
       setLoanSuccessData(loanData);
       setShowLoanSuccessModal(true);
 
@@ -145,14 +146,14 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       } as StaffLoanRequest);
     } catch (err: any) {
       if (
-        err.message?.includes("Invalid or expired token") ||
-        err.message?.includes("401")
+        err?.message?.includes("Invalid or expired token") ||
+        err?.message?.includes("401")
       ) {
         onLogout();
         return;
       }
       console.error("Loan request failed:", err);
-      setError(err.message || "Failed to submit loan request");
+      setError(err?.message || "Failed to submit loan request");
     } finally {
       setSubmittingLoanRequest(false);
     }
@@ -163,154 +164,156 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
     loadLoanTypes();
   };
 
-  // Loading / error states (before we have a profile)
-  if (loading && !profile)
-    return <LoadingSpinner message="Loading staff portal..." />;
-  if (error && !profile)
-    return (
-      <ErrorMessage
-        title="Error Loading Portal"
-        message={error}
-        onRetry={loadProfile}
-      />
-    );
-  if (!profile || !profile.firstName || !profile.lastName)
-    return <LoadingSpinner message="Loading staff portal..." />;
-
   return (
     <StaffLayout
       title="Staff Portal"
-      subtitle={`Welcome, ${profile.firstName}`}
+      subtitle={profile ? `Welcome, ${profile?.firstName}` : ""}
       profile={profile}
       onLogout={onLogout}
       currentPath={location.pathname}
       showBackButton={false}
     >
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Welcome back, {profile.firstName}!
-            </h2>
-            <p className="text-gray-600">Here's an overview of your account</p>
-          </div>
-          <button
-            onClick={handleOpenLoanRequest}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Request Loan
-          </button>
-        </div>
-
-        {/* Balance Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-200 rounded-full">
-                <PiggyBank className="w-6 h-6 text-green-700" />
-              </div>
+      {loading && !profile ? (
+        <LoadingSpinner message="Loading staff portal..." />
+      ) : error && !profile ? (
+        <ErrorMessage
+          title="Error Loading Portal"
+          message={error}
+          onRetry={loadProfile}
+        />
+      ) : (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                Welcome back, {profile.firstName}!
+              </h2>
+              <p className="text-gray-600">
+                Here's an overview of your account
+              </p>
             </div>
-            <h3 className="text-sm font-medium text-gray-600 mb-1">Savings</h3>
-            <p className="text-2xl font-bold text-gray-800">
-              {formatCurrency(profile.balances?.savings || 0)}
-            </p>
+            <button
+              onClick={handleOpenLoanRequest}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Request Loan
+            </button>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-200 rounded-full">
-                <Building2 className="w-6 h-6 text-blue-700" />
+          {/* Balance Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-green-200 rounded-full">
+                  <PiggyBank className="w-6 h-6 text-green-700" />
+                </div>
               </div>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">
+                Savings
+              </h3>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatCurrency(profile.balances?.savings || 0)}
+              </p>
             </div>
-            <h3 className="text-sm font-medium text-gray-600 mb-1">Pension</h3>
-            <p className="text-2xl font-bold text-gray-800">
-              {formatCurrency(profile.balances?.pension || 0)}
-            </p>
-          </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-200 rounded-full">
-                <Wallet className="w-6 h-6 text-purple-700" />
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-200 rounded-full">
+                  <Building2 className="w-6 h-6 text-blue-700" />
+                </div>
               </div>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">
+                Pension
+              </h3>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatCurrency(profile.balances?.pension || 0)}
+              </p>
             </div>
-            <h3 className="text-sm font-medium text-gray-600 mb-1">Wallet</h3>
-            <p className="text-2xl font-bold text-gray-800">
-              {formatCurrency(profile.balances?.wallet || 0)}
-            </p>
-          </div>
-        </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Account Status
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Status</span>
-                <span
-                  className={`px-3 py-1 text-xs font-medium rounded-full ${
-                    profile.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {profile.isActive ? "Active" : "Inactive"}
-                </span>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-purple-200 rounded-full">
+                  <Wallet className="w-6 h-6 text-purple-700" />
+                </div>
               </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Role</span>
-                <span className="text-sm font-medium text-gray-900 capitalize">
-                  {profile.role}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Member Since</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {new Date(profile.createdAt).toLocaleDateString("en-NG", {
-                    year: "numeric",
-                    month: "short",
-                  })}
-                </span>
-              </div>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">Wallet</h3>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatCurrency(profile.balances?.wallet || 0)}
+              </p>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Document Status
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">NIN Document</span>
-                {profile.hasNin ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-gray-400" />
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Account Status
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Status</span>
+                  <span
+                    className={`px-3 py-1 text-xs font-medium rounded-full ${
+                      profile.isActive
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {profile.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Role</span>
+                  <span className="text-sm font-medium text-gray-900 capitalize">
+                    {profile.role}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Member Since</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {new Date(profile.createdAt).toLocaleDateString("en-NG", {
+                      year: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Document Status
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">NIN Document</span>
+                  {profile.hasNin ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-gray-400" />
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">BVN Document</span>
+                  {profile.hasBvn ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-gray-400" />
+                  )}
+                </div>
+                {(!profile.hasNin || !profile.hasBvn) && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    Please upload missing documents in the Documents section
+                  </p>
                 )}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">BVN Document</span>
-                {profile.hasBvn ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-gray-400" />
-                )}
-              </div>
-              {(!profile.hasNin || !profile.hasBvn) && (
-                <p className="text-xs text-amber-600 mt-2">
-                  Please upload missing documents in the Documents section
-                </p>
-              )}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Loan Request Modal */}
       {showLoanRequestModal && (

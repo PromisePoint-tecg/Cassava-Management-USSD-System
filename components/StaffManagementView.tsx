@@ -154,7 +154,11 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
       );
     }
     if (!staff.isActive) {
-      return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Deactivated</span>;
+      return (
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+          Deactivated
+        </span>
+      );
     }
     return (
       <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">

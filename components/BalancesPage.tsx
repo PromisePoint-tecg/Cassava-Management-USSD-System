@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Plus, CheckCircle2, Loader2, X } from "lucide-react";
 import { staffApi, StaffProfile } from "../api/staff";
@@ -6,10 +6,6 @@ import { BalancesView } from "./BalancesView";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";
-
-interface BalancesPageProps {
-  onLogout: () => void;
-}
 
 interface BalancesPageProps {
   onLogout: () => void;
@@ -45,10 +41,12 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
     accountNumber: "",
     accountName: "",
   });
+
   const location = useLocation();
 
   useEffect(() => {
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfile = async () => {
@@ -117,13 +115,12 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
         accountNumber: bankForm.accountNumber,
         accountName: verifiedAccountName,
         bvn: bankForm.bvn || undefined,
-      };
+      } as any;
 
       await staffApi.setWithdrawalAccount(accountData);
 
       setShowBankDetailsModal(false);
 
-      // Show success modal with bank details
       const bankData = {
         accountName: verifiedAccountName,
         bankName: selectedBank?.name,
@@ -133,18 +130,13 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
       setBankSuccessData(bankData);
       setShowBankSuccessModal(true);
 
-      // Reset form
-      setBankForm({
-        bankCode: "",
-        accountNumber: "",
-        bvn: "",
-      });
+      setBankForm({ bankCode: "", accountNumber: "", bvn: "" });
       setVerifiedAccountName("");
 
       // Reload profile to get updated data
       loadProfile();
     } catch (err: any) {
-      // Error handling would go here
+      console.error("Failed to set bank account:", err);
     } finally {
       setSettingAccount(false);
     }
@@ -170,7 +162,6 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
         }));
       }
     } catch (err: any) {
-      // Account not found, that's okay
       setSavedAccount(null);
     } finally {
       setLoadingSavedAccount(false);
@@ -188,7 +179,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
       setRequestingWithdrawal(true);
 
       const withdrawalData: any = {
-        amount: Math.round(amount), // Convert to kobo
+        amount: Math.round(amount), // Convert to kobo or minor unit if needed by API
         pin: withdrawalForm.pin,
       };
 
@@ -206,7 +197,6 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
         "Withdrawal request submitted successfully! You will be notified once it's processed."
       );
 
-      // Reset form
       setWithdrawalForm({
         amount: "",
         pin: "",
@@ -228,482 +218,492 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
     loadSavedAccount();
   };
 
-  if (loading && !profile) {
-    return <LoadingSpinner message="Loading balances..." />;
-  }
-
-  if (error && !profile) {
-    return (
-      <ErrorMessage
-        title="Error Loading Balances"
-        message={error}
-        onRetry={loadProfile}
-      />
-    );
-  }
-
-  if (!profile || !profile.firstName || !profile.lastName) {
-    return <LoadingSpinner message="Loading balances..." />;
-  }
-
   return (
     <StaffLayout
       title="Account Balances"
-      subtitle={`Welcome, ${profile.firstName}`}
+      subtitle={profile ? `Welcome, ${profile?.firstName}` : "Loading..."}
       profile={profile}
       onLogout={onLogout}
       currentPath={location.pathname}
     >
-      <BalancesView
-        balances={profile?.balances || null}
-        loading={false}
-        error={null}
-        onRefresh={loadProfile}
-        onAddBankDetails={handleOpenBankDetails}
-        onRequestWithdrawal={handleOpenWithdrawal}
-      />
+      {loading ? (
+        <LoadingSpinner message="Loading balances..." />
+      ) : error ? (
+        <ErrorMessage
+          title="Error Loading Balances"
+          message={error}
+          onRetry={loadProfile}
+        />
+      ) : (
+        <>
+          <BalancesView
+            balances={profile?.balances || null}
+            loading={false}
+            error={null}
+            onRefresh={loadProfile}
+            onAddBankDetails={handleOpenBankDetails}
+            onRequestWithdrawal={handleOpenWithdrawal}
+          />
 
-      {/* Bank Details Modal */}
-      {showBankDetailsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Add Bank Details
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowBankDetailsModal(false);
-                    setBankForm({ bankCode: "", accountNumber: "", bvn: "" });
-                    setVerifiedAccountName("");
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={handleSetBankAccount} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bank *
-                  </label>
-                  <select
-                    value={bankForm.bankCode}
-                    onChange={(e) =>
-                      setBankForm({
-                        ...bankForm,
-                        bankCode: e.target.value,
-                        accountNumber: "", // Reset account number when bank changes
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    required
-                    disabled={loadingBanks}
-                  >
-                    <option value="">
-                      {loadingBanks ? "Loading banks..." : "Select bank..."}
-                    </option>
-                    {banks.map((bank) => (
-                      <option key={bank.code} value={bank.code}>
-                        {bank.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Account Number *
-                  </label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      value={bankForm.accountNumber}
-                      onChange={(e) =>
-                        setBankForm({
-                          ...bankForm,
-                          accountNumber: e.target.value
-                            .replace(/\D/g, "")
-                            .slice(0, 10),
-                        })
-                      }
-                      placeholder="1234567890"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      required
-                      maxLength={10}
-                      disabled={!bankForm.bankCode}
-                    />
+          {/* Bank Details Modal */}
+          {showBankDetailsModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Add Bank Details
+                    </h3>
                     <button
-                      type="button"
-                      onClick={handleVerifyAccount}
-                      disabled={
-                        !bankForm.accountNumber ||
-                        bankForm.accountNumber.length !== 10 ||
-                        !bankForm.bankCode ||
-                        verifyingAccount
-                      }
-                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => {
+                        setShowBankDetailsModal(false);
+                        setBankForm({
+                          bankCode: "",
+                          accountNumber: "",
+                          bvn: "",
+                        });
+                        setVerifiedAccountName("");
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
                     >
-                      {verifyingAccount ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        "Verify"
-                      )}
+                      <X className="w-6 h-6" />
                     </button>
                   </div>
                 </div>
-              </div>
 
-              {verifiedAccountName && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <div className="flex items-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-sm font-medium text-green-800">
-                      Account Name: {verifiedAccountName}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  BVN (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={bankForm.bvn}
-                  onChange={(e) =>
-                    setBankForm({
-                      ...bankForm,
-                      bvn: e.target.value.replace(/\D/g, "").slice(0, 11),
-                    })
-                  }
-                  placeholder="12345678901"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  maxLength={11}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  BVN is required for some transactions and improves security
-                </p>
-              </div>
-
-              <div className="flex space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowBankDetailsModal(false);
-                    setBankForm({ bankCode: "", accountNumber: "", bvn: "" });
-                    setVerifiedAccountName("");
-                  }}
-                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!verifiedAccountName || settingAccount}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {settingAccount ? "Setting Account..." : "Add Bank Account"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Bank Success Modal */}
-      {showBankSuccessModal && bankSuccessData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-green-800 flex items-center">
-                  <CheckCircle2 className="w-6 h-6 mr-2" />
-                  Bank Account Added Successfully!
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowBankSuccessModal(false);
-                    setBankSuccessData(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600">
-                      Account Name:
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">
-                      {bankSuccessData.accountName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600">
-                      Bank:
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">
-                      {bankSuccessData.bankName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600">
-                      Account Number:
-                    </span>
-                    <span className="text-sm font-mono text-gray-900">
-                      {bankSuccessData.accountNumber}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600">
-                      Status:
-                    </span>
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                      Active
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-sm text-gray-600 text-center">
-                Your bank account has been successfully linked for withdrawals.
-              </p>
-
-              <div className="flex justify-center pt-2">
-                <button
-                  onClick={() => {
-                    setShowBankSuccessModal(false);
-                    setBankSuccessData(null);
-                  }}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Got it!
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Withdrawal Modal */}
-      {showWithdrawalModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Request Withdrawal
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowWithdrawalModal(false);
-                    setWithdrawalForm({
-                      amount: "",
-                      pin: "",
-                      useSavedAccount: true,
-                      bankName: "",
-                      bankCode: "",
-                      accountNumber: "",
-                      accountName: "",
-                    });
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={handleRequestWithdrawal} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Amount (₦) *
-                  </label>
-                  <input
-                    type="number"
-                    value={withdrawalForm.amount}
-                    onChange={(e) =>
-                      setWithdrawalForm({
-                        ...withdrawalForm,
-                        amount: e.target.value,
-                      })
-                    }
-                    placeholder="10000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    min="100"
-                    step="100"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    PIN *
-                  </label>
-                  <input
-                    type="password"
-                    value={withdrawalForm.pin}
-                    onChange={(e) =>
-                      setWithdrawalForm({
-                        ...withdrawalForm,
-                        pin: e.target.value.replace(/\D/g, "").slice(0, 4),
-                      })
-                    }
-                    placeholder="1234"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    maxLength={4}
-                  />
-                </div>
-              </div>
-
-              {savedAccount && (
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="useSavedAccount"
-                      checked={withdrawalForm.useSavedAccount}
-                      onChange={(e) =>
-                        setWithdrawalForm({
-                          ...withdrawalForm,
-                          useSavedAccount: e.target.checked,
-                        })
-                      }
-                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="useSavedAccount"
-                      className="ml-2 text-sm font-medium text-gray-700"
-                    >
-                      Use saved bank account
-                    </label>
-                  </div>
-
-                  {withdrawalForm.useSavedAccount && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                      <div className="text-sm text-emerald-800">
-                        <strong>Account:</strong> {savedAccount.accountName}
-                        <br />
-                        <strong>Bank:</strong> {savedAccount.bankName}
-                        <br />
-                        <strong>Number:</strong> {savedAccount.accountNumber}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {(!savedAccount || !withdrawalForm.useSavedAccount) && (
-                <div className="space-y-4">
+                <form onSubmit={handleSetBankAccount} className="p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Bank Name *
+                        Bank *
                       </label>
-                      <input
-                        type="text"
-                        value={withdrawalForm.bankName}
+                      <select
+                        value={bankForm.bankCode}
                         onChange={(e) =>
-                          setWithdrawalForm({
-                            ...withdrawalForm,
-                            bankName: e.target.value,
+                          setBankForm({
+                            ...bankForm,
+                            bankCode: e.target.value,
+                            accountNumber: "",
                           })
                         }
-                        placeholder="United Bank For Africa"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         required
-                      />
+                        disabled={loadingBanks}
+                      >
+                        <option value="">
+                          {loadingBanks ? "Loading banks..." : "Select bank..."}
+                        </option>
+                        {banks.map((bank) => (
+                          <option key={bank.code} value={bank.code}>
+                            {bank.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Account Number *
                       </label>
+                      <div className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={bankForm.accountNumber}
+                          onChange={(e) =>
+                            setBankForm({
+                              ...bankForm,
+                              accountNumber: e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 10),
+                            })
+                          }
+                          placeholder="1234567890"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          required
+                          maxLength={10}
+                          disabled={!bankForm.bankCode}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyAccount}
+                          disabled={
+                            !bankForm.accountNumber ||
+                            bankForm.accountNumber.length !== 10 ||
+                            !bankForm.bankCode ||
+                            verifyingAccount
+                          }
+                          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {verifyingAccount ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            "Verify"
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {verifiedAccountName && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center">
+                        <CheckCircle2 className="w-5 h-5 text-green-600 mr-2" />
+                        <span className="text-sm font-medium text-green-800">
+                          Account Name: {verifiedAccountName}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      BVN (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={bankForm.bvn}
+                      onChange={(e) =>
+                        setBankForm({
+                          ...bankForm,
+                          bvn: e.target.value.replace(/\D/g, "").slice(0, 11),
+                        })
+                      }
+                      placeholder="12345678901"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      maxLength={11}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      BVN is required for some transactions and improves
+                      security
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowBankDetailsModal(false);
+                        setBankForm({
+                          bankCode: "",
+                          accountNumber: "",
+                          bvn: "",
+                        });
+                        setVerifiedAccountName("");
+                      }}
+                      className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!verifiedAccountName || settingAccount}
+                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {settingAccount
+                        ? "Setting Account..."
+                        : "Add Bank Account"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Bank Success Modal */}
+          {showBankSuccessModal && bankSuccessData && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-green-800 flex items-center">
+                      <CheckCircle2 className="w-6 h-6 mr-2" />
+                      Bank Account Added Successfully!
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setShowBankSuccessModal(false);
+                        setBankSuccessData(null);
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">
+                          Account Name:
+                        </span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {bankSuccessData.accountName}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">
+                          Bank:
+                        </span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {bankSuccessData.bankName}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">
+                          Account Number:
+                        </span>
+                        <span className="text-sm font-mono text-gray-900">
+                          {bankSuccessData.accountNumber}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">
+                          Status:
+                        </span>
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                          Active
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-600 text-center">
+                    Your bank account has been successfully linked for
+                    withdrawals.
+                  </p>
+
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={() => {
+                        setShowBankSuccessModal(false);
+                        setBankSuccessData(null);
+                      }}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Got it!
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Withdrawal Modal */}
+          {showWithdrawalModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Request Withdrawal
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setShowWithdrawalModal(false);
+                        setWithdrawalForm({
+                          amount: "",
+                          pin: "",
+                          useSavedAccount: true,
+                          bankName: "",
+                          bankCode: "",
+                          accountNumber: "",
+                          accountName: "",
+                        });
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+                </div>
+
+                <form
+                  onSubmit={handleRequestWithdrawal}
+                  className="p-6 space-y-4"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Amount (₦) *
+                      </label>
                       <input
-                        type="text"
-                        value={withdrawalForm.accountNumber}
+                        type="number"
+                        value={withdrawalForm.amount}
                         onChange={(e) =>
                           setWithdrawalForm({
                             ...withdrawalForm,
-                            accountNumber: e.target.value
-                              .replace(/\D/g, "")
-                              .slice(0, 10),
+                            amount: e.target.value,
                           })
                         }
-                        placeholder="1234567890"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder="10000"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required
-                        maxLength={10}
+                        min="100"
+                        step="100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        PIN *
+                      </label>
+                      <input
+                        type="password"
+                        value={withdrawalForm.pin}
+                        onChange={(e) =>
+                          setWithdrawalForm({
+                            ...withdrawalForm,
+                            pin: e.target.value.replace(/\D/g, "").slice(0, 4),
+                          })
+                        }
+                        placeholder="1234"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                        maxLength={4}
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Account Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={withdrawalForm.accountName}
-                      onChange={(e) =>
-                        setWithdrawalForm({
-                          ...withdrawalForm,
-                          accountName: e.target.value,
-                        })
-                      }
-                      placeholder="JOHN DOE"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
+                  {savedAccount && (
+                    <div className="space-y-3">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="useSavedAccount"
+                          checked={withdrawalForm.useSavedAccount}
+                          onChange={(e) =>
+                            setWithdrawalForm({
+                              ...withdrawalForm,
+                              useSavedAccount: e.target.checked,
+                            })
+                          }
+                          className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                        />
+                        <label
+                          htmlFor="useSavedAccount"
+                          className="ml-2 text-sm font-medium text-gray-700"
+                        >
+                          Use saved bank account
+                        </label>
+                      </div>
 
-              <div className="flex space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowWithdrawalModal(false);
-                    setWithdrawalForm({
-                      amount: "",
-                      pin: "",
-                      useSavedAccount: true,
-                      bankName: "",
-                      bankCode: "",
-                      accountNumber: "",
-                      accountName: "",
-                    });
-                  }}
-                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={requestingWithdrawal}
-                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {requestingWithdrawal
-                    ? "Requesting..."
-                    : "Request Withdrawal"}
-                </button>
+                      {withdrawalForm.useSavedAccount && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                          <div className="text-sm text-emerald-800">
+                            <strong>Account:</strong> {savedAccount.accountName}
+                            <br />
+                            <strong>Bank:</strong> {savedAccount.bankName}
+                            <br />
+                            <strong>Number:</strong>{" "}
+                            {savedAccount.accountNumber}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {(!savedAccount || !withdrawalForm.useSavedAccount) && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Bank Name *
+                          </label>
+                          <input
+                            type="text"
+                            value={withdrawalForm.bankName}
+                            onChange={(e) =>
+                              setWithdrawalForm({
+                                ...withdrawalForm,
+                                bankName: e.target.value,
+                              })
+                            }
+                            placeholder="United Bank For Africa"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Account Number *
+                          </label>
+                          <input
+                            type="text"
+                            value={withdrawalForm.accountNumber}
+                            onChange={(e) =>
+                              setWithdrawalForm({
+                                ...withdrawalForm,
+                                accountNumber: e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 10),
+                              })
+                            }
+                            placeholder="1234567890"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            required
+                            maxLength={10}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Account Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={withdrawalForm.accountName}
+                          onChange={(e) =>
+                            setWithdrawalForm({
+                              ...withdrawalForm,
+                              accountName: e.target.value,
+                            })
+                          }
+                          placeholder="JOHN DOE"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowWithdrawalModal(false);
+                        setWithdrawalForm({
+                          amount: "",
+                          pin: "",
+                          useSavedAccount: true,
+                          bankName: "",
+                          bankCode: "",
+                          accountNumber: "",
+                          accountName: "",
+                        });
+                      }}
+                      className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={requestingWithdrawal}
+                      className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {requestingWithdrawal
+                        ? "Requesting..."
+                        : "Request Withdrawal"}
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          )}
+        </>
       )}
     </StaffLayout>
   );
