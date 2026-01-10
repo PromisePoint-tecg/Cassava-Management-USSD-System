@@ -22,7 +22,8 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploadingNIN, setUploadingNIN] = useState(false);
-  const [uploadingBVN, setUploadingBVN] = useState(false);
+  const [submittingBVN, setSubmittingBVN] = useState(false);
+  const [bvnInput, setBvnInput] = useState("");
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<React.ReactNode | null>(
     null
@@ -68,7 +69,7 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
       setUploadError(null);
       setUploadSuccess(null);
 
-      await staffApi.uploadNIN(file);
+      await staffApi.uploadNINToCloudinary(file);
 
       setUploadSuccess("NIN document uploaded successfully!");
       await loadProfile();
@@ -90,23 +91,26 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
     }
   };
 
-  const handleBVNUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleBVNSubmit = async () => {
+    if (!bvnInput.trim()) {
+      setUploadError("Please enter a BVN");
+      return;
+    }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size must be less than 5MB");
+    if (bvnInput.length !== 11 || !/^\d+$/.test(bvnInput)) {
+      setUploadError("BVN must be exactly 11 digits");
       return;
     }
 
     try {
-      setUploadingBVN(true);
+      setSubmittingBVN(true);
       setUploadError(null);
       setUploadSuccess(null);
 
-      await staffApi.uploadBVN(file);
+      await staffApi.addBVN(bvnInput);
 
-      setUploadSuccess("BVN document uploaded successfully!");
+      setUploadSuccess("BVN added successfully!");
+      setBvnInput("");
       await loadProfile();
 
       setTimeout(() => setUploadSuccess(null), 3000);
@@ -119,10 +123,9 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
         onLogout();
         return;
       }
-      setUploadError(err.message || "Failed to upload BVN document");
+      setUploadError(err.message || "Failed to add BVN");
     } finally {
-      setUploadingBVN(false);
-      e.target.value = "";
+      setSubmittingBVN(false);
     }
   };
 
@@ -165,7 +168,7 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
               Identity Documents
             </h2>
             <p className="text-gray-600 mt-1">
-              Upload and manage your NIN and BVN documents
+              Upload your NIN document and enter your BVN
             </p>
           </div>
           <button
@@ -196,129 +199,143 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* NIN Upload */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  National Identification Number (NIN)
-                </h3>
-                {profile.nin && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    NIN: {profile.nin}
-                  </p>
-                )}
-              </div>
-              {profile.ninDocumentUrl && (
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
-              )}
-            </div>
-            <div className="space-y-3">
-              <label className="block">
-                <input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleNINUpload}
-                  disabled={uploadingNIN}
-                  className="hidden"
-                />
-                <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
-                  {uploadingNIN ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin text-blue-600" />
-                      <span className="text-sm text-gray-700">
-                        Uploading...
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-5 h-5 mr-2 text-gray-600" />
-                      <span className="text-sm text-gray-700">
-                        {profile.ninDocumentUrl
-                          ? "Replace NIN Document"
-                          : "Upload NIN Document"}
-                      </span>
-                    </>
+          {/* NIN Upload - Only show if not already uploaded */}
+          {!profile.hasNin && (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    National Identification Number (NIN)
+                  </h3>
+                  {profile.nin && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      NIN: {profile.nin}
+                    </p>
                   )}
                 </div>
-              </label>
-              {profile.ninDocumentUrl && (
-                <a
-                  href={profile.ninDocumentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50"
-                >
-                  View Document
-                </a>
-              )}
-              <p className="text-xs text-gray-500">
-                Accepted formats: JPG, PNG, PDF. Max size: 5MB
-              </p>
+                {profile.ninDocumentUrl && (
+                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                )}
+              </div>
+              <div className="space-y-3">
+                <label className="block">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleNINUpload}
+                    disabled={uploadingNIN}
+                    className="hidden"
+                  />
+                  <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
+                    {uploadingNIN ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin text-blue-600" />
+                        <span className="text-sm text-gray-700">
+                          Uploading...
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 mr-2 text-gray-600" />
+                        <span className="text-sm text-gray-700">
+                          {profile.ninDocumentUrl
+                            ? "Replace NIN Document"
+                            : "Upload NIN Document"}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </label>
+                {profile.ninDocumentUrl && (
+                  <a
+                    href={profile.ninDocumentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50"
+                  >
+                    View Document
+                  </a>
+                )}
+                <p className="text-xs text-gray-500">
+                  Accepted formats: JPG, PNG, PDF. Max size: 5MB
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* BVN Upload */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Bank Verification Number (BVN)
-                </h3>
-                {profile.bvn && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    BVN: {profile.bvn}
-                  </p>
-                )}
-              </div>
-              {profile.bvnDocumentUrl && (
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
-              )}
-            </div>
-            <div className="space-y-3">
-              <label className="block">
-                <input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleBVNUpload}
-                  disabled={uploadingBVN}
-                  className="hidden"
-                />
-                <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
-                  {uploadingBVN ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin text-blue-600" />
-                      <span className="text-sm text-gray-700">
-                        Uploading...
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-5 h-5 mr-2 text-gray-600" />
-                      <span className="text-sm text-gray-700">
-                        {profile.bvnDocumentUrl
-                          ? "Replace BVN Document"
-                          : "Upload BVN Document"}
-                      </span>
-                    </>
+          {/* BVN Input - Only show if not already added */}
+          {!profile.hasBvn && (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Bank Verification Number (BVN)
+                  </h3>
+                  {profile.bvn && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      BVN: {profile.bvn}
+                    </p>
                   )}
                 </div>
-              </label>
-              {profile.bvnDocumentUrl && (
-                <a
-                  href={profile.bvnDocumentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50"
-                >
-                  View Document
-                </a>
-              )}
-              <p className="text-xs text-gray-500">
-                Accepted formats: JPG, PNG, PDF. Max size: 5MB
-              </p>
+                {profile.bvn && (
+                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                )}
+              </div>
+              <div className="space-y-3">
+                <div className="flex space-x-3">
+                  <input
+                    type="text"
+                    value={bvnInput}
+                    onChange={(e) =>
+                      setBvnInput(
+                        e.target.value.replace(/\D/g, "").slice(0, 11)
+                      )
+                    }
+                    placeholder="Enter 11-digit BVN"
+                    disabled={submittingBVN || !!profile.bvn}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                  />
+                  <button
+                    onClick={handleBVNSubmit}
+                    disabled={
+                      submittingBVN || !bvnInput.trim() || !!profile.bvn
+                    }
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                  >
+                    {submittingBVN ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit"
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Enter your 11-digit Bank Verification Number
+                </p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Show completion message if both are uploaded */}
+          {profile.hasNin && profile.hasBvn && (
+            <div className="col-span-full bg-green-50 border border-green-200 rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-green-600 mr-3" />
+                <div>
+                  <h3 className="text-lg font-semibold text-green-900">
+                    All Documents Submitted
+                  </h3>
+                  <p className="text-green-700 mt-1">
+                    Your NIN document and BVN have been successfully uploaded
+                    and verified.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </StaffLayout>

@@ -56,17 +56,14 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform flex flex-col ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm mr-3">
-              CSMS
-            </div>
             <span className="text-lg font-semibold text-gray-800">
-              Staff Portal
+              Promise Point Agritech
             </span>
           </div>
           <button
@@ -97,7 +94,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t mt-auto">
           <button
             onClick={onLogout}
             className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"

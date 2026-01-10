@@ -50,6 +50,8 @@ export interface StaffBalances {
 
 export interface StaffProfile extends Staff {
   balances?: StaffBalances;
+  hasBvn?: boolean;
+  hasNin?: boolean;
 }
 
 export interface StaffLoginResponse {
@@ -215,7 +217,7 @@ class StaffApi {
   async getProfile(): Promise<StaffProfile> {
     const token = getStaffAuthToken();
     const API_BASE_URL =
-      import.meta.env.VITE_API_URL || "http://localhost:3000";
+      import.meta.env.VITE_API_URL || "http://localhost:3001";
     const response = await fetch(`${API_BASE_URL}/staff/profile`, {
       method: "GET",
       headers: {
@@ -353,10 +355,107 @@ class StaffApi {
     return response.json();
   }
 
-  // Admin management endpoints - try both /staff and /admins/staff
   /**
-   * Get all staff (admin only)
+   * Add BVN number
    */
+  async addBVN(bvn: string): Promise<{ message: string }> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/staff/add-bvn`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ bvn }),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to add BVN" }));
+      throw new Error(error.message || "Failed to add BVN");
+    }
+
+    const data = await response.json();
+    return data;
+  }
+
+  /**
+   * Upload file to Cloudinary
+   */
+  async uploadToCloudinary(file: File): Promise<string> {
+    const CLOUD_NAME = "ddbs7m7nt";
+    const UPLOAD_PRESET = "presetOne";
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to upload to Cloudinary");
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  }
+
+  /**
+   * Add NIN number with document URL
+   */
+  async addNIN(ninUrl: string): Promise<{ message: string }> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(`${API_BASE_URL}/staff/add-nin`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ nin: ninUrl }),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to add NIN" }));
+      throw new Error(error.message || "Failed to add NIN");
+    }
+
+    const data = await response.json();
+    return data;
+  }
+
+  /**
+   * Upload NIN document to Cloudinary and add NIN
+   */
+  async uploadNINToCloudinary(file: File): Promise<{ message: string }> {
+    try {
+      // First upload to Cloudinary
+      const cloudinaryUrl = await this.uploadToCloudinary(file);
+
+      // Then add NIN with the Cloudinary URL
+      return await this.addNIN(cloudinaryUrl);
+    } catch (error) {
+      throw new Error(
+        `Failed to upload NIN: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  // Admin management endpoints - try both /staff and /admins/staff
   async getAllStaff(filters: StaffFilters = {}): Promise<StaffResponse> {
     const params = new URLSearchParams();
     if (filters.page) params.append("page", filters.page.toString());
