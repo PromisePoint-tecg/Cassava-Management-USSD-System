@@ -353,18 +353,18 @@ export const LoansView: React.FC<LoansViewProps> = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       requested: {
-        bg: "bg-yellow-100",
-        text: "text-yellow-800",
+        bg: "bg-green-100",
+        text: "text-green-700",
         label: "Pending",
       },
-      approved: { bg: "bg-blue-100", text: "text-blue-800", label: "Approved" },
+      approved: { bg: "bg-green-200", text: "text-green-800", label: "Approved" },
       active: { bg: "bg-green-100", text: "text-green-800", label: "Active" },
       completed: {
         bg: "bg-emerald-100",
         text: "text-emerald-800",
         label: "Completed",
       },
-      defaulted: { bg: "bg-red-100", text: "text-red-800", label: "Defaulted" },
+      defaulted: { bg: "bg-gray-100", text: "text-gray-800", label: "Defaulted" },
     };
 
     const config =
@@ -407,7 +407,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         <div className="flex gap-2">
           <button
             onClick={() => setIsCreateLoanTypeModalOpen(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Loan Type
@@ -435,7 +435,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   {formatCurrency(kpis.totalOutstanding)}
                 </p>
               </div>
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+              <div className="p-3 bg-green-50 text-green-600 rounded-lg">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>
@@ -467,7 +467,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   {kpis.pendingRequests}
                 </p>
               </div>
-              <div className="p-3 bg-yellow-50 text-yellow-600 rounded-lg">
+              <div className="p-3 bg-green-50 text-green-600 rounded-lg">
                 <Clock className="w-6 h-6" />
               </div>
             </div>
@@ -483,7 +483,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   {kpis.defaultRate.toFixed(1)}%
                 </p>
               </div>
-              <div className="p-3 bg-red-50 text-red-600 rounded-lg">
+              <div className="p-3 bg-gray-50 text-gray-600 rounded-lg">
                 <AlertTriangle className="w-6 h-6" />
               </div>
             </div>
@@ -563,8 +563,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">{error}</p>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <p className="text-green-800">{error}</p>
         </div>
       )}
 
@@ -1410,7 +1410,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                 <button
                   type="submit"
                   disabled={createLoanTypeLoading}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createLoanTypeLoading ? "Creating..." : "Create Loan Type"}
                 </button>

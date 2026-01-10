@@ -132,7 +132,7 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-2xl mb-4 shadow-lg">
             <svg
               className="w-10 h-10 text-white"
               fill="none"
@@ -160,8 +160,8 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
           </h2>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">{error}</p>
             </div>
           )}
 
