@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, User, Loader2 } from "lucide-react";
+import { Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
 import { staffApi } from "../api/staff";
 import type { Staff } from "../api/staff";
 import { setStaffAuthToken, getStaffAuthToken } from "../utils/cookies";
@@ -14,6 +14,8 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPin, setShowPin] = useState(false);
+  const [showNewPin, setShowNewPin] = useState(false);
   const navigate = useNavigate();
 
   // Forgot PIN states
@@ -206,15 +208,26 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
                 </div>
                 <input
                   id="pin"
-                  type="password"
+                  type={showPin ? "text" : "password"}
                   required
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter your PIN"
                   pattern="[0-9]{4,6}"
                   maxLength={6}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPin(!showPin)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPin ? (
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -348,16 +361,29 @@ const StaffLoginPage: React.FC<StaffLoginPageProps> = ({ onLoginSuccess }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       New PIN
                     </label>
-                    <input
-                      type="password"
-                      required
-                      value={newPin}
-                      onChange={(e) => setNewPin(e.target.value)}
-                      className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter new PIN (4-6 digits)"
-                      pattern="[0-9]{4,6}"
-                      maxLength={6}
-                    />
+                    <div className="relative">
+                      <input
+                        type={showNewPin ? "text" : "password"}
+                        required
+                        value={newPin}
+                        onChange={(e) => setNewPin(e.target.value)}
+                        className="block w-full px-3 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter new PIN (4-6 digits)"
+                        pattern="[0-9]{4,6}"
+                        maxLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPin(!showNewPin)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showNewPin ? (
+                          <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {forgotError && (
