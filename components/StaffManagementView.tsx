@@ -580,6 +580,54 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
               </div>
             </div>
 
+            {/* Identity Documents */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Identity Documents</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-600">NIN</label>
+                  {staff.nin ? (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Uploaded
+                      </span>
+                      {staff.ninDocumentUrl && (
+                        <a
+                          href={staff.ninDocumentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-700 hover:text-green-900 text-sm underline"
+                        >
+                          View Document
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      Not Uploaded
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600">BVN</label>
+                  {staff.bvn ? (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Verified
+                      </span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {staff.bvn.substring(0, 3)}****{staff.bvn.substring(7)}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      Not Provided
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Employment Information */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Employment Information</h3>
