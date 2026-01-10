@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   getAllStaff,
   approveStaff,
@@ -11,25 +11,27 @@ import {
   type RegisterStaffDto,
   type UpdateStaffDto,
   type ApproveStaffDto,
-} from '../api/staff';
-import { LoadingSpinner } from './LoadingSpinner';
-import { ErrorMessage } from './ErrorMessage';
-import { SuccessModal } from './SuccessModal';
+} from "../api/staff";
+import { LoadingSpinner } from "./LoadingSpinner";
+import { ErrorMessage } from "./ErrorMessage";
+import { SuccessModal } from "./SuccessModal";
 
 interface StaffManagementViewProps {
   adminId: string;
 }
 
-const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) => {
+const StaffManagementView: React.FC<StaffManagementViewProps> = ({
+  adminId,
+}) => {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterApproval, setFilterApproval] = useState('all');
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterApproval, setFilterApproval] = useState("all");
+
   // Modals
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -38,7 +40,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     fetchStaff();
@@ -62,17 +64,18 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
       };
 
       if (searchTerm) params.search = searchTerm;
-      if (filterStatus !== 'all') params.status = filterStatus;
-      if (filterApproval !== 'all') params.is_approved = filterApproval === 'approved';
+      if (filterStatus !== "all") params.status = filterStatus;
+      if (filterApproval !== "all")
+        params.is_approved = filterApproval === "approved";
 
       const response = await getAllStaff(params);
-      console.log('Staff API response:', response);
+      console.log("Staff API response:", response);
       setStaff(response.staff || []);
       setTotalPages(response.totalPages || 1);
       setError(null);
     } catch (err) {
-      setError('Failed to load staff. Please try again.');
-      console.error('Error fetching staff:', err);
+      setError("Failed to load staff. Please try again.");
+      console.error("Error fetching staff:", err);
     } finally {
       setLoading(false);
     }
@@ -91,62 +94,77 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
   const handleDeactivate = async (staffId: string, reason: string) => {
     try {
       await deactivateStaff(staffId, { reason });
-      setSuccessMessage('Staff deactivated successfully!');
+      setSuccessMessage("Staff deactivated successfully!");
       setShowSuccessModal(true);
       setShowDeactivateModal(false);
       fetchStaff();
     } catch (err) {
-      setError('Failed to deactivate staff. Please try again.');
+      setError("Failed to deactivate staff. Please try again.");
     }
   };
 
   const handleReactivate = async (staffId: string) => {
     try {
       await reactivateStaff(staffId);
-      setSuccessMessage('Staff reactivated successfully!');
+      setSuccessMessage("Staff reactivated successfully!");
       setShowSuccessModal(true);
       fetchStaff();
     } catch (err) {
-      setError('Failed to reactivate staff. Please try again.');
+      setError("Failed to reactivate staff. Please try again.");
     }
   };
 
   const handleRegister = async (data: RegisterStaffDto) => {
     try {
       await registerStaff(data);
-      setSuccessMessage('Staff registered successfully! Awaiting approval.');
+      setSuccessMessage("Staff registered successfully! Awaiting approval.");
       setShowSuccessModal(true);
       setShowRegisterModal(false);
       fetchStaff();
     } catch (err) {
-      setError('Failed to register staff. Please try again.');
+      setError("Failed to register staff. Please try again.");
     }
   };
 
   const handleUpdate = async (staffId: string, data: UpdateStaffDto) => {
     try {
       await updateStaff(staffId, data);
-      setSuccessMessage('Staff updated successfully!');
+      setSuccessMessage("Staff updated successfully!");
       setShowSuccessModal(true);
       setShowEditModal(false);
       fetchStaff();
     } catch (err) {
-      setError('Failed to update staff. Please try again.');
+      setError("Failed to update staff. Please try again.");
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return `₦${(amount / 100).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `₦${(amount / 100).toLocaleString("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   const getStatusBadge = (staff: Staff) => {
     if (!staff.isApproved) {
-      return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Pending Approval</span>;
+      return (
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
+          Pending Approval
+        </span>
+      );
     }
     if (!staff.isActive) {
-      return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Deactivated</span>;
+      return (
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+          Deactivated
+        </span>
+      );
     }
-    return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>;
+    return (
+      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+        Active
+      </span>
+    );
   };
 
   if (loading && staff.length === 0) {
@@ -157,23 +175,39 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
     <div className="h-full flex flex-col p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Staff Management</h1>
-        <p className="text-gray-600">Manage staff members, approvals, and salaries</p>
-        
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Staff Management
+        </h1>
+        <p className="text-gray-600">
+          Manage staff members, approvals, and salaries
+        </p>
+
         {/* Pending Approvals Alert */}
-        {staff && staff.filter(s => !s.isApproved).length > 0 && (
+        {staff && staff.filter((s) => !s.isApproved).length > 0 && (
           <div className="mt-4 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                <svg
+                  className="h-5 w-5 text-amber-500"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
                 <p className="text-sm text-amber-800">
-                  <span className="font-semibold">{staff?.filter(s => !s.isApproved).length || 0} staff member(s)</span> waiting for approval. 
-                  <button 
-                    onClick={() => setFilterApproval('pending')}
+                  <span className="font-semibold">
+                    {staff?.filter((s) => !s.isApproved).length || 0} staff
+                    member(s)
+                  </span>{" "}
+                  waiting for approval.
+                  <button
+                    onClick={() => setFilterApproval("pending")}
                     className="ml-2 font-medium underline hover:text-amber-900"
                   >
                     View pending approvals →
@@ -190,8 +224,16 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
         <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg animate-in fade-in duration-300">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-red-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3 flex-1">
@@ -202,7 +244,11 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
               className="ml-3 flex-shrink-0 text-red-500 hover:text-red-700"
             >
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           </div>
@@ -220,7 +266,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
                 placeholder="Search by name, phone, or employee ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
               <button
@@ -267,7 +313,9 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
           <div className="text-sm text-gray-600 mb-1">Total Staff</div>
-          <div className="text-3xl font-bold text-gray-900">{staff?.length || 0}</div>
+          <div className="text-3xl font-bold text-gray-900">
+            {staff?.length || 0}
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-1">
@@ -275,16 +323,16 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
           </div>
           <div className="text-3xl font-bold text-green-600">
-            {staff?.filter(s => s.isActive && s.isApproved).length || 0}
+            {staff?.filter((s) => s.isActive && s.isApproved).length || 0}
           </div>
         </div>
-        <div 
+        <div
           className="bg-white rounded-lg shadow-sm border border-amber-200 p-4 cursor-pointer hover:shadow-md hover:border-amber-300 transition-all"
-          onClick={() => setFilterApproval('pending')}
+          onClick={() => setFilterApproval("pending")}
         >
           <div className="flex items-center justify-between mb-1">
             <div className="text-sm text-gray-600">Pending Approval</div>
-            {staff && staff.filter(s => !s.isApproved).length > 0 && (
+            {staff && staff.filter((s) => !s.isApproved).length > 0 && (
               <span className="flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-amber-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
@@ -292,10 +340,12 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
             )}
           </div>
           <div className="text-3xl font-bold text-amber-600">
-            {staff?.filter(s => !s.isApproved).length || 0}
+            {staff?.filter((s) => !s.isApproved).length || 0}
           </div>
-          {staff && staff.filter(s => !s.isApproved).length > 0 && (
-            <div className="text-xs text-amber-700 mt-1 font-medium">Click to view →</div>
+          {staff && staff.filter((s) => !s.isApproved).length > 0 && (
+            <div className="text-xs text-amber-700 mt-1 font-medium">
+              Click to view →
+            </div>
           )}
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
@@ -304,7 +354,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
             <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
           </div>
           <div className="text-3xl font-bold text-gray-600">
-            {staff?.filter(s => !s.isActive && s.isApproved).length || 0}
+            {staff?.filter((s) => !s.isActive && s.isApproved).length || 0}
           </div>
         </div>
       </div>
@@ -340,14 +390,22 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
                 <tr key={member.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{member.fullName}</div>
-                      <div className="text-sm text-gray-500">{member.employeeId}</div>
-                      <div className="text-sm text-gray-500">{member.phone}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {member.fullName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {member.employeeId}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {member.phone}
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{member.role}</div>
-                    <div className="text-sm text-gray-500">{member.department}</div>
+                    <div className="text-sm text-gray-500">
+                      {member.department}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatCurrency(member.monthlySalary)}
@@ -441,7 +499,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Page <span className="font-medium">{page}</span> of{' '}
+                Page <span className="font-medium">{page}</span> of{" "}
                 <span className="font-medium">{totalPages}</span>
               </p>
             </div>
@@ -518,7 +576,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
           onApprove={() => {
             setShowApproveModal(false);
             setSelectedStaff(null);
-            setSuccessMessage('Staff approved successfully!');
+            setSuccessMessage("Staff approved successfully!");
             setShowSuccessModal(true);
             fetchStaff();
           }}
@@ -538,9 +596,15 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({ adminId }) =>
 };
 
 // Staff Details Modal
-const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ staff, onClose }) => {
+const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
+  staff,
+  onClose,
+}) => {
   const formatCurrency = (amount: number) => {
-    return `₦${(amount / 100).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `₦${(amount / 100).toLocaleString("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   return (
@@ -549,9 +613,22 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Staff Details</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -559,30 +636,42 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
           <div className="space-y-6">
             {/* Personal Information */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Personal Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Personal Information
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-gray-600">Full Name</label>
-                  <p className="text-sm font-medium text-gray-900">{staff.fullName}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {staff.fullName}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-gray-600">Employee ID</label>
-                  <p className="text-sm font-medium text-gray-900">{staff.employeeId}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {staff.employeeId}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-gray-600">Phone</label>
-                  <p className="text-sm font-medium text-gray-900">{staff.phone}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {staff.phone}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-gray-600">LGA</label>
-                  <p className="text-sm font-medium text-gray-900">{staff.lga}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {staff.lga}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Identity Documents */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Identity Documents</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Identity Documents
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-gray-600">NIN</label>
@@ -591,16 +680,14 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Uploaded
                       </span>
-                      {staff.ninDocumentUrl && (
-                        <a
-                          href={staff.ninDocumentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-green-700 hover:text-green-900 text-sm underline"
-                        >
-                          View Document
-                        </a>
-                      )}
+                      <a
+                        href={staff.nin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-700 hover:text-green-900 text-sm underline"
+                      >
+                        View Document
+                      </a>
                     </div>
                   ) : (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -630,26 +717,34 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
 
             {/* Employment Information */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Employment Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Employment Information
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-gray-600">Role</label>
-                  <p className="text-sm font-medium text-gray-900">{staff.role}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {staff.role}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-gray-600">Department</label>
-                  <p className="text-sm font-medium text-gray-900">{staff.department}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {staff.department}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-gray-600">Status</label>
                   <p className="text-sm font-medium text-gray-900">
-                    {staff.isActive ? 'Active' : 'Inactive'}
+                    {staff.isActive ? "Active" : "Inactive"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600">Approval Status</label>
+                  <label className="text-sm text-gray-600">
+                    Approval Status
+                  </label>
                   <p className="text-sm font-medium text-gray-900">
-                    {staff.isApproved ? 'Approved' : 'Pending'}
+                    {staff.isApproved ? "Approved" : "Pending"}
                   </p>
                 </div>
               </div>
@@ -657,29 +752,51 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
 
             {/* Financial Information */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Financial Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Financial Information
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-600">Monthly Salary</label>
-                  <p className="text-sm font-medium text-gray-900">{formatCurrency(staff.monthlySalary)}</p>
+                  <label className="text-sm text-gray-600">
+                    Monthly Salary
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">
+                    {formatCurrency(staff.monthlySalary)}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600">Total Salary Paid</label>
-                  <p className="text-sm font-medium text-gray-900">{formatCurrency(staff.totalSalaryPaid)}</p>
+                  <label className="text-sm text-gray-600">
+                    Total Salary Paid
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">
+                    {formatCurrency(staff.totalSalaryPaid)}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600">Pension Contributions</label>
-                  <p className="text-sm font-medium text-gray-900">{formatCurrency(staff.pensionContributions)}</p>
+                  <label className="text-sm text-gray-600">
+                    Pension Contributions
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">
+                    {formatCurrency(staff.pensionContributions)}
+                  </p>
                 </div>
                 {staff.wallet && (
                   <>
                     <div>
-                      <label className="text-sm text-gray-600">Wallet Balance</label>
-                      <p className="text-sm font-medium text-gray-900">{formatCurrency(staff.wallet.balance)}</p>
+                      <label className="text-sm text-gray-600">
+                        Wallet Balance
+                      </label>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatCurrency(staff.wallet.balance)}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-600">Pension Balance</label>
-                      <p className="text-sm font-medium text-gray-900">{formatCurrency(staff.wallet.pensionBalance)}</p>
+                      <label className="text-sm text-gray-600">
+                        Pension Balance
+                      </label>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatCurrency(staff.wallet.pensionBalance)}
+                      </p>
                     </div>
                   </>
                 )}
@@ -688,14 +805,20 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({ st
 
             {staff.deactivationReason && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Deactivation Details</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Deactivation Details
+                </h3>
                 <div>
                   <label className="text-sm text-gray-600">Reason</label>
-                  <p className="text-sm font-medium text-gray-900">{staff.deactivationReason}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {staff.deactivationReason}
+                  </p>
                 </div>
                 {staff.deactivatedAt && (
                   <div className="mt-2">
-                    <label className="text-sm text-gray-600">Deactivated At</label>
+                    <label className="text-sm text-gray-600">
+                      Deactivated At
+                    </label>
                     <p className="text-sm font-medium text-gray-900">
                       {new Date(staff.deactivatedAt).toLocaleString()}
                     </p>
@@ -725,12 +848,12 @@ const RegisterStaffModal: React.FC<{
   onSubmit: (data: RegisterStaffDto) => void;
 }> = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState<RegisterStaffDto>({
-    phone: '',
-    firstName: '',
-    lastName: '',
-    lga: '',
-    role: '',
-    department: '',
+    phone: "",
+    firstName: "",
+    lastName: "",
+    lga: "",
+    role: "",
+    department: "",
     monthlySalary: 0,
   });
 
@@ -744,10 +867,25 @@ const RegisterStaffModal: React.FC<{
       <div className="bg-white rounded-lg max-w-md w-full">
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Register New Staff</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              Register New Staff
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -755,57 +893,77 @@ const RegisterStaffModal: React.FC<{
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
                 <input
                   type="text"
                   required
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
                 <input
                   type="text"
                   required
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone
+              </label>
               <input
                 type="tel"
                 required
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
                 placeholder="08012345678"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">LGA</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                LGA
+              </label>
               <input
                 type="text"
                 required
                 value={formData.lga}
-                onChange={(e) => setFormData({ ...formData, lga: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, lga: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Role
+                </label>
                 <select
                   required
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 >
                   <option value="">Select role</option>
@@ -816,11 +974,15 @@ const RegisterStaffModal: React.FC<{
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Department
+                </label>
                 <select
                   required
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, department: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 >
                   <option value="">Select department</option>
@@ -833,14 +995,21 @@ const RegisterStaffModal: React.FC<{
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Salary (₦)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Monthly Salary (₦)
+              </label>
               <input
                 type="number"
                 required
                 min="0"
                 step="0.01"
                 value={formData.monthlySalary / 100}
-                onChange={(e) => setFormData({ ...formData, monthlySalary: parseFloat(e.target.value) * 100 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    monthlySalary: parseFloat(e.target.value) * 100,
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -893,9 +1062,22 @@ const EditStaffModal: React.FC<{
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Edit Staff</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -903,41 +1085,57 @@ const EditStaffModal: React.FC<{
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
                 <input
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
                 <input
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">LGA</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                LGA
+              </label>
               <input
                 type="text"
                 value={formData.lga}
-                onChange={(e) => setFormData({ ...formData, lga: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, lga: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Role
+                </label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 >
                   <option value="Field Officer">Field Officer</option>
@@ -947,10 +1145,14 @@ const EditStaffModal: React.FC<{
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Department
+                </label>
                 <select
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, department: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 >
                   <option value="Operations">Operations</option>
@@ -962,13 +1164,20 @@ const EditStaffModal: React.FC<{
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Salary (₦)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Monthly Salary (₦)
+              </label>
               <input
                 type="number"
                 min="0"
                 step="0.01"
                 value={(formData.monthlySalary || 0) / 100}
-                onChange={(e) => setFormData({ ...formData, monthlySalary: parseFloat(e.target.value) * 100 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    monthlySalary: parseFloat(e.target.value) * 100,
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -1001,7 +1210,7 @@ const DeactivateStaffModal: React.FC<{
   onClose: () => void;
   onSubmit: (reason: string) => void;
 }> = ({ staff, onClose, onSubmit }) => {
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1013,21 +1222,39 @@ const DeactivateStaffModal: React.FC<{
       <div className="bg-white rounded-lg max-w-md w-full">
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Deactivate Staff</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              Deactivate Staff
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
 
           <p className="text-sm text-gray-600 mb-4">
-            You are about to deactivate <strong>{staff.fullName}</strong>. Please provide a reason.
+            You are about to deactivate <strong>{staff.fullName}</strong>.
+            Please provide a reason.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Deactivation</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Reason for Deactivation
+              </label>
               <textarea
                 required
                 value={reason}
@@ -1069,11 +1296,21 @@ interface ApproveStaffModalProps {
   onError: (error: string) => void;
 }
 
-const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, onClose, onApprove, onError }) => {
+const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
+  staff,
+  adminId,
+  onClose,
+  onApprove,
+  onError,
+}) => {
   const [monthlySalary, setMonthlySalary] = useState(staff.monthlySalary || 0);
-  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
-  const [profilePicturePreview, setProfilePicturePreview] = useState<string>(staff.profilePicture || '');
-  const [notes, setNotes] = useState('');
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(
+    null
+  );
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string>(
+    staff.profilePicture || ""
+  );
+  const [notes, setNotes] = useState("");
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -1081,13 +1318,13 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, o
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        onError('Please select a valid image file');
+      if (!file.type.startsWith("image/")) {
+        onError("Please select a valid image file");
         return;
       }
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        onError('Image size must be less than 5MB');
+        onError("Image size must be less than 5MB");
         return;
       }
       setProfilePictureFile(file);
@@ -1105,7 +1342,7 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, o
     setSubmitting(true);
 
     try {
-      let profilePictureUrl = staff.profilePicture || '';
+      let profilePictureUrl = staff.profilePicture || "";
 
       // Upload profile picture if provided
       if (profilePictureFile) {
@@ -1125,7 +1362,7 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, o
       await approveStaff(staff.id, approveData);
       onApprove();
     } catch (err: any) {
-      onError(err.message || 'Failed to approve staff');
+      onError(err.message || "Failed to approve staff");
       setSubmitting(false);
     }
   };
@@ -1136,27 +1373,54 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, o
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Approve Staff</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
 
           <div className="mb-6 p-4 bg-emerald-50 rounded-lg">
-            <h3 className="font-semibold text-gray-900 mb-2">{staff.fullName}</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">
+              {staff.fullName}
+            </h3>
             <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-              <div><span className="font-medium">Phone:</span> {staff.phone}</div>
-              <div><span className="font-medium">Employee ID:</span> {staff.employeeId}</div>
-              <div><span className="font-medium">Role:</span> {staff.role}</div>
-              <div><span className="font-medium">Department:</span> {staff.department}</div>
+              <div>
+                <span className="font-medium">Phone:</span> {staff.phone}
+              </div>
+              <div>
+                <span className="font-medium">Employee ID:</span>{" "}
+                {staff.employeeId}
+              </div>
+              <div>
+                <span className="font-medium">Role:</span> {staff.role}
+              </div>
+              <div>
+                <span className="font-medium">Department:</span>{" "}
+                {staff.department}
+              </div>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Profile Picture Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Profile Picture
+              </label>
               <div className="flex items-start gap-4">
                 {profilePicturePreview && (
                   <div className="flex-shrink-0">
@@ -1174,7 +1438,9 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, o
                     onChange={handleFileChange}
                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
                   />
-                  <p className="mt-1 text-xs text-gray-500">PNG, JPG, WEBP up to 5MB</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    PNG, JPG, WEBP up to 5MB
+                  </p>
                 </div>
               </div>
             </div>
@@ -1195,8 +1461,9 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, o
                 placeholder="Enter monthly salary"
               />
               <p className="mt-1 text-xs text-gray-500">
-                Pension: Employee 8% (₦{Math.round(monthlySalary * 0.08).toLocaleString()}) + 
-                Employer 10% (₦{Math.round(monthlySalary * 0.10).toLocaleString()})
+                Pension: Employee 8% (₦
+                {Math.round(monthlySalary * 0.08).toLocaleString()}) + Employer
+                10% (₦{Math.round(monthlySalary * 0.1).toLocaleString()})
               </p>
             </div>
 
@@ -1230,11 +1497,27 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({ staff, adminId, o
               >
                 {uploading && (
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
                   </svg>
                 )}
-                {uploading ? 'Uploading...' : submitting ? 'Approving...' : 'Approve Staff'}
+                {uploading
+                  ? "Uploading..."
+                  : submitting
+                  ? "Approving..."
+                  : "Approve Staff"}
               </button>
             </div>
           </form>
