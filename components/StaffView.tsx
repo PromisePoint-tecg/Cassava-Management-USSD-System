@@ -216,7 +216,7 @@ export const StaffView: React.FC = () => {
       </div>
 
       {/* Balances */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
@@ -241,6 +241,22 @@ export const StaffView: React.FC = () => {
             </div>
             <div className="p-3 bg-blue-100 rounded-full">
               <Building2 className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Bonus</h3>
+              <p className="text-2xl font-bold text-gray-800">
+                {formatCurrency(profile.balances?.bonus || 0)}
+              </p>
+            </div>
+            <div className="p-3 bg-amber-100 rounded-full">
+              <svg className="w-6 h-6 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
             </div>
           </div>
         </div>

@@ -647,7 +647,7 @@ const PayrollMobileTxCard: React.FC<{ tx: PayrollTransaction }> = ({ tx }) => {
 
 export const TransactionsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "all" | "wallet" | "loans" | "purchases" | "payroll"
+    "all" | "wallet" | "loans" | "purchases" | "payroll" | "organization"
   >("all");
   const [stats, setStats] = useState<TransactionStats | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -661,6 +661,7 @@ export const TransactionsView: React.FC = () => {
     loans?: { transactions: Transaction[]; pagination: any };
     purchases?: { transactions: Transaction[]; pagination: any };
     payroll?: { transactions: Transaction[]; pagination: any };
+    organization?: { transactions: Transaction[]; pagination: any };
   }>({});
 
   const [payrollTransactions, setPayrollTransactions] = useState<
@@ -736,20 +737,11 @@ export const TransactionsView: React.FC = () => {
       setInitialLoading(true);
       setError(null);
 
-      const [
-        statsResponse,
-        allTransactionsResponse,
-        walletTransactionsResponse,
-        loanTransactionsResponse,
-        purchaseTransactionsResponse,
-        payrollTransactionsResponse,
-      ] = await Promise.all([
+      // OPTIMIZED: Only load stats and current tab (all) on initial load
+      // Other tabs are loaded lazily when user clicks on them
+      const [statsResponse, allTransactionsResponse] = await Promise.all([
         transactionsApi.getTransactionStats(),
         transactionsApi.getAllTransactions(filters),
-        transactionsApi.getWalletTransactions(filters),
-        transactionsApi.getLoanTransactions(filters),
-        transactionsApi.getPurchaseTransactions(filters),
-        getAllPayrollTransactions(filters),
       ]);
 
       setStats(statsResponse);
@@ -762,46 +754,6 @@ export const TransactionsView: React.FC = () => {
             currentPage: allTransactionsResponse.page,
           },
         },
-        wallet: {
-          transactions: walletTransactionsResponse.transactions,
-          pagination: {
-            total: walletTransactionsResponse.total,
-            totalPages: walletTransactionsResponse.totalPages,
-            currentPage: walletTransactionsResponse.page,
-          },
-        },
-        loans: {
-          transactions: loanTransactionsResponse.transactions,
-          pagination: {
-            total: loanTransactionsResponse.total,
-            totalPages: loanTransactionsResponse.totalPages,
-            currentPage: loanTransactionsResponse.page,
-          },
-        },
-        purchases: {
-          transactions: purchaseTransactionsResponse.transactions,
-          pagination: {
-            total: purchaseTransactionsResponse.total,
-            totalPages: purchaseTransactionsResponse.totalPages,
-            currentPage: purchaseTransactionsResponse.page,
-          },
-        },
-        payroll: {
-          transactions: payrollTransactionsResponse.transactions,
-          pagination: {
-            total: payrollTransactionsResponse.total,
-            totalPages: payrollTransactionsResponse.totalPages,
-            currentPage: payrollTransactionsResponse.page,
-          },
-        },
-      });
-
-      // Set payroll state separately since it has different structure
-      setPayrollTransactions(payrollTransactionsResponse.transactions);
-      setPayrollPagination({
-        total: payrollTransactionsResponse.total,
-        totalPages: payrollTransactionsResponse.totalPages,
-        currentPage: payrollTransactionsResponse.page,
       });
     } catch (error: any) {
       console.error("Failed to load transaction data:", error);
@@ -826,6 +778,9 @@ export const TransactionsView: React.FC = () => {
           break;
         case "purchases":
           response = await transactionsApi.getPurchaseTransactions(filters);
+          break;
+        case "organization":
+          response = await transactionsApi.getOrganizationTransactions(filters);
           break;
         case "payroll":
           const payrollResponse = await getAllPayrollTransactions(filters);
@@ -896,6 +851,11 @@ export const TransactionsView: React.FC = () => {
       count: stats?.byType?.purchase || 0,
     },
     { id: "payroll", label: "Payroll", count: stats?.byType?.payroll || 0 },
+    {
+      id: "organization",
+      label: "Organization",
+      count: stats?.byType?.organization || 0,
+    },
   ];
 
   return (

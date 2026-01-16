@@ -46,6 +46,7 @@ export interface StaffBalances {
   savings: number;
   pension: number;
   wallet: number;
+  bonus: number;
 }
 
 export interface StaffProfile extends Staff {
@@ -245,6 +246,7 @@ class StaffApi {
         savings: (profile.wallet.savings_balance || 0) / 100,
         pension: (profile.wallet.escrow_balance || 0) / 100,
         wallet: (profile.wallet.balance || 0) / 100,
+        bonus: (profile.wallet.bonus_balance || 0) / 100,
       };
     }
 
@@ -284,6 +286,7 @@ class StaffApi {
       savings: (balances.savings_balance || balances.savings || 0) / 100,
       pension: (balances.escrow_balance || balances.pension || 0) / 100,
       wallet: (balances.balance || balances.wallet || 0) / 100,
+      bonus: (balances.bonus_balance || balances.bonus || 0) / 100,
     };
   }
 
@@ -455,7 +458,7 @@ class StaffApi {
     }
   }
 
-  // Admin management endpoints - try both /staff and /admins/staff
+  // Admin management endpoints - use /staff
   async getAllStaff(filters: StaffFilters = {}): Promise<StaffResponse> {
     const params = new URLSearchParams();
     if (filters.page) params.append("page", filters.page.toString());
@@ -469,20 +472,11 @@ class StaffApi {
 
     const queryString = params.toString();
 
-    // Try /admins/staff first, fallback to /staff
-    try {
-      return await this.client.get<StaffResponse>(
-        `/admins/staff?${queryString}`
-      );
-    } catch (error: any) {
-      if (error.message?.includes("500") || error.message?.includes("404")) {
-        const response: any = await this.client.get<PaginatedStaffResponse>(
-          `/staff?${queryString}`
-        );
-        return response.data || response;
-      }
-      throw error;
-    }
+    const response: any = await this.client.get<PaginatedStaffResponse>(
+      `/staff?${queryString}`
+    );
+
+    return response.data || response;
   }
 
   /**

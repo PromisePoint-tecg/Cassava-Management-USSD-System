@@ -14,6 +14,7 @@ import StaffManagementView from "./components/StaffManagementView";
 import { USSDAnalyticsView } from "./components/USSDAnalyticsView";
 import PayrollManagementView from "./components/PayrollManagementView";
 import PensionManagementView from "./components/PensionManagementView";
+import BonusManagementView from "./components/BonusManagementView";
 import { AdminProfilePage } from "./components/AdminProfilePage";
 import AdminForgotPassword from "./components/AdminForgotPassword";
 import { settingsApi } from "./api/settings";
@@ -223,6 +224,7 @@ const AdminApp: React.FC = () => {
               element={<StaffManagementView adminId={adminInfo?.id || ""} />}
             />
             <Route path="/payroll" element={<PayrollManagementView />} />
+            <Route path="/bonus" element={<BonusManagementView />} />
             <Route path="/pension" element={<PensionManagementView />} />
             <Route path="/ussd" element={<USSDAnalyticsView />} />
             <Route path="/profile" element={<AdminProfilePage />} />

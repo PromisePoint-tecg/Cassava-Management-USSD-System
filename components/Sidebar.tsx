@@ -17,6 +17,7 @@ import {
   PiggyBank,
   Package,
   ShoppingCart,
+  Gift,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -42,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: "admins", label: "Admin Management", icon: Shield },
     { id: "staff-management", label: "Staff Management", icon: UserCog },
     { id: "payroll", label: "Payroll", icon: DollarSign },
+    { id: "bonus", label: "Staff Bonus", icon: Gift },
     { id: "pension", label: "Pension", icon: PiggyBank },
     { id: "ussd", label: "USSD Logs", icon: Smartphone },
     { id: "settings", label: "Settings", icon: Settings },

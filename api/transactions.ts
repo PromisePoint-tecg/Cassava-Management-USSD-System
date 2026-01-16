@@ -44,6 +44,7 @@ export interface TransactionStats {
     loan: number;
     purchase: number;
     payroll: number;
+    organization: number;
   };
 }
 
@@ -171,6 +172,27 @@ export const transactionsApi = {
       return response.data || response;
     } catch (error) {
       console.error("API Error in getPayrollTransactions:", error);
+      throw error;
+    }
+  },
+
+  async getOrganizationTransactions(
+    params: TransactionQueryParams = {}
+  ): Promise<TransactionsResponse> {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.append(key, String(value));
+      }
+    });
+
+    try {
+      const response = await apiClient.get<any>(
+        `/admin/transactions/organization?${searchParams.toString()}`
+      );
+      return response.data || response;
+    } catch (error) {
+      console.error("API Error in getOrganizationTransactions:", error);
       throw error;
     }
   },
