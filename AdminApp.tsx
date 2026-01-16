@@ -37,6 +37,7 @@ const AdminApp: React.FC = () => {
   const [adminInfo, setAdminInfo] = useState<AdminInfo | null>(null);
   const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [settingsSuccess, setSettingsSuccess] = useState<{
@@ -187,8 +188,10 @@ const AdminApp: React.FC = () => {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onLogout={handleLogout}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
-      <main className="flex-1 lg:ml-64">
+      <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-4">
             <button

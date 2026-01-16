@@ -108,7 +108,7 @@ const BonusManagementView: React.FC = () => {
       const response = await staffApi.getAllStaff({
         limit: 1000, // Get all staff for lookup
         status: "active",
-        isApproved: true,
+        is_approved: true,
       });
       setStaff(response.staff || []);
       setStaffTotal(response.total || 0);
@@ -144,7 +144,7 @@ const BonusManagementView: React.FC = () => {
         limit: staffLimit,
         search: staffSearch || undefined,
         status: "active",
-        isApproved: true,
+        is_approved: true,
       });
       setStaff(response.staff || []);
       setStaffTotal(response.total || 0);
@@ -263,9 +263,9 @@ const BonusManagementView: React.FC = () => {
       setError(null);
 
       const staffBonuses = Array.from(selectedStaff).map(staffId => ({
-        staffId,
-        amount: bonusAmounts[staffId],
-        reason: bonusReasons[staffId] || "Admin bonus allocation",
+        staffId: String(staffId),
+        amount: bonusAmounts[String(staffId)],
+        reason: bonusReasons[String(staffId)] || "Admin bonus allocation",
       }));
 
       const data: AssignBonusData = { staffBonuses };
@@ -820,14 +820,6 @@ const BonusManagementView: React.FC = () => {
                   <div className="text-gray-800">{selectedTx.description}</div>
                 </div>
               )}
-              {selectedTx.metadata && (
-                <div className="mt-3">
-                  <div className="text-gray-600 mb-1">Metadata</div>
-                  <pre className="bg-gray-50 border border-gray-100 rounded-md p-3 text-xs text-gray-700 overflow-x-auto">
-                    {JSON.stringify(selectedTx.metadata, null, 2)}
-                  </pre>
-                </div>
-              )}
             </div>
             <div className="mt-6 text-right">
               <button
@@ -1098,9 +1090,9 @@ const BonusManagementView: React.FC = () => {
                     <span className="font-semibold text-emerald-700">
                       Total: {formatCurrency(
                         Array.from(selectedStaff).reduce(
-                          (sum, staffId) => sum + (bonusAmounts[staffId] || 0),
+                          (sum, staffId) => sum + (bonusAmounts[String(staffId)] || 0),
                           0
-                        )
+                        ) as number
                       )}
                     </span>
                   </div>

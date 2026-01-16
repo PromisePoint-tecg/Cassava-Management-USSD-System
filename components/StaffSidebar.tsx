@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, LayoutDashboard, User, FileText, LogOut } from "lucide-react";
+import { Menu, X, LayoutDashboard, User, FileText, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface StaffSidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   onLogout: () => void;
   currentPath: string;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const StaffSidebar: React.FC<StaffSidebarProps> = ({
@@ -14,6 +16,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({
   setSidebarOpen,
   onLogout,
   currentPath,
+  isCollapsed = false,
+  onToggleCollapse,
 }) => {
   const navigate = useNavigate();
 
@@ -56,23 +60,40 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-gray-200 transform flex flex-col ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
+        } transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+          isCollapsed ? "w-20" : "w-64"
+        }`}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
-          <div className="flex items-center">
-            <span className="text-lg font-semibold text-gray-800">
-              Promise Point Agritech
-            </span>
+          <div className={`flex items-center ${isCollapsed ? "justify-center w-full" : ""}`}>
+            <img 
+              src="https://res.cloudinary.com/dt9unisic/image/upload/v1768578156/Screenshot_2026-01-16_at_4.41.39_pm_x5zzrb.png" 
+              alt="Promise Point Agritech Logo" 
+              className={`transition-all duration-300 ${isCollapsed ? "h-10 w-auto" : "h-14 w-auto"}`}
+            />
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          {!isCollapsed && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          )}
         </div>
+
+        {/* Collapse button - desktop only */}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className="hidden lg:flex items-center justify-center h-10 mx-2 mt-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors focus:outline-none"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          </button>
+        )}
 
         <nav className="flex-1 px-4 py-6 space-y-2">
           {menuItems.map((item) => (
@@ -82,14 +103,15 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({
                 navigate(item.path);
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+              className={`w-full flex items-center ${isCollapsed ? "justify-center px-2" : "px-4"} py-3 text-sm font-medium rounded-lg transition-colors focus:outline-none ${
                 currentPath === item.path
                   ? "bg-green-100 text-green-700 border-r-2 border-green-700"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}
+              title={isCollapsed ? item.label : ""}
             >
-              <item.icon className="w-5 h-5 mr-3" />
-              {item.label}
+              <item.icon className={`${isCollapsed ? "" : "mr-3"} w-5 h-5`} />
+              {!isCollapsed && item.label}
             </button>
           ))}
         </nav>

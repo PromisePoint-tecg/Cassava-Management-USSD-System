@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -18,18 +18,24 @@ import {
   Package,
   ShoppingCart,
   Gift,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   onLogout,
+  isCollapsed,
+  onToggleCollapse,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,32 +76,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar */}
       <div
         className={`
-        w-64 bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col z-50
-        transform transition-transform duration-300 ease-in-out
+        bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col z-50
+        transform transition-all duration-300 ease-in-out
         lg:translate-x-0
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        ${isCollapsed ? "w-20" : "w-64"}
       `}
       >
-        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-lg">P</span>
-            </div>
-            <span className="text-xl font-bold text-gray-800 tracking-tight">
-              Promise Point <span className="text-emerald-600">Agrictech</span>
-            </span>
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100">
+          <div className={`flex items-center ${isCollapsed ? "justify-center w-full" : ""}`}>
+            <img 
+              src="https://res.cloudinary.com/dt9unisic/image/upload/v1768578156/Screenshot_2026-01-16_at_4.41.39_pm_x5zzrb.png" 
+              alt="Promise Point Agritech Logo" 
+              className={`transition-all duration-300 ${isCollapsed ? "h-10 w-auto" : "h-14 w-auto"}`}
+            />
           </div>
-          <button
-            onClick={onClose}
-            className="lg:hidden text-gray-400 hover:text-gray-600"
-            aria-label="Close menu"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          {!isCollapsed && (
+            <button
+              onClick={onClose}
+              className="lg:hidden text-gray-400 hover:text-gray-600"
+              aria-label="Close menu"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          )}
         </div>
 
+        {/* Collapse button - desktop only */}
+        <button
+          onClick={onToggleCollapse}
+          className="hidden lg:flex items-center justify-center h-10 mx-2 mt-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors focus:outline-none"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+        </button>
+
         <nav className="flex-1 overflow-y-auto py-6">
-          <div className="px-4 space-y-1">
+          <div className={`${isCollapsed ? "px-2" : "px-4"} space-y-1`}>
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === `/${item.id}`;
@@ -103,18 +120,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => handleItemClick(item.id)}
-                  className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-150 ${
+                  className={`w-full flex items-center ${isCollapsed ? "justify-center px-2" : "px-4"} py-3 text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none ${
                     isActive
                       ? "bg-emerald-50 text-emerald-700"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
+                  title={isCollapsed ? item.label : ""}
                 >
                   <Icon
-                    className={`w-5 h-5 mr-3 ${
+                    className={`${isCollapsed ? "" : "mr-3"} w-5 h-5 ${
                       isActive ? "text-emerald-600" : "text-gray-400"
                     }`}
                   />
-                  {item.label}
+                  {!isCollapsed && item.label}
                 </button>
               );
             })}
