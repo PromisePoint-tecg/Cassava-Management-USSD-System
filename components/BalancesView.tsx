@@ -7,7 +7,7 @@ import {
   RefreshCw,
   DollarSign,
 } from "lucide-react";
-import { StaffBalances } from "../api/staff";
+import { StaffBalances } from "../services/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import LeafInlineLoader, { LeafLoader } from "./Loader";

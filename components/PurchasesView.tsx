@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Plus,Search,CheckCircle2,AlertCircle,Eye,Clock,DollarSign,TrendingUp,RefreshCw,Scale,Users,ChevronLeft,ChevronRight,X,ShoppingCart,
 } from "lucide-react";
 import {purchasesApi,PurchaseItem,PurchaseKPIs,CreatePurchaseData,GetPurchasesQuery,CassavaPricing,
-} from "../api/purchases";
-import { farmersApi, Farmer } from "../api/farmers";
+} from "../services/purchases";
+import { farmersApi, Farmer } from "../services/farmers";
 import { SuccessModal } from "./SuccessModal";
 import { LeafButtonLoader } from "./Loader";
 

@@ -18,7 +18,7 @@ import {
   updateProfile,
   AdminProfile,
   UpdateProfileRequest,
-} from "../api/auth";
+} from "../services/auth";
 
 export const AdminProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<AdminProfile | null>(null);

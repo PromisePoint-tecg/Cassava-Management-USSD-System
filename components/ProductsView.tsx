@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { productsApi, Product, ProductFilters, PaginatedProductsResponse } from '../api/products';
+import { productsApi, Product, ProductFilters, PaginatedProductsResponse } from '../services/products';
 import { Search, Edit, Plus, ChevronLeft, ChevronRight, Loader2, CheckCircle, X, Trash2, Package } from 'lucide-react';
 import LeafButtonLoader from './Loader';
 

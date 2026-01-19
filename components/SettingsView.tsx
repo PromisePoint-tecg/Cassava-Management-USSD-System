@@ -8,7 +8,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { SystemSettings } from "../types";
-import { settingsApi } from "../api/settings";
+import { settingsApi } from "../services/settings";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 

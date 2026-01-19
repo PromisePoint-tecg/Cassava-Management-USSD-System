@@ -19,8 +19,8 @@ import {
   CreateLoanData,
   LoanType,
   CreateLoanTypeData,
-} from "../api/loans";
-import { farmersApi, Farmer } from "../api/farmers";
+} from "../services/loans";
+import { farmersApi, Farmer } from "../services/farmers";
 import { SuccessModal } from "./SuccessModal";
 import { LeafLoader } from "./Loader";
 

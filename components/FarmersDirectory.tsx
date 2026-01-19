@@ -10,7 +10,7 @@ import {
   ChevronRight,
   AlertCircle
 } from 'lucide-react';
-import { farmersApi, Farmer, FarmerDetail, GetAllFarmersParams } from '../api/farmers';
+import { farmersApi, Farmer, FarmerDetail, GetAllFarmersParams } from '../services/farmers';
 import LeafInlineLoader from './Loader';
 
 export const FarmersDirectory: React.FC = () => {

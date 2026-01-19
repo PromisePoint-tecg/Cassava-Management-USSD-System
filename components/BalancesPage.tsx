@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Plus, CheckCircle2, Loader2, X } from "lucide-react";
-import { staffApi, StaffProfile } from "../api/staff";
+import { staffApi, StaffProfile } from "../services/staff";
 import { BalancesView } from "./BalancesView";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";

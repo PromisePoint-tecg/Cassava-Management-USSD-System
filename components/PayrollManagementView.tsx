@@ -11,8 +11,8 @@ import {
   type PayrollTransaction,
   type PayrollStatistics as Stats,
   type CreatePayrollDto,
-} from "../api/payroll";
-import { adminApi, type FundOrganizationWalletData } from "../api/admin";
+} from "../services/payroll";
+import { adminApi, type FundOrganizationWalletData } from "../services/admin";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { SuccessModal } from "./SuccessModal";

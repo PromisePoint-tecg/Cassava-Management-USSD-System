@@ -9,8 +9,8 @@ import {
   type TransferBonusData,
   type BonusTransaction,
   type BonusTransactionType,
-} from "../api/bonus";
-import { staffApi, type Staff } from "../api/staff";
+} from "../services/bonus";
+import { staffApi, type Staff } from "../services/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { SuccessModal } from "./SuccessModal";
