@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Leaf,
 } from "lucide-react";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
@@ -30,6 +31,7 @@ import {
   USSDAnalytics,
   GetUSSDAnalyticsParams,
 } from "../api/ussd";
+import { LeafInlineLoader } from "./Loader";
 
 interface USSDAnalyticsData {
   analytics: USSDAnalytics | null;
@@ -45,7 +47,7 @@ export const USSDAnalyticsView: React.FC = () => {
   });
 
   const [filters, setFilters] = useState<GetUSSDAnalyticsParams>({
-    timeRange: "month", // default to last 30 days
+    timeRange: "month",
   });
 
   const loadUSSDData = async () => {
@@ -78,7 +80,6 @@ export const USSDAnalyticsView: React.FC = () => {
     loadUSSDData();
   }, [filters]);
 
-  // Process network data
   const networkData = useMemo(() => {
     if (!data.analytics?.networkTraffic) {
       return [];
@@ -99,7 +100,6 @@ export const USSDAnalyticsView: React.FC = () => {
     }));
   }, [data.analytics?.networkTraffic]);
 
-  // Process status data
   const statusData = useMemo(() => {
     if (!data.analytics?.sessionStatus) {
       return { success: 0, failed: 0, timeout: 0, total: 0 };
@@ -118,12 +118,10 @@ export const USSDAnalyticsView: React.FC = () => {
     };
   }, [data.analytics?.sessionStatus, data.analytics?.totalSessions]);
 
-  // Calculate average duration
   const averageDuration = useMemo(() => {
     return data.analytics?.avgDuration || 0;
   }, [data.analytics?.avgDuration]);
 
-  // Process action data
   const actionData = useMemo(() => {
     if (!data.analytics?.topActions) {
       return [];
@@ -135,13 +133,12 @@ export const USSDAnalyticsView: React.FC = () => {
     }));
   }, [data.analytics?.topActions]);
 
-  // Get recent sessions
   const recentSessions = useMemo(() => {
     return data.analytics?.recentSessions || [];
   }, [data.analytics?.recentSessions]);
 
   if (data.loading) {
-    return <LoadingSpinner message="Loading USSD analytics..." />;
+    return <LeafInlineLoader />;
   }
 
   if (data.error) {
@@ -157,30 +154,45 @@ export const USSDAnalyticsView: React.FC = () => {
   const successRate = data.analytics?.successRate || 0;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
-        <div>
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800">
-            USSD & Network Analytics
-          </h2>
-          <p className="text-xs text-gray-500">
-            Real-time USSD session monitoring
-          </p>
+    <div className="space-y-5">
+      {/* Header - Liquid Glass */}
+      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] border border-white/60 shadow-2xl p-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-400/5 rounded-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-blue-600/10 to-transparent blur-2xl rounded-full pointer-events-none" />
+        
+        <div className="flex items-center justify-between relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-blue-600 shadow-lg">
+              <Phone className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">USSD & Network Analytics</h2>
+              <p className="text-sm text-gray-600">Real-time USSD session monitoring</p>
+            </div>
+          </div>
+          <button
+            onClick={loadUSSDData}
+            className="flex items-center px-4 py-2 text-sm text-gray-700 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 transition-all shadow-sm"
+            title="Refresh data"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         </div>
-        <button
-          onClick={loadUSSDData}
-          className="flex items-center px-2.5 py-1.5 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-          title="Refresh data"
-        >
-          <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-          <span className="hidden sm:inline">Refresh</span>
-        </button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">Filters</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Filters - Liquid Glass */}
+      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] border border-white/60 shadow-2xl p-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-400/5 rounded-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+        
+        <h3 className="text-sm font-semibold text-gray-800 mb-3 relative z-10">Filters</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 relative z-10">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Time Range
@@ -197,7 +209,7 @@ export const USSDAnalyticsView: React.FC = () => {
                   endDate: value ? undefined : prev.endDate,
                 }));
               }}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full px-3 py-2 text-sm border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
             >
               <option value="">Custom Range</option>
               <option value="realtime">Real-time</option>
@@ -221,7 +233,7 @@ export const USSDAnalyticsView: React.FC = () => {
                 }))
               }
               disabled={!!filters.timeRange}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2 text-sm border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-gray-800"
             />
           </div>
           <div>
@@ -239,13 +251,13 @@ export const USSDAnalyticsView: React.FC = () => {
                 }))
               }
               disabled={!!filters.timeRange}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2 text-sm border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-gray-800"
             />
           </div>
           <div className="flex items-end">
             <button
               onClick={() => setFilters({ timeRange: "month" })}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              className="px-4 py-2 text-sm text-gray-700 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 transition-all"
             >
               Reset
             </button>
@@ -253,69 +265,90 @@ export const USSDAnalyticsView: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-2 rounded-lg bg-blue-50">
+      {/* KPI Cards - Liquid Glass */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white/80 backdrop-blur-lg rounded-[1.5rem] border border-white/60 shadow-lg p-4 relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[1.5rem]" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-2 relative z-10">
+            <div className="p-2 rounded-xl bg-blue-500/20 backdrop-blur-sm border border-blue-200/30">
               <Phone className="w-4 h-4 text-blue-600" />
             </div>
           </div>
-          <h3 className="text-xs text-gray-500 font-medium mb-1">
+          <h3 className="text-xs text-gray-600 font-medium mb-1 relative z-10">
             Total Sessions
           </h3>
-          <p className="text-xl font-bold text-gray-900">
+          <p className="text-xl font-bold text-gray-800 relative z-10">
             {(data.analytics?.totalSessions || 0).toLocaleString()}
           </p>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-2 rounded-lg bg-emerald-50">
+        <div className="bg-white/80 backdrop-blur-lg rounded-[1.5rem] border border-white/60 shadow-lg p-4 relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[1.5rem]" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-2 relative z-10">
+            <div className="p-2 rounded-xl bg-emerald-500/20 backdrop-blur-sm border border-emerald-200/30">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             </div>
           </div>
-          <h3 className="text-xs text-gray-500 font-medium mb-1">
+          <h3 className="text-xs text-gray-600 font-medium mb-1 relative z-10">
             Success Rate
           </h3>
-          <p className="text-xl font-bold text-gray-900">{successRate}%</p>
+          <p className="text-xl font-bold text-gray-800 relative z-10">{successRate}%</p>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-2 rounded-lg bg-purple-50">
+        <div className="bg-white/80 backdrop-blur-lg rounded-[1.5rem] border border-white/60 shadow-lg p-4 relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[1.5rem]" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-2 relative z-10">
+            <div className="p-2 rounded-xl bg-purple-500/20 backdrop-blur-sm border border-purple-200/30">
               <Clock className="w-4 h-4 text-purple-600" />
             </div>
           </div>
-          <h3 className="text-xs text-gray-500 font-medium mb-1">
+          <h3 className="text-xs text-gray-600 font-medium mb-1 relative z-10">
             Avg Duration
           </h3>
-          <p className="text-xl font-bold text-gray-900">{averageDuration}s</p>
+          <p className="text-xl font-bold text-gray-800 relative z-10">{averageDuration}s</p>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-2 rounded-lg bg-red-50">
+        <div className="bg-white/80 backdrop-blur-lg rounded-[1.5rem] border border-white/60 shadow-lg p-4 relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[1.5rem]" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-2 relative z-10">
+            <div className="p-2 rounded-xl bg-red-500/20 backdrop-blur-sm border border-red-200/30">
               <XCircle className="w-4 h-4 text-red-600" />
             </div>
           </div>
-          <h3 className="text-xs text-gray-500 font-medium mb-1">
+          <h3 className="text-xs text-gray-600 font-medium mb-1 relative z-10">
             Failed Sessions
           </h3>
-          <p className="text-xl font-bold text-gray-900">
+          <p className="text-xl font-bold text-gray-800 relative z-10">
             {(data.analytics?.failedSessions || 0).toLocaleString()}
           </p>
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      {/* Charts Section - Liquid Glass */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Network Distribution */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+        <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] border border-white/60 shadow-2xl p-5 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-400/5 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+          
+          <h3 className="text-sm font-semibold text-gray-800 mb-3 relative z-10">
             Traffic by Network Operator
           </h3>
-          <div className="h-56 w-full">
+          <div className="h-56 w-full relative z-10">
             {networkData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -342,7 +375,7 @@ export const USSDAnalyticsView: React.FC = () => {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500 text-xs">
+              <div className="flex items-center justify-center h-full text-gray-600 text-xs">
                 No network data available
               </div>
             )}
@@ -350,11 +383,16 @@ export const USSDAnalyticsView: React.FC = () => {
         </div>
 
         {/* Status Distribution */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+        <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] border border-white/60 shadow-2xl p-5 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-400/5 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+          
+          <h3 className="text-sm font-semibold text-gray-800 mb-3 relative z-10">
             Session Status
           </h3>
-          <div className="h-56 w-full">
+          <div className="h-56 w-full relative z-10">
             {statusData.total > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -415,7 +453,7 @@ export const USSDAnalyticsView: React.FC = () => {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500 text-xs">
+              <div className="flex items-center justify-center h-full text-gray-600 text-xs">
                 No status data available
               </div>
             )}
@@ -423,14 +461,19 @@ export const USSDAnalyticsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Action Distribution and Recent Sessions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      {/* Action Distribution and Recent Sessions - Liquid Glass */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Top Actions */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+        <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] border border-white/60 shadow-2xl p-5 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-400/5 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+          
+          <h3 className="text-sm font-semibold text-gray-800 mb-3 relative z-10">
             Top Actions
           </h3>
-          <div className="h-56 w-full">
+          <div className="h-56 w-full relative z-10">
             {actionData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={actionData}>
@@ -469,7 +512,7 @@ export const USSDAnalyticsView: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500 text-xs">
+              <div className="flex items-center justify-center h-full text-gray-600 text-xs">
                 No action data available
               </div>
             )}
@@ -477,11 +520,16 @@ export const USSDAnalyticsView: React.FC = () => {
         </div>
 
         {/* Recent Sessions */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+        <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] border border-white/60 shadow-2xl p-5 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-400/5 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+          
+          <h3 className="text-sm font-semibold text-gray-800 mb-3 relative z-10">
             Recent Sessions
           </h3>
-          <div className="space-y-2.5 max-h-56 overflow-y-auto">
+          <div className="space-y-2.5 max-h-56 overflow-y-auto relative z-10">
             {recentSessions.length > 0 ? (
               recentSessions.map((session) => {
                 const date = new Date(session.startTime);
@@ -493,7 +541,7 @@ export const USSDAnalyticsView: React.FC = () => {
                 return (
                   <div
                     key={session.id}
-                    className="flex items-start pb-2.5 border-b border-gray-50 last:border-0 last:pb-0"
+                    className="flex items-start pb-2.5 border-b border-white/20 last:border-0 last:pb-0"
                   >
                     <div
                       className={`w-1.5 h-1.5 mt-2 rounded-full mr-2.5 flex-shrink-0 ${
@@ -510,32 +558,32 @@ export const USSDAnalyticsView: React.FC = () => {
                           {session.phoneNumber}
                         </p>
                         <span
-                          className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                          className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 backdrop-blur-sm ${
                             isSuccess
-                              ? "bg-green-100 text-green-700"
+                              ? "bg-green-100/80 text-green-700 border border-green-200/50"
                               : isFailed
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
+                              ? "bg-red-100/80 text-red-700 border border-red-200/50"
+                              : "bg-yellow-100/80 text-yellow-700 border border-yellow-200/50"
                           }`}
                         >
                           {session.status}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-gray-600 truncate">
                         {network} • {session.action}
                       </p>
                       <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-500">
                           {session.duration}s
                         </p>
-                        <p className="text-xs text-gray-400">{timeAgo}</p>
+                        <p className="text-xs text-gray-500">{timeAgo}</p>
                       </div>
                     </div>
                   </div>
                 );
               })
             ) : (
-              <div className="text-center py-6 text-gray-500 text-xs">
+              <div className="text-center py-6 text-gray-600 text-xs">
                 No USSD sessions found
               </div>
             )}
@@ -546,7 +594,6 @@ export const USSDAnalyticsView: React.FC = () => {
   );
 };
 
-// Helper function to calculate time ago
 function getTimeAgo(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);

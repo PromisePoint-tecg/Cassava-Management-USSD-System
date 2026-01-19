@@ -20,6 +20,7 @@ import {
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";
+import LeafInlineLoader from "./Loader";
 
 interface StaffPortalProps {
   onLogout: () => void;
@@ -60,7 +61,6 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
   useEffect(() => {
     loadProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfile = async () => {
@@ -120,7 +120,6 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       setSubmittingLoanRequest(true);
       setError(null);
 
-      // Convert principal to minor unit expected by server
       const requestData = {
         ...loanRequestForm,
         principalAmount: Math.round(loanRequestForm.principalAmount * 100),
@@ -134,7 +133,6 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       setLoanSuccessData(loanData);
       setShowLoanSuccessModal(true);
 
-      // Reset form
       setLoanRequestForm({
         loanTypeId: "",
         principalAmount: 0,
@@ -174,7 +172,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       showBackButton={false}
     >
       {loading && !profile ? (
-        <LoadingSpinner message="Loading staff portal..." />
+        <LeafInlineLoader />
       ) : error && !profile ? (
         <ErrorMessage
           title="Error Loading Portal"
@@ -182,82 +180,103 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
           onRetry={loadProfile}
         />
       ) : (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Welcome back, {profile.firstName}!
-              </h2>
-              <p className="text-gray-600">
-                Here's an overview of your account
-              </p>
+        <div className="space-y-5">
+          {/* Header - Liquid Glass */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-400/5 rounded-[2rem] pointer-events-none" />
+            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+            
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  Welcome back, {profile.firstName}!
+                </h2>
+                <p className="text-gray-600">
+                  Here's an overview of your account
+                </p>
+              </div>
+              <button
+                onClick={handleOpenLoanRequest}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Request Loan
+              </button>
             </div>
-            <button
-              onClick={handleOpenLoanRequest}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Request Loan
-            </button>
           </div>
 
-          {/* Balance Cards */}
+          {/* Balance Cards - Liquid Glass */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-200 rounded-full">
+            <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
+              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-green-400/20 to-transparent blur-2xl rounded-full pointer-events-none" />
+              
+              <div className="flex items-center justify-between mb-4 relative z-10">
+                <div className="p-3 bg-green-500/20 backdrop-blur-sm rounded-full border border-green-200/30">
                   <PiggyBank className="w-6 h-6 text-green-700" />
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">
+              <h3 className="text-sm font-medium text-gray-600 mb-1 relative z-10">
                 Savings
               </h3>
-              <p className="text-2xl font-bold text-gray-800">
+              <p className="text-2xl font-bold text-gray-800 relative z-10">
                 {formatCurrency(profile.balances?.savings || 0)}
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-200 rounded-full">
+            <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
+              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-blue-400/20 to-transparent blur-2xl rounded-full pointer-events-none" />
+              
+              <div className="flex items-center justify-between mb-4 relative z-10">
+                <div className="p-3 bg-blue-500/20 backdrop-blur-sm rounded-full border border-blue-200/30">
                   <Building2 className="w-6 h-6 text-blue-700" />
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">
+              <h3 className="text-sm font-medium text-gray-600 mb-1 relative z-10">
                 Pension
               </h3>
-              <p className="text-2xl font-bold text-gray-800">
+              <p className="text-2xl font-bold text-gray-800 relative z-10">
                 {formatCurrency(profile.balances?.pension || 0)}
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-purple-200 rounded-full">
+            <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
+              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-purple-400/20 to-transparent blur-2xl rounded-full pointer-events-none" />
+              
+              <div className="flex items-center justify-between mb-4 relative z-10">
+                <div className="p-3 bg-purple-500/20 backdrop-blur-sm rounded-full border border-purple-200/30">
                   <Wallet className="w-6 h-6 text-purple-700" />
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">Wallet</h3>
-              <p className="text-2xl font-bold text-gray-800">
+              <h3 className="text-sm font-medium text-gray-600 mb-1 relative z-10">Wallet</h3>
+              <p className="text-2xl font-bold text-gray-800 relative z-10">
                 {formatCurrency(profile.balances?.wallet || 0)}
               </p>
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          {/* Quick Stats - Liquid Glass */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-6 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+              
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 relative z-10">
                 Account Status
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-3 relative z-10">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Status</span>
                   <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${
+                    className={`px-3 py-1 text-xs font-medium rounded-full backdrop-blur-sm ${
                       profile.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
+                        ? "bg-green-100/80 text-green-800 border border-green-200/50"
+                        : "bg-gray-100/80 text-gray-800 border border-gray-200/50"
                     }`}
                   >
                     {profile.isActive ? "Active" : "Inactive"}
@@ -283,11 +302,15 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-6 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+              
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 relative z-10">
                 Document Status
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-3 relative z-10">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">NIN Document</span>
                   {profile.hasNin ? (
@@ -317,21 +340,24 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
       {/* Loan Request Modal */}
       {showLoanRequestModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/60 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
+            
+            <div className="p-6 border-b border-white/40 flex justify-between items-center bg-gradient-to-r from-blue-600/15 to-purple-400/10 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
+              <h3 className="text-lg font-semibold text-gray-900 relative z-10">
                 Request Loan
               </h3>
               <button
                 onClick={() => setShowLoanRequestModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-white/50 rounded-lg transition-all relative z-10"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleLoanRequestSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleLoanRequestSubmit} className="p-6 space-y-4 relative z-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -350,7 +376,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                         durationMonths: selectedType?.duration_months || 6,
                       });
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
                     required
                     disabled={loadingLoanTypes}
                   >
@@ -382,7 +408,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                       })
                     }
                     placeholder="e.g., 100000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
                     required
                     min={1000}
                     step={1000}
@@ -399,7 +425,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     type="number"
                     value={loanRequestForm.interestRate}
                     readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/20 backdrop-blur-md rounded-xl text-gray-800"
                   />
                 </div>
 
@@ -411,7 +437,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     type="number"
                     value={loanRequestForm.durationMonths}
                     readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/20 backdrop-blur-md rounded-xl text-gray-800"
                   />
                 </div>
               </div>
@@ -430,7 +456,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   }
                   placeholder="Describe the purpose of this loan..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
                   required
                 />
               </div>
@@ -450,7 +476,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                       })
                     }
                     placeholder="e.g., Main Office"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
                   />
                 </div>
 
@@ -467,7 +493,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                         pickupDate: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
                   />
                 </div>
               </div>
@@ -476,14 +502,14 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                 <button
                   type="button"
                   onClick={() => setShowLoanRequestModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 text-gray-700 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl hover:bg-white/50 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingLoanRequest}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
                 >
                   {submittingLoanRequest ? "Submitting..." : "Submit Request"}
                 </button>
@@ -495,10 +521,13 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
       {/* Loan Success Modal */}
       {showLoanSuccessModal && loanSuccessData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-green-800 flex items-center">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/60 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
+            
+            <div className="p-6 border-b border-white/40 flex justify-between items-center bg-gradient-to-r from-green-600/15 to-emerald-400/10 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
+              <h3 className="text-lg font-semibold text-green-800 flex items-center relative z-10">
                 <CheckCircle2 className="w-6 h-6 mr-2" />
                 Loan Request Successful!
               </h3>
@@ -507,14 +536,14 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   setShowLoanSuccessModal(false);
                   setLoanSuccessData(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-white/50 rounded-lg transition-all relative z-10"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="p-6 space-y-4 relative z-10">
+              <div className="bg-green-50/80 backdrop-blur-sm border border-green-200/50 rounded-[1.5rem] p-4">
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm font-medium text-gray-600">
@@ -586,7 +615,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     <span className="text-sm font-medium text-gray-600">
                       Status:
                     </span>
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 capitalize">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100/80 text-yellow-800 capitalize backdrop-blur-sm border border-yellow-200/50">
                       {loanSuccessData.status}
                     </span>
                   </div>
@@ -604,7 +633,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     setShowLoanSuccessModal(false);
                     setLoanSuccessData(null);
                   }}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-lg"
                 >
                   Got it!
                 </button>

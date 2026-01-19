@@ -22,6 +22,7 @@ import {
 } from "../api/loans";
 import { farmersApi, Farmer } from "../api/farmers";
 import { SuccessModal } from "./SuccessModal";
+import { LeafLoader } from "./Loader";
 
 interface LoansViewProps {}
 
@@ -398,102 +399,96 @@ export const LoansView: React.FC<LoansViewProps> = () => {
   const currentData = activeTab === "loans" ? loans : loanRequests;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-          Loan Management
-        </h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsCreateLoanTypeModalOpen(true)}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Loan Type
-          </button>
-          <button
-            onClick={() => handleCreateNewLoan()}
-            className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Issue New Loan
-          </button>
+   <div className="space-y-6">
+      {/* Header - Liquid Glass */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 sm:p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+            Loan Management
+          </h2>
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 sm:gap-3">
+            <button
+              onClick={() => setIsCreateLoanTypeModalOpen(true)}
+              className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-[#066f48] text-white rounded-xl hover:bg-[#055b3d] transition-all shadow-lg text-sm sm:text-base"
+            >
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              Create Loan Type
+            </button>
+            <button
+              onClick={() => handleCreateNewLoan()}
+              className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg text-sm sm:text-base"
+            >
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              Issue New Loan
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Glass Style */}
       {kpis && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">
-                  Total Outstanding
-                </h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(kpis.totalOutstanding)}
-                </p>
-              </div>
-              <div className="p-3 bg-green-50 text-green-600 rounded-lg">
-                <DollarSign className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">
-                  Active Loans
-                </h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {kpis.activeLoans}
-                </p>
-              </div>
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">
-                  Pending Requests
-                </h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {kpis.pendingRequests}
-                </p>
-              </div>
-              <div className="p-3 bg-green-50 text-green-600 rounded-lg">
-                <Clock className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">
-                  Default Rate
-                </h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {kpis.defaultRate.toFixed(1)}%
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 text-gray-600 rounded-lg">
-                <AlertTriangle className="w-6 h-6" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {[
+            {
+              title: "Total Outstanding",
+              value: formatCurrency(kpis.totalOutstanding),
+              icon: DollarSign,
+              color: "green",
+            },
+            {
+              title: "Active Loans",
+              value: kpis.activeLoans,
+              icon: CheckCircle2,
+              color: "emerald",
+            },
+            {
+              title: "Pending Requests",
+              value: kpis.pendingRequests,
+              icon: Clock,
+              color: "green",
+            },
+            {
+              title: "Default Rate",
+              value: `${kpis.defaultRate.toFixed(1)}%`,
+              icon: AlertTriangle,
+              color: "gray",
+            },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 sm:p-6 relative overflow-hidden hover:bg-white/15 transition-all"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 pointer-events-none" />
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <h3 className="text-gray-600 text-xs sm:text-sm font-medium">
+                    {item.title}
+                  </h3>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
+                    {item.value}
+                  </p>
+                </div>
+                <div
+                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-${item.color}-600/90 backdrop-blur-sm`}
+                >
+                  <item.icon className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      {/* Tabs - Glass Style */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-2 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 pointer-events-none" />
+
+        <nav className="relative z-10 -mb-px flex space-x-2 sm:space-x-8 px-2 sm:px-6 py-3 sm:py-4 overflow-x-auto">
           <button
             onClick={() => {
               setActiveTab("loans");
@@ -501,10 +496,10 @@ export const LoansView: React.FC<LoansViewProps> = () => {
               setSearchTerm("");
               setStatusFilter("");
             }}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
               activeTab === "loans"
-                ? "border-emerald-500 text-emerald-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "bg-white/30 backdrop-blur-md text-emerald-700 shadow-inner"
+                : "text-gray-600 hover:bg-white/20"
             }`}
           >
             All Loans ({kpis ? kpis.totalLoanRequests : 0})
@@ -516,10 +511,10 @@ export const LoansView: React.FC<LoansViewProps> = () => {
               setSearchTerm("");
               setStatusFilter("");
             }}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
               activeTab === "requests"
-                ? "border-emerald-500 text-emerald-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "bg-white/30 backdrop-blur-md text-emerald-700 shadow-inner"
+                : "text-gray-600 hover:bg-white/20"
             }`}
           >
             Loan Requests ({kpis ? kpis.pendingRequests : 0})
@@ -527,183 +522,271 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         </nav>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search by name or reference..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          />
-        </div>
+      {/* Filters - Glass Style */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 sm:p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 pointer-events-none" />
 
-        {activeTab === "loans" && (
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          >
-            <option value="">All Statuses</option>
-            <option value="approved">Approved</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="defaulted">Defaulted</option>
-          </select>
-        )}
-      </div>
-
-      {/* Loading and Error States */}
-      {loading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-green-800">{error}</p>
-        </div>
-      )}
-
-      {/* Loans Table */}
-      {!loading && !error && (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Requester
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Reference
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Due Date
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {currentData.map((loan) => (
-                  <tr key={loan.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {loan.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {loan.phone}
-                        </div>
-                        <div className="text-xs text-gray-400 capitalize">
-                          {loan.user_type}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {loan.reference}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {formatCurrency(loan.principal_amount)}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Outstanding: {formatCurrency(loan.amount_outstanding)}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(loan.status)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(loan.due_date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button
-                          onClick={() => handleViewDetails(loan)}
-                          className="text-emerald-600 hover:text-emerald-900 p-1"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        {loan.status === "requested" && (
-                          <button
-                            onClick={() => handleApprove(loan)}
-                            className="text-blue-600 hover:text-blue-900 p-1"
-                            title="Approve"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                          </button>
-                        )}
-                        {loan.status === "approved" && (
-                          <button
-                            onClick={() => handleActivateLoan(loan)}
-                            className="text-green-600 hover:text-green-900 p-1"
-                            title="Activate Loan"
-                          >
-                            <Play className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="relative z-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
+            <input
+              type="text"
+              placeholder="Search by name or reference..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-2.5 sm:py-3 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/40 focus:outline-none focus:bg-white/50 transition-all text-gray-800 placeholder-gray-500 text-sm sm:text-base"
+            />
           </div>
 
-          {/* Empty state */}
-          {currentData.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">
+          {activeTab === "loans" && (
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 sm:px-5 py-2.5 sm:py-3 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/40 focus:outline-none focus:bg-white/50 transition-all text-gray-800 text-sm sm:text-base"
+            >
+              <option value="">All Statuses</option>
+              <option value="approved">Approved</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="defaulted">Defaulted</option>
+            </select>
+          )}
+        </div>
+      </div>
+
+      {/* Main Table Container - Glass Style */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 pointer-events-none" />
+
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <LeafLoader />
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center text-red-600">{error}</div>
+        ) : (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto relative z-10">
+              <table className="min-w-full divide-y divide-white/20">
+                <thead className="bg-white/15 backdrop-blur-md">
+                  <tr>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Requester
+                    </th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Reference
+                    </th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-8 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Due Date
+                    </th>
+                    <th className="px-8 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {currentData.map((loan) => (
+                    <tr
+                      key={loan.id}
+                      className="hover:bg-white/10 transition-colors"
+                    >
+                      <td className="px-8 py-5 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {loan.name}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {loan.phone}
+                          </div>
+                          <div className="text-xs text-gray-500 capitalize mt-0.5">
+                            {loan.user_type}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        {loan.reference}
+                      </td>
+                      <td className="px-8 py-5 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {formatCurrency(loan.principal_amount)}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-0.5">
+                            Outstanding:{" "}
+                            {formatCurrency(loan.amount_outstanding)}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 whitespace-nowrap">
+                        {getStatusBadge(loan.status)}
+                      </td>
+                      <td className="px-8 py-5 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(loan.due_date)}
+                      </td>
+                      <td className="px-8 py-5 whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end space-x-3">
+                          <button
+                            onClick={() => handleViewDetails(loan)}
+                            className="p-2.5 text-emerald-700 hover:bg-white/30 rounded-xl transition-all backdrop-blur-sm"
+                            title="View Details"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </button>
+
+                          {loan.status === "requested" && (
+                            <button
+                              onClick={() => handleApprove(loan)}
+                              className="p-2.5 text-blue-700 hover:bg-white/30 rounded-xl transition-all backdrop-blur-sm"
+                              title="Approve"
+                            >
+                              <CheckCircle2 className="w-5 h-5" />
+                            </button>
+                          )}
+
+                          {loan.status === "approved" && (
+                            <button
+                              onClick={() => handleActivateLoan(loan)}
+                              className="p-2.5 text-green-700 hover:bg-white/30 rounded-xl transition-all backdrop-blur-sm"
+                              title="Activate Loan"
+                            >
+                              <Play className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden relative z-10 divide-y divide-white/10">
+              {currentData.map((loan) => (
+                <div
+                  key={loan.id}
+                  className="p-4 hover:bg-white/10 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {loan.name}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-0.5">
+                        {loan.phone}
+                      </div>
+                      <div className="text-xs text-gray-500 capitalize mt-0.5">
+                        {loan.user_type}
+                      </div>
+                    </div>
+                    {getStatusBadge(loan.status)}
+                  </div>
+
+                  <div className="space-y-2 mb-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Reference:</span>
+                      <span className="font-medium text-gray-900">{loan.reference}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Principal:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatCurrency(loan.principal_amount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Outstanding:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatCurrency(loan.amount_outstanding)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Due Date:</span>
+                      <span className="font-medium text-gray-900">
+                        {formatDate(loan.due_date)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                    <button
+                      onClick={() => handleViewDetails(loan)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-emerald-700 hover:bg-white/30 rounded-lg transition-all backdrop-blur-sm text-sm font-medium"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View
+                    </button>
+
+                    {loan.status === "requested" && (
+                      <button
+                        onClick={() => handleApprove(loan)}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-blue-700 hover:bg-white/30 rounded-lg transition-all backdrop-blur-sm text-sm font-medium"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        Approve
+                      </button>
+                    )}
+
+                    {loan.status === "approved" && (
+                      <button
+                        onClick={() => handleActivateLoan(loan)}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-green-700 hover:bg-white/30 rounded-lg transition-all backdrop-blur-sm text-sm font-medium"
+                      >
+                        <Play className="w-4 h-4" />
+                        Activate
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Empty + Pagination */}
+            {currentData.length === 0 && (
+              <div className="py-16 text-center text-gray-500 relative z-10">
                 {activeTab === "loans"
                   ? "No loans found"
                   : "No loan requests found"}
-              </p>
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing page {currentPage} of {totalPages} ({total} total)
+            {totalPages > 1 && (
+              <div className="px-4 sm:px-8 py-4 sm:py-5 border-t border-white/20 flex flex-col sm:flex-row items-center justify-between gap-3 relative z-10 bg-white/5">
+                <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
+                  Showing page {currentPage} of {totalPages} ({total} total)
+                </div>
+                <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="flex-1 sm:flex-none px-4 sm:px-5 py-2 sm:py-2.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 text-sm sm:text-base"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="flex-1 sm:flex-none px-4 sm:px-5 py-2 sm:py-2.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 text-sm sm:text-base"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </>
+        )}
+      </div>
+    
+
+
 
       {/* Loan Details Modal */}
       {isDetailsModalOpen && selectedLoan && (

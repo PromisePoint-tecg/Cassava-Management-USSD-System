@@ -11,6 +11,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { farmersApi, Farmer, FarmerDetail, GetAllFarmersParams } from '../api/farmers';
+import LeafInlineLoader from './Loader';
 
 export const FarmersDirectory: React.FC = () => {
   const [farmers, setFarmers] = useState<Farmer[]>([]);
@@ -117,45 +118,61 @@ export const FarmersDirectory: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
-      active: 'bg-green-100 text-green-800',
-      inactive: 'bg-gray-100 text-gray-800',
-      suspended: 'bg-yellow-100 text-yellow-800',
-      banned: 'bg-red-100 text-red-800',
+      active: 'bg-green-100/90 text-green-700 border border-green-200/50',
+      inactive: 'bg-gray-100/90 text-gray-700 border border-gray-200/50',
+      suspended: 'bg-yellow-100/90 text-yellow-700 border border-yellow-200/50',
+      banned: 'bg-red-100/90 text-red-700 border border-red-200/50',
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm ${statusColors[status] || 'bg-gray-100/90 text-gray-700 border border-gray-200/50'}`}>
         {status}
       </span>
     );
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Users className="w-8 h-8 text-emerald-600" />
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Farmers Directory</h2>
-            <p className="text-sm text-gray-600">{total} total farmers</p>
+    <div className="space-y-5">
+      {/* Header - Liquid Glass */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-[#066f48]/10 to-transparent blur-2xl rounded-full pointer-events-none" />
+        
+        <div className="flex items-center justify-between relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-[#066f48] shadow-lg">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Farmers Directory</h2>
+              <p className="text-sm text-gray-600">{total} total farmers</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Filters - Liquid Glass */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
           {/* LGA Filter */}
           <input
             type="text"
             placeholder="Filter by LGA..."
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            className="px-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800 placeholder-gray-500"
             value={lgaFilter}
             onChange={(e) => setLgaFilter(e.target.value)}
           />
 
           {/* Status Filter */}
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            className="px-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
           >
@@ -169,7 +186,7 @@ export const FarmersDirectory: React.FC = () => {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+        <div className="bg-red-50/90 backdrop-blur-sm border border-red-200/50 rounded-[1.5rem] p-4 flex items-center gap-3 shadow-sm">
           <AlertCircle className="w-5 h-5 text-red-600" />
           <p className="text-red-800">{error}</p>
         </div>
@@ -178,20 +195,24 @@ export const FarmersDirectory: React.FC = () => {
       {/* Loading State */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+          <LeafInlineLoader />
         </div>
       ) : farmers.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
-          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-600">No farmers found</p>
+        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-12 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4 relative z-10" />
+          <p className="text-gray-600 relative z-10">No farmers found</p>
         </div>
       ) : (
         <>
           {/* Mobile Card View */}
           <div className="lg:hidden space-y-4">
             {farmers.map((farmer) => (
-              <div key={farmer.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                <div className="flex items-start justify-between mb-3">
+              <div key={farmer.id} className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-4 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
+                <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+                <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+                
+                <div className="flex items-start justify-between mb-3 relative z-10">
                   <div>
                     <h3 className="font-semibold text-gray-800">{farmer.fullName.toUpperCase()}</h3>
                     <p className="text-sm text-gray-600">{farmer.phone}</p>
@@ -199,44 +220,49 @@ export const FarmersDirectory: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleViewFarmer(farmer)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                      className="p-2 text-blue-600 hover:bg-blue-50/80 rounded-lg backdrop-blur-sm transition-all"
                       title="View Details"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-2 gap-3 text-sm relative z-10">
                   <div>
                     <span className="text-gray-500">LGA:</span>
-                    <p className="font-medium">{farmer.lga}</p>
+                    <p className="font-medium text-gray-800">{farmer.lga}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Farm Size:</span>
-                    <p className="font-medium">{farmer.farmSizeHectares} ha</p>
+                    <p className="font-medium text-gray-800">{farmer.farmSizeHectares} ha</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Wallet Balance:</span>
-                    <p className="font-medium">{formatCurrency(farmer.walletBalance || 0)}</p>
+                    <p className="font-medium text-gray-800">{formatCurrency(farmer.walletBalance || 0)}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Total Sales:</span>
-                    <p className="font-medium">{farmer.totalSales}</p>
+                    <p className="font-medium text-gray-800">{farmer.totalSales}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Earnings:</span>
-                    <p className="font-medium">{formatCurrency(farmer.totalEarnings)}</p>
+                    <p className="font-medium text-gray-800">{formatCurrency(farmer.totalEarnings)}</p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Desktop Table View */}
-          <div className="hidden lg:block bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+          {/* Desktop Table View - Liquid Glass */}
+          <div className="hidden lg:block bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
+            <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
+            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+            
+            <div className="overflow-x-auto relative z-10">
               <table className="w-full text-left text-sm text-gray-600">
-                <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs">
+                <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium uppercase text-xs border-b border-white/30">
                   <tr>
                     <th className="px-6 py-3">Farmer</th>
                     <th className="px-6 py-3">Phone</th>
@@ -249,27 +275,27 @@ export const FarmersDirectory: React.FC = () => {
                     <th className="px-6 py-3">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-white/15">
                   {farmers.map((farmer) => (
-                    <tr key={farmer.id} className="hover:bg-gray-50">
+                    <tr key={farmer.id} className="hover:bg-white/10 transition-colors">
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-medium text-gray-800">{farmer.fullName.toUpperCase()}</p>
                           <p className="text-xs text-gray-500">ID: {farmer.id.substring(0, 8)}...</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4">{farmer.phone}</td>
-                      <td className="px-6 py-4">{farmer.lga}</td>
-                      <td className="px-6 py-4">{farmer.farmSizeHectares} ha</td>
-                      <td className="px-6 py-4">{formatCurrency(farmer.walletBalance || 0)}</td>
-                      <td className="px-6 py-4">{farmer.totalSales}</td>
-                      <td className="px-6 py-4">{formatCurrency(farmer.totalEarnings)}</td>
+                      <td className="px-6 py-4 text-gray-700">{farmer.phone}</td>
+                      <td className="px-6 py-4 text-gray-700">{farmer.lga}</td>
+                      <td className="px-6 py-4 text-gray-700">{farmer.farmSizeHectares} ha</td>
+                      <td className="px-6 py-4 text-gray-700">{formatCurrency(farmer.walletBalance || 0)}</td>
+                      <td className="px-6 py-4 text-gray-700">{farmer.totalSales}</td>
+                      <td className="px-6 py-4 text-gray-700">{formatCurrency(farmer.totalEarnings)}</td>
                       <td className="px-6 py-4">{getStatusBadge(farmer.status)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleViewFarmer(farmer)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                            className="p-2 text-blue-600 hover:bg-blue-50/80 rounded-lg backdrop-blur-sm transition-all"
                             title="View Details"
                           >
                             <Eye className="w-4 h-4" />
@@ -283,63 +309,72 @@ export const FarmersDirectory: React.FC = () => {
             </div>
           </div>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <p className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </button>
+          {/* Pagination - Liquid Glass */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+            <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-white/30 to-transparent blur-2xl rounded-full pointer-events-none" />
+            
+            <div className="flex items-center justify-between relative z-10">
+              <p className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </>
       )}
 
-      {/* View Farmer Modal */}
+      {/* View Farmer Modal - Enhanced Glass */}
       {viewingFarmer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden my-auto">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-emerald-50">
-              <h3 className="text-lg font-bold text-emerald-900">Farmer Details</h3>
-              <button onClick={() => setViewingFarmer(null)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-6 h-6" />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden my-auto border border-white/60 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
+            <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
+              <div className="flex justify-between items-center relative z-10">
+                <h3 className="text-lg font-bold text-[#066f48]">Farmer Details</h3>
+                <button onClick={() => setViewingFarmer(null)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 relative z-10">
               {/* Personal Info */}
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3">Personal Information</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium">{viewingFarmer.fullName.toUpperCase()}</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.fullName.toUpperCase()}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Phone Number</p>
-                    <p className="font-medium">{viewingFarmer.phone}</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.phone}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">LGA</p>
-                    <p className="font-medium">{viewingFarmer.lga}</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.lga}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Farm Size</p>
-                    <p className="font-medium">{viewingFarmer.farmSizeHectares} hectares</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.farmSizeHectares} hectares</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Status</p>
@@ -354,27 +389,27 @@ export const FarmersDirectory: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Wallet Balance</p>
-                    <p className="font-medium">{formatCurrency(viewingFarmer.walletBalance || 0)}</p>
+                    <p className="font-medium text-gray-800">{formatCurrency(viewingFarmer.walletBalance || 0)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Total Earnings</p>
-                    <p className="font-medium">{formatCurrency(viewingFarmer.totalEarnings)}</p>
+                    <p className="font-medium text-gray-800">{formatCurrency(viewingFarmer.totalEarnings)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Total Sales</p>
-                    <p className="font-medium">{viewingFarmer.totalSales}</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.totalSales}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Completed Sales</p>
-                    <p className="font-medium">{viewingFarmer.completedSales}</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.completedSales}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Active Loan</p>
-                    <p className="font-medium">{viewingFarmer.activeLoan ? 'Yes' : 'No'}</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.activeLoan ? 'Yes' : 'No'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Loan Defaults</p>
-                    <p className="font-medium">{viewingFarmer.loanDefaults}</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.loanDefaults}</p>
                   </div>
                 </div>
               </div>
@@ -385,24 +420,24 @@ export const FarmersDirectory: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Member Since</p>
-                    <p className="font-medium">{formatDate(viewingFarmer.createdAt)}</p>
+                    <p className="font-medium text-gray-800">{formatDate(viewingFarmer.createdAt)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Last Updated</p>
-                    <p className="font-medium">{formatDate(viewingFarmer.updatedAt)}</p>
+                    <p className="font-medium text-gray-800">{formatDate(viewingFarmer.updatedAt)}</p>
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <div className="flex justify-end gap-3 pt-4 border-t border-white/30">
                 {viewingFarmer.status === 'active' ? (
                   <button
                     onClick={() => {
                       setDeactivatingFarmer(viewingFarmer);
                       setViewingFarmer(null);
                     }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
+                    className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 flex items-center gap-2 shadow-lg transition-all"
                   >
                     <UserX className="w-4 h-4" />
                     Deactivate
@@ -413,7 +448,7 @@ export const FarmersDirectory: React.FC = () => {
                       handleActivateFarmer(viewingFarmer);
                       setViewingFarmer(null);
                     }}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                    className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 flex items-center gap-2 shadow-lg transition-all"
                   >
                     <UserCheck className="w-4 h-4" />
                     Activate
@@ -427,14 +462,16 @@ export const FarmersDirectory: React.FC = () => {
 
       {/* Deactivate Confirmation Modal */}
       {deactivatingFarmer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 bg-red-50">
-              <h3 className="text-lg font-bold text-red-900">Confirm Deactivation</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/60 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
+            <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-red-500/15 to-red-400/10 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
+              <h3 className="text-lg font-bold text-red-700 relative z-10">Confirm Deactivation</h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 relative z-10">
               {actionError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
+                <div className="bg-red-50/90 backdrop-blur-sm border border-red-200/50 rounded-xl p-3 flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-red-600" />
                   <p className="text-sm text-red-800">{actionError}</p>
                 </div>
@@ -448,14 +485,14 @@ export const FarmersDirectory: React.FC = () => {
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   onClick={() => setDeactivatingFarmer(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 transition-all text-gray-700"
                   disabled={loadingAction}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeactivateFarmer}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 disabled:opacity-50"
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 flex items-center gap-2 disabled:opacity-50 shadow-lg transition-all"
                   disabled={loadingAction}
                 >
                   {loadingAction ? (

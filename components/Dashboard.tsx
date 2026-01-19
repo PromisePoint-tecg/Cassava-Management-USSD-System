@@ -8,6 +8,7 @@ import { purchasesApi, PurchaseKPIs, PurchaseItem } from '../api/purchases';
 import { loansApi, LoanKPIs } from '../api/loans';
 import { farmersApi } from '../api/farmers';
 import { transactionsApi, TransactionStats, Transaction } from '../api/transactions';
+import LeafInlineLoader from './Loader';
 
 interface DashboardData {
   purchaseKPIs: PurchaseKPIs | null;
@@ -37,13 +38,11 @@ export const Dashboard: React.FC = () => {
   const loadDashboardData = async () => {
     setData(prev => ({ ...prev, loading: true, error: null }));
     try {
-      // Fetch data - make date filters optional to avoid API errors
       const [purchaseKPIs, loanKPIs, farmersResponse, transactionStats, recentPurchases, recentTransactions] = await Promise.allSettled([
         purchasesApi.getPurchaseKPIs(),
         loansApi.getLoanKPIs(),
         farmersApi.getAllFarmers({ page: 1, limit: 1, status: 'active' }),
         transactionsApi.getTransactionStats(),
-        // Get recent purchases without date filter - we'll filter client-side
         purchasesApi.getAllPurchases({ 
           page: 1, 
           limit: 100, 
@@ -59,13 +58,11 @@ export const Dashboard: React.FC = () => {
       ]);
 
       const activeFarmers = farmersResponse.status === 'fulfilled' ? farmersResponse.value.total : 0;
-      // Get total farmers count (try without status filter)
       let totalFarmers = activeFarmers;
       try {
         const totalFarmersResponse = await farmersApi.getAllFarmers({ page: 1, limit: 1 });
         totalFarmers = totalFarmersResponse?.total || activeFarmers;
       } catch (err) {
-        // If it fails, use active farmers count
         console.warn('Could not fetch total farmers count:', err);
       }
 
@@ -94,13 +91,11 @@ export const Dashboard: React.FC = () => {
     loadDashboardData();
   }, []);
 
-  // Process purchase data for 7-day chart - MUST be before any conditional returns
   const chartData = useMemo(() => {
     if (!data.recentPurchases || data.recentPurchases.length === 0) {
       return [];
     }
 
-    // Filter purchases from last 7 days
     const now = new Date();
     const sevenDaysAgo = new Date(now);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -121,12 +116,10 @@ export const Dashboard: React.FC = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const dayData: { [key: string]: number } = {};
     
-    // Initialize all days with 0
     days.forEach(day => {
       dayData[day] = 0;
     });
 
-    // Group purchases by day
     recentPurchases.forEach(purchase => {
       try {
         const date = new Date(purchase.createdAt);
@@ -147,17 +140,15 @@ export const Dashboard: React.FC = () => {
     }));
   }, [data.recentPurchases]);
 
-  // Transaction breakdown for pie chart - MUST be before any conditional returns
   const transactionBreakdown = useMemo(() => {
     if (!data.transactionStats) return [];
     return [
-      { name: 'Wallet', value: data.transactionStats.byType?.wallet || 0, color: '#10b981' },
+      { name: 'Wallet', value: data.transactionStats.byType?.wallet || 0, color: '#066f48' },
       { name: 'Loans', value: data.transactionStats.byType?.loan || 0, color: '#3b82f6' },
       { name: 'Purchases', value: data.transactionStats.byType?.purchase || 0, color: '#f59e0b' },
     ].filter(item => item.value > 0);
   }, [data.transactionStats]);
 
-  // Calculate metrics - MUST be before any conditional returns
   const totalWeight = data.purchaseKPIs?.totalWeight || 0;
   const totalPaid = data.purchaseKPIs?.totalAmountSpent || 0;
   const outstandingLoans = data.loanKPIs?.totalOutstanding || 0;
@@ -168,9 +159,8 @@ export const Dashboard: React.FC = () => {
   const totalDisbursed = data.loanKPIs?.totalDisbursed || 0;
   const totalTransactions = data.transactionStats?.totalAmount || 0;
 
-  // Now we can do conditional returns after all hooks
   if (data.loading) {
-    return <LoadingSpinner message="Loading dashboard data..." />;
+    return <LeafInlineLoader />;
   }
 
   if (data.error) {
@@ -185,32 +175,47 @@ export const Dashboard: React.FC = () => {
 
   if (totalWeight === 0 && totalPaid === 0 && data.activeFarmers === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
-        <h3 className="text-lg font-semibold text-gray-800">No activity yet</h3>
-        <p className="text-sm text-gray-500 mt-2">No purchases or farmers have been recorded. Create products and record purchases to populate the dashboard.</p>
+      <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-8 text-center relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
+        <h3 className="text-lg font-semibold text-gray-800 relative z-10">No activity yet</h3>
+        <p className="text-sm text-gray-500 mt-2 relative z-10">No purchases or farmers have been recorded. Create products and record purchases to populate the dashboard.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
-        <div>
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800">Dashboard Overview</h2>
-          <p className="text-xs text-gray-500">Real-time analytics and insights</p>
+    <div className="space-y-5">
+      {/* Header - Liquid Glass Container */}
+      <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
+        
+        <div className="flex items-center justify-between relative z-10">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
+            <p className="text-sm text-gray-600 mt-0.5">Real-time analytics and insights</p>
+          </div>
+          <button
+            onClick={loadDashboardData}
+            className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-[#066f48] bg-white/50 hover:bg-white/70 backdrop-blur-lg rounded-xl border border-white/70 hover:border-[#066f48]/30 transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden group"
+            title="Refresh data"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
+            <RefreshCw className="w-4 h-4 mr-2 relative z-10" />
+            <span className="relative z-10">Refresh</span>
+          </button>
         </div>
-        <button
-          onClick={loadDashboardData}
-          className="flex items-center px-2.5 py-1.5 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-          title="Refresh data"
-        >
-          <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-          <span className="hidden sm:inline">Refresh</span>
-        </button>
       </div>
 
       {/* Primary KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Total Collected"
           value={`${totalWeight.toLocaleString()} kg`}
@@ -246,7 +251,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Secondary Analytics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Average Purchase Size"
           value={`${Math.round(averagePurchaseSize).toLocaleString()} kg`}
@@ -282,30 +287,42 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {/* Purchase Volume Chart */}
-        <div className="lg:col-span-2 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Purchase Volume (Last 7 Days)</h3>
-          <div className="h-56 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Purchase Volume Chart - Liquid Glass */}
+        <div className="lg:col-span-2 bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
+          
+          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Purchase Volume (Last 7 Days)</h3>
+          <div className="h-64 w-full relative z-10">
             {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorKg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 11}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 11}} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  <defs>
+                    <linearGradient id="colorKg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#066f48" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#066f48" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" opacity={0.3} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                      backdropFilter: 'blur(12px)',
+                      borderRadius: '12px', 
+                      border: '1px solid rgba(255, 255, 255, 0.6)', 
+                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)' 
+                    }}
                     formatter={(value: number) => [`${value.toLocaleString()} kg`, 'Weight']}
-                />
-                <Area type="monotone" dataKey="kg" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorKg)" />
-              </AreaChart>
-            </ResponsiveContainer>
+                  />
+                  <Area type="monotone" dataKey="kg" stroke="#066f48" strokeWidth={3} fillOpacity={1} fill="url(#colorKg)" />
+                </AreaChart>
+              </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full text-gray-500 text-sm">
                 No purchase data available for the last 7 days
@@ -314,10 +331,16 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Transaction Breakdown */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Transaction Breakdown</h3>
-          <div className="h-56 w-full">
+        {/* Transaction Breakdown - Liquid Glass */}
+        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
+          
+          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Transaction Breakdown</h3>
+          <div className="h-64 w-full relative z-10">
             {transactionBreakdown.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -326,7 +349,7 @@ export const Dashboard: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
-                    outerRadius={70}
+                    outerRadius={75}
                     paddingAngle={5}
                     dataKey="value"
                   >
@@ -336,6 +359,13 @@ export const Dashboard: React.FC = () => {
                   </Pie>
                   <Tooltip 
                     formatter={(value: number) => [`${value} transactions`, 'Count']}
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                      backdropFilter: 'blur(12px)',
+                      borderRadius: '12px', 
+                      border: '1px solid rgba(255, 255, 255, 0.6)', 
+                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)' 
+                    }}
                   />
                   <Legend />
                 </PieChart>
@@ -350,95 +380,119 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Activity Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Recent Purchases */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Recent Purchases</h3>
-          <div className="space-y-2.5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Recent Purchases - Liquid Glass */}
+        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
+          
+          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Recent Purchases</h3>
+          <div className="space-y-3 relative z-10">
             {data.recentPurchases.length > 0 ? (
               data.recentPurchases.map((purchase) => {
                 const date = new Date(purchase.createdAt);
                 const timeAgo = getTimeAgo(date);
                 return (
-                  <div key={purchase._id} className="flex items-start pb-2.5 border-b border-gray-50 last:border-0 last:pb-0">
-                    <div className="w-1.5 h-1.5 mt-2 rounded-full bg-emerald-500 mr-2.5 flex-shrink-0"></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs text-gray-800 font-medium truncate">
-                          {purchase.weightKg.toLocaleString()}kg
+                  <div key={purchase._id} className="bg-white/30 backdrop-blur-xl rounded-[1.25rem] p-3.5 border border-white/40 shadow-[0_2px_8px_rgba(0,0,0,0.05),0_1px_2px_rgba(255,255,255,0.6)_inset] hover:bg-white/40 hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/60 via-white/25 to-transparent rounded-t-[1.25rem] pointer-events-none blur-[0.5px]" />
+                    <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/40 blur-2xl rounded-full pointer-events-none" />
+                    <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-[#066f48]/10 blur-xl rounded-full pointer-events-none" />
+                    
+                    <div className="flex items-start relative z-10">
+                      <div className="w-2 h-2 mt-1.5 rounded-full bg-[#066f48] mr-3 flex-shrink-0 group-hover:scale-125 transition-transform shadow-sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-sm text-gray-800 font-semibold truncate">
+                            {purchase.weightKg.toLocaleString()}kg
+                          </p>
+                          <span className={`text-xs px-2.5 py-1 rounded-lg flex-shrink-0 backdrop-blur-sm font-medium ${
+                            purchase.status === 'completed' ? 'bg-green-100/90 text-green-700' :
+                            purchase.status === 'pending' ? 'bg-yellow-100/90 text-yellow-700' :
+                            'bg-red-100/90 text-red-700'
+                          }`}>
+                            {purchase.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 truncate mb-1.5">
+                          {purchase.farmerName}
                         </p>
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                          purchase.status === 'completed' ? 'bg-green-100 text-green-700' :
-                          purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {purchase.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500 truncate">
-                        {purchase.farmerName}
-                      </p>
-                      <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-emerald-600 font-medium">
-                          ₦{purchase.totalAmount.toLocaleString()}
-                        </p>
-                        <p className="text-xs text-gray-400">{timeAgo}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-[#066f48] font-bold">
+                            ₦{purchase.totalAmount.toLocaleString()}
+                          </p>
+                          <p className="text-xs text-gray-500">{timeAgo}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 );
               })
             ) : (
-              <div className="text-center py-6 text-gray-500 text-xs">
+              <div className="text-center py-8 text-gray-500 text-sm">
                 No recent purchases
               </div>
             )}
           </div>
         </div>
 
-        {/* Recent Transactions */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Recent Transactions</h3>
-          <div className="space-y-2.5">
+        {/* Recent Transactions - Liquid Glass */}
+        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
+          
+          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Recent Transactions</h3>
+          <div className="space-y-3 relative z-10">
             {data.recentTransactions.length > 0 ? (
               data.recentTransactions.map((transaction) => {
                 const date = new Date(transaction.createdAt);
                 const timeAgo = getTimeAgo(date);
                 return (
-                  <div key={transaction.id} className="flex items-start pb-2.5 border-b border-gray-50 last:border-0 last:pb-0">
-                    <div className={`w-1.5 h-1.5 mt-2 rounded-full mr-2.5 flex-shrink-0 ${
-                      transaction.status === 'completed' ? 'bg-emerald-500' :
-                      transaction.status === 'pending' ? 'bg-yellow-500' :
-                      'bg-red-500'
-                    }`}></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs text-gray-800 font-medium truncate">
-                          {transaction.type}
+                  <div key={transaction.id} className="bg-white/30 backdrop-blur-xl rounded-[1.25rem] p-3.5 border border-white/40 shadow-[0_2px_8px_rgba(0,0,0,0.05),0_1px_2px_rgba(255,255,255,0.6)_inset] hover:bg-white/40 hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/60 via-white/25 to-transparent rounded-t-[1.25rem] pointer-events-none blur-[0.5px]" />
+                    <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/40 blur-2xl rounded-full pointer-events-none" />
+                    <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-[#066f48]/10 blur-xl rounded-full pointer-events-none" />
+                    
+                    <div className="flex items-start relative z-10">
+                      <div className={`w-2 h-2 mt-1.5 rounded-full mr-3 flex-shrink-0 group-hover:scale-125 transition-transform shadow-sm ${
+                        transaction.status === 'completed' ? 'bg-[#066f48]' :
+                        transaction.status === 'pending' ? 'bg-yellow-500' :
+                        'bg-red-500'
+                      }`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-sm text-gray-800 font-semibold truncate capitalize">
+                            {transaction.type}
+                          </p>
+                          <span className={`text-xs px-2.5 py-1 rounded-lg flex-shrink-0 backdrop-blur-sm font-medium ${
+                            transaction.status === 'completed' ? 'bg-green-100/90 text-green-700' :
+                            transaction.status === 'pending' ? 'bg-yellow-100/90 text-yellow-700' :
+                            'bg-red-100/90 text-red-700'
+                          }`}>
+                            {transaction.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 truncate mb-1.5">
+                          {transaction.user?.name || 'Unknown'}
                         </p>
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                          transaction.status === 'completed' ? 'bg-green-100 text-green-700' :
-                          transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {transaction.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500 truncate">
-                        {transaction.user?.name || 'Unknown'}
-                      </p>
-                      <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-emerald-600 font-medium">
-                          ₦{transaction.amount.toLocaleString()}
-                        </p>
-                        <p className="text-xs text-gray-400">{timeAgo}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-[#066f48] font-bold">
+                            ₦{transaction.amount.toLocaleString()}
+                          </p>
+                          <p className="text-xs text-gray-500">{timeAgo}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 );
               })
             ) : (
-              <div className="text-center py-6 text-gray-500 text-xs">
+              <div className="text-center py-8 text-gray-500 text-sm">
                 No recent transactions
               </div>
             )}

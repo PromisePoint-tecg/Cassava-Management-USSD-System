@@ -90,7 +90,6 @@ const BonusManagementView: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    // Fetch initial staff for lookup purposes (without pagination)
     fetchInitialStaff();
   }, []);
 
@@ -106,7 +105,7 @@ const BonusManagementView: React.FC = () => {
   const fetchInitialStaff = async () => {
     try {
       const response = await staffApi.getAllStaff({
-        limit: 1000, // Get all staff for lookup
+        limit: 1000,
         status: "active",
         is_approved: true,
       });
@@ -193,15 +192,12 @@ const BonusManagementView: React.FC = () => {
     if (activeTab === "transactions") {
       fetchBonusTransactions();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, txPage, txLimit, txType, txStaffId, txSearch]);
 
-  // Fetch staff when modal opens or pagination/search changes
   useEffect(() => {
     if (showAssignBonusModal) {
       fetchStaff();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAssignBonusModal, staffPage, staffLimit, staffSearch]);
 
   const handleFundWallet = async (e: React.FormEvent) => {
@@ -221,7 +217,6 @@ const BonusManagementView: React.FC = () => {
       };
 
       if (!bonusWallet) {
-        // Create wallet if it doesn't exist
         await bonusApi.createBonusWallet();
       }
 
@@ -248,7 +243,6 @@ const BonusManagementView: React.FC = () => {
       return;
     }
 
-    // Validate bonus amounts
     const invalidAmounts = Array.from(selectedStaff).filter(
       staffId => !bonusAmounts[staffId] || bonusAmounts[staffId] < 100
     );
@@ -280,7 +274,6 @@ const BonusManagementView: React.FC = () => {
       setShowSuccessModal(true);
       setShowAssignBonusModal(false);
       
-      // Reset form
       setSelectedStaff(new Set());
       setBonusAmounts({});
       setBonusReasons({});
@@ -320,7 +313,6 @@ const BonusManagementView: React.FC = () => {
       setShowSuccessModal(true);
       setShowTransferModal(false);
       
-      // Reset form
       setTransferStaffId("");
       setTransferAmount(undefined);
 
@@ -371,21 +363,27 @@ const BonusManagementView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-white border border-emerald-200 rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-emerald-900 flex items-center">
-              <Gift className="w-7 h-7 mr-3 text-emerald-600" />
-              Staff Bonus Management
-            </h1>
-            <p className="text-green-700 mt-1">
-              Manage staff bonuses and rewards
-            </p>
+    <div className="space-y-5">
+      {/* Header - Liquid Glass */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-green-400/5 rounded-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-emerald-600/10 to-transparent blur-2xl rounded-full pointer-events-none" />
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-emerald-600 shadow-lg">
+              <Gift className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Staff Bonus Management</h2>
+              <p className="text-sm text-gray-600">Manage staff bonuses and rewards</p>
+            </div>
           </div>
           {error && (
-            <div className="flex items-center text-red-700 bg-red-100 px-4 py-2 rounded-lg">
+            <div className="flex items-center text-red-700 bg-red-100/80 backdrop-blur-sm px-4 py-2 rounded-xl border border-red-200/50">
               <AlertCircle className="w-5 h-5 mr-2" />
               <span className="text-sm">{error}</span>
               <button
@@ -399,21 +397,24 @@ const BonusManagementView: React.FC = () => {
         </div>
       </div>
 
-      {/* Actions Bar */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+      {/* Actions Bar - Liquid Glass */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-white/30 to-transparent blur-2xl rounded-full pointer-events-none" />
+        
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center relative z-10">
           <h2 className="text-lg font-semibold text-gray-800">Bonus Actions</h2>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setShowFundWalletModal(true)}
-              className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap flex items-center"
+              className="px-6 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg whitespace-nowrap flex items-center"
             >
               <Wallet className="w-4 h-4 mr-2" />
               Fund Bonus Wallet
             </button>
             <button
               onClick={() => setShowAssignBonusModal(true)}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-lg whitespace-nowrap flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={!bonusWallet || bonusWallet.balance === 0}
             >
               <Gift className="w-4 h-4 mr-2" />
@@ -421,7 +422,7 @@ const BonusManagementView: React.FC = () => {
             </button>
             <button
               onClick={() => setShowTransferModal(true)}
-              className="px-6 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors whitespace-nowrap flex items-center"
+              className="px-6 py-2 bg-emerald-700 text-white rounded-xl hover:bg-emerald-800 transition-all shadow-lg whitespace-nowrap flex items-center"
             >
               <Send className="w-4 h-4 mr-2" />
               Transfer Bonus
@@ -430,28 +431,31 @@ const BonusManagementView: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stats Cards - Liquid Glass */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Bonus Wallet Balance */}
-        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg shadow-sm border border-emerald-200 p-6 hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-emerald-700">Bonus Wallet Balance</div>
+        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-2 relative z-10">
+            <div className="text-sm font-medium text-gray-700">Bonus Wallet Balance</div>
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
           </div>
-          <div className="mt-2">
+          <div className="mt-2 relative z-10">
             {walletLoading ? (
               <div className="animate-pulse">
-                <div className="h-8 bg-emerald-200 rounded w-24 mb-1"></div>
-                <div className="h-4 bg-emerald-200 rounded w-16"></div>
+                <div className="h-8 bg-emerald-200/50 rounded w-24 mb-1"></div>
+                <div className="h-4 bg-emerald-200/50 rounded w-16"></div>
               </div>
             ) : walletError ? (
               <div className="text-red-600 text-sm">{walletError}</div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-emerald-800">
+                <div className="text-2xl font-bold text-gray-800">
                   {formatCurrency(bonusWallet?.balance || 0)}
                 </div>
-                <div className="text-xs text-emerald-600 mt-1">
+                <div className="text-xs text-gray-600 mt-1">
                   Available for bonuses
                 </div>
               </>
@@ -460,47 +464,55 @@ const BonusManagementView: React.FC = () => {
         </div>
 
         {/* Total Staff */}
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg shadow-sm border border-emerald-100 p-6 hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-emerald-700">Active Staff</div>
+        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-2 relative z-10">
+            <div className="text-sm font-medium text-gray-700">Active Staff</div>
             <Users className="w-5 h-5 text-emerald-600" />
           </div>
-          <div className="text-2xl font-bold text-emerald-900">{staff.length}</div>
-          <div className="text-xs text-emerald-600 mt-1">Eligible for bonuses</div>
+          <div className="text-2xl font-bold text-gray-800 relative z-10">{staff.length}</div>
+          <div className="text-xs text-gray-600 mt-1 relative z-10">Eligible for bonuses</div>
         </div>
 
         {/* Staff with Bonuses */}
-        <div className="bg-gradient-to-br from-lime-50 to-green-50 rounded-lg shadow-sm border border-lime-100 p-6 hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-green-700">Staff with Bonuses</div>
+        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-2 relative z-10">
+            <div className="text-sm font-medium text-gray-700">Staff with Bonuses</div>
             <Gift className="w-5 h-5 text-green-600" />
           </div>
-          <div className="text-2xl font-bold text-green-900">
+          <div className="text-2xl font-bold text-gray-800 relative z-10">
             {staffBonusBalances.filter(b => b.bonusBalance > 0).length}
           </div>
-          <div className="text-xs text-green-600 mt-1">Have pending bonuses</div>
+          <div className="text-xs text-gray-600 mt-1 relative z-10">Have pending bonuses</div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow p-3">
-        <div className="flex gap-2">
+      {/* Tabs - Liquid Glass */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-3 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-white/30 to-transparent blur-2xl rounded-full pointer-events-none" />
+        
+        <div className="flex gap-2 relative z-10">
           <button
             onClick={() => setActiveTab("balances")}
-            className={`px-4 py-2 rounded-md border transition-colors ${
+            className={`px-4 py-2 rounded-xl border transition-all ${
               activeTab === "balances"
-                ? "bg-emerald-600 text-white border-emerald-600"
-                : "text-emerald-800 border-emerald-200 hover:border-emerald-400"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-lg"
+                : "text-gray-700 border-white/50 bg-white/20 hover:bg-white/30 backdrop-blur-md"
             }`}
           >
             Balances
           </button>
           <button
             onClick={() => setActiveTab("transactions")}
-            className={`px-4 py-2 rounded-md border transition-colors ${
+            className={`px-4 py-2 rounded-xl border transition-all ${
               activeTab === "transactions"
-                ? "bg-emerald-600 text-white border-emerald-600"
-                : "text-emerald-800 border-emerald-200 hover:border-emerald-400"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-lg"
+                : "text-gray-700 border-white/50 bg-white/20 hover:bg-white/30 backdrop-blur-md"
             }`}
           >
             Transactions
@@ -509,17 +521,22 @@ const BonusManagementView: React.FC = () => {
       </div>
 
       {activeTab === "balances" && (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-green-400/5 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+          
+          <div className="p-6 border-b border-white/30 relative z-10">
             <h3 className="text-lg font-semibold text-gray-800 flex items-center">
               <Users className="w-5 h-5 mr-2 text-emerald-600" />
               Staff Bonus Balances
             </h3>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto relative z-10">
             {staffBonusBalances.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Gift className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <div className="text-center py-12 text-gray-600">
+                <Gift className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                 <p>No bonus balances found</p>
                 <p className="text-sm mt-1">Assign bonuses to staff to see them here</p>
               </div>
@@ -532,61 +549,53 @@ const BonusManagementView: React.FC = () => {
 
               return (
                 <>
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full text-left text-sm text-gray-700">
+                    <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium uppercase text-xs border-b border-white/30">
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Staff Member
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Department
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Bonus Balance
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Action
-                        </th>
+                        <th className="px-6 py-3">Staff Member</th>
+                        <th className="px-6 py-3">Department</th>
+                        <th className="px-6 py-3 text-right">Bonus Balance</th>
+                        <th className="px-6 py-3 text-center">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-white/15">
                       {paginatedBalances.map((balance) => {
                         const staffMember = staff.find(s => s.id === balance.staffId);
                         return (
-                          <tr key={balance.staffId} className="hover:bg-emerald-50/30 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap">
+                          <tr key={balance.staffId} className="hover:bg-white/10 transition-colors">
+                            <td className="px-6 py-4">
                               <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <div className="flex-shrink-0 h-10 w-10 bg-emerald-100/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50">
                                   <span className="text-emerald-700 font-medium text-sm">
                                     {balance.firstName?.[0]}{balance.lastName?.[0]}
                                   </span>
                                 </div>
                                 <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className="text-sm font-medium text-gray-800">
                                     {balance.firstName} {balance.lastName}
                                   </div>
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-gray-600">
                                     {staffMember?.employeeId || 'N/A'}
                                   </div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{staffMember?.department || '—'}</div>
-                              <div className="text-xs text-gray-500">{staffMember?.role || '—'}</div>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-800">{staffMember?.department || '—'}</div>
+                              <div className="text-xs text-gray-600">{staffMember?.role || '—'}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <td className="px-6 py-4 text-right">
                               <div className="text-sm font-semibold text-emerald-700">
                                 {formatCurrency(balance.bonusBalance)}
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <td className="px-6 py-4 text-center">
                               <button
                                 onClick={() => {
                                   setTransferStaffId(balance.staffId);
                                   setShowTransferModal(true);
                                 }}
-                                className="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-700 transition-colors shadow-sm"
+                                className="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg"
                               >
                                 <Send className="w-3.5 h-3.5 mr-1.5" />
                                 Transfer
@@ -598,9 +607,8 @@ const BonusManagementView: React.FC = () => {
                     </tbody>
                   </table>
                   
-                  {/* Pagination for balances */}
                   {totalPages > 1 && (
-                    <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                    <div className="px-6 py-4 border-t border-white/30 bg-white/10 backdrop-blur-md flex items-center justify-between">
                       <div className="text-sm text-gray-700">
                         Showing {startIndex + 1} - {Math.min(endIndex, balancesWithPositive.length)} of {balancesWithPositive.length} staff with bonuses
                       </div>
@@ -608,7 +616,7 @@ const BonusManagementView: React.FC = () => {
                         <button
                           onClick={() => setBalancesPage(p => Math.max(1, p - 1))}
                           disabled={balancesPage === 1}
-                          className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 text-sm border border-white/50 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </button>
@@ -618,7 +626,7 @@ const BonusManagementView: React.FC = () => {
                         <button
                           onClick={() => setBalancesPage(p => Math.min(totalPages, p + 1))}
                           disabled={balancesPage >= totalPages}
-                          className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 text-sm border border-white/50 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </button>
@@ -633,8 +641,13 @@ const BonusManagementView: React.FC = () => {
       )}
 
       {activeTab === "transactions" && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-green-400/5 rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
+          
+          <div className="p-6 border-b border-white/30 relative z-10">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center">
                 <History className="w-5 h-5 mr-2 text-emerald-600" />
@@ -649,7 +662,7 @@ const BonusManagementView: React.FC = () => {
                       setTxPage(1);
                       setTxType(e.target.value as BonusTransactionType | "");
                     }}
-                    className="border border-emerald-200 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="border border-white/50 bg-white/40 backdrop-blur-md rounded-xl px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-700"
                   >
                     <option value="">All types</option>
                     <option value="bonus_wallet_funding">Bonus Funding</option>
@@ -664,7 +677,7 @@ const BonusManagementView: React.FC = () => {
                       setTxPage(1);
                       setTxStaffId(e.target.value);
                     }}
-                    className="border border-emerald-200 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-[180px]"
+                    className="border border-white/50 bg-white/40 backdrop-blur-md rounded-xl px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-[180px] text-gray-700"
                   >
                     <option value="">All staff</option>
                     {staff.map((s) => (
@@ -674,7 +687,7 @@ const BonusManagementView: React.FC = () => {
                     ))}
                   </select>
                 </div>
-                <div className="flex items-center border border-emerald-200 rounded-md px-2 py-1 bg-emerald-50">
+                <div className="flex items-center border border-white/50 bg-white/40 backdrop-blur-md rounded-xl px-2 py-1">
                   <Search className="w-4 h-4 text-emerald-600" />
                   <input
                     value={txSearch}
@@ -683,13 +696,13 @@ const BonusManagementView: React.FC = () => {
                       setTxSearch(e.target.value);
                     }}
                     placeholder="Search reference"
-                    className="bg-transparent px-2 py-1 text-sm focus:outline-none min-w-[160px]"
+                    className="bg-transparent px-2 py-1 text-sm focus:outline-none min-w-[160px] text-gray-700 placeholder-gray-500"
                   />
                 </div>
                 <select
                   value={txLimit}
                   onChange={(e) => setTxLimit(Number(e.target.value))}
-                  className="border border-emerald-200 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="border border-white/50 bg-white/40 backdrop-blur-md rounded-xl px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-700"
                 >
                   <option value={10}>10 / page</option>
                   <option value={20}>20 / page</option>
@@ -698,23 +711,26 @@ const BonusManagementView: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="p-6">
+          <div className="p-6 relative z-10">
             {txLoading ? (
               <div className="flex justify-center py-8">
-                <LoadingSpinner />
+                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
               </div>
             ) : txError ? (
-              <ErrorMessage message={txError} />
+              <div className="bg-red-50/90 backdrop-blur-sm border border-red-200/50 rounded-[1.5rem] p-4 flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                <p className="text-red-800">{txError}</p>
+              </div>
             ) : bonusTransactions.length === 0 ? (
-              <div className="text-center py-10 text-gray-500">
-                <Gift className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <div className="text-center py-10 text-gray-600">
+                <Gift className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                 <p>No bonus transactions found</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200 text-left text-sm text-gray-700">
+                <table className="min-w-full text-left text-sm text-gray-700">
+                  <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium uppercase text-xs border-b border-white/30">
+                    <tr>
                       <th className="py-3 px-4">Reference</th>
                       <th className="py-3 px-4">Type</th>
                       <th className="py-3 px-4 text-right">Amount</th>
@@ -723,11 +739,11 @@ const BonusManagementView: React.FC = () => {
                       <th className="py-3 px-4">Date</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/15">
                     {bonusTransactions.map((tx) => (
                       <tr
                         key={tx._id || tx.reference}
-                        className="border-b border-gray-100 hover:bg-emerald-50/60 cursor-pointer"
+                        className="hover:bg-white/10 cursor-pointer transition-colors"
                         onClick={() => setSelectedTx(tx)}
                       >
                         <td className="py-3 px-4 font-mono text-sm text-gray-800">{tx.reference}</td>
@@ -749,7 +765,6 @@ const BonusManagementView: React.FC = () => {
               </div>
             )}
 
-            {/* Pagination */}
             <div className="flex items-center justify-between mt-4 text-sm text-gray-700">
               <div>
                 Page {txPage} of {totalTxPages} • {txTotal} transactions
@@ -758,14 +773,14 @@ const BonusManagementView: React.FC = () => {
                 <button
                   onClick={() => setTxPage(Math.max(1, txPage - 1))}
                   disabled={txPage === 1}
-                  className="flex items-center gap-1 px-3 py-1 border border-emerald-200 rounded-md text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 px-3 py-1 border border-white/50 bg-white/25 backdrop-blur-md rounded-xl text-gray-700 hover:bg-white/35 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-4 h-4" /> Prev
                 </button>
                 <button
                   onClick={() => setTxPage(Math.min(totalTxPages, txPage + 1))}
                   disabled={txPage >= totalTxPages}
-                  className="flex items-center gap-1 px-3 py-1 border border-emerald-200 rounded-md text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 px-3 py-1 border border-white/50 bg-white/25 backdrop-blur-md rounded-xl text-gray-700 hover:bg-white/35 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next <ChevronRight className="w-4 h-4" />
                 </button>
@@ -776,18 +791,19 @@ const BonusManagementView: React.FC = () => {
       )}
 
       {selectedTx && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 w-full max-w-lg mx-4 shadow-2xl border border-white/60 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
+            <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center gap-2">
                 <History className="w-5 h-5 text-emerald-600" />
                 <h3 className="text-lg font-semibold text-gray-900">Transaction Details</h3>
               </div>
-              <button onClick={() => setSelectedTx(null)} className="text-gray-500 hover:text-gray-700">
+              <button onClick={() => setSelectedTx(null)} className="text-gray-500 hover:text-gray-700 p-1 hover:bg-white/50 rounded-lg transition-all">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="space-y-2 text-sm text-gray-800">
+            <div className="space-y-2 text-sm text-gray-800 relative z-10">
               <div className="flex justify-between">
                 <span className="text-gray-600">Reference</span>
                 <span className="font-mono">{selectedTx.reference}</span>
@@ -821,10 +837,10 @@ const BonusManagementView: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="mt-6 text-right">
+            <div className="mt-6 text-right relative z-10">
               <button
                 onClick={() => setSelectedTx(null)}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg"
               >
                 Close
               </button>
@@ -835,13 +851,14 @@ const BonusManagementView: React.FC = () => {
 
       {/* Fund Wallet Modal */}
       {showFundWalletModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4 flex items-center">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 w-full max-w-md mx-4 shadow-2xl border border-white/60 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
+            <h3 className="text-lg font-semibold mb-4 flex items-center relative z-10">
               <Wallet className="w-5 h-5 mr-2 text-emerald-600" />
               Fund Bonus Wallet
             </h3>
-            <form onSubmit={handleFundWallet}>
+            <form onSubmit={handleFundWallet} className="relative z-10">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -851,7 +868,7 @@ const BonusManagementView: React.FC = () => {
                     type="number"
                     value={fundAmount || ""}
                     onChange={(e) => setFundAmount(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
                     placeholder="Enter amount"
                     min="1000"
                     step="100"
@@ -866,7 +883,7 @@ const BonusManagementView: React.FC = () => {
                     type="text"
                     value={fundReason}
                     onChange={(e) => setFundReason(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
                     placeholder="e.g., Quarterly bonus fund allocation"
                   />
                 </div>
@@ -875,14 +892,14 @@ const BonusManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowFundWalletModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-4 py-2 text-gray-700 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/50 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={funding}
-                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center"
                 >
                   {funding ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -898,11 +915,13 @@ const BonusManagementView: React.FC = () => {
 
       {/* Assign Bonus Modal */}
       {showAssignBonusModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-5xl max-h-[95vh] flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold flex items-center">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] w-full max-w-5xl max-h-[95vh] flex flex-col shadow-2xl border border-white/60 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
+            
+            <div className="flex items-center justify-between p-6 border-b border-white/40 bg-gradient-to-r from-emerald-600/15 to-green-400/10 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
+              <h3 className="text-lg font-semibold flex items-center relative z-10">
                 <Gift className="w-5 h-5 mr-2 text-emerald-600" />
                 Assign Bonuses to Staff
               </h3>
@@ -912,16 +931,15 @@ const BonusManagementView: React.FC = () => {
                   setStaffSearch("");
                   setStaffPage(1);
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-white/50 rounded-lg transition-all relative z-10"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAssignBonuses} className="flex flex-col flex-1 overflow-hidden">
+            <form onSubmit={handleAssignBonuses} className="flex flex-col flex-1 overflow-hidden relative z-10">
               <div className="p-6 space-y-4 overflow-y-auto flex-1">
-                {/* Available Balance */}
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                <div className="bg-emerald-50/80 backdrop-blur-sm border border-emerald-200/50 rounded-[1.5rem] p-4">
                   <div className="flex items-center mb-2">
                     <Wallet className="w-4 h-4 mr-2 text-emerald-600" />
                     <span className="text-sm font-medium text-emerald-700">Available Balance</span>
@@ -931,7 +949,6 @@ const BonusManagementView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Search Input */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -942,18 +959,17 @@ const BonusManagementView: React.FC = () => {
                       setStaffSearch(e.target.value);
                       setStaffPage(1);
                     }}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-10 pr-4 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
                   />
                 </div>
                 
-                {/* Staff List */}
                 {staffLoading ? (
                   <div className="flex justify-center py-8">
-                    <LoadingSpinner />
+                    <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
                   </div>
                 ) : staff.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <div className="text-center py-8 text-gray-600">
+                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                     <p>No staff members found</p>
                   </div>
                 ) : (
@@ -961,10 +977,10 @@ const BonusManagementView: React.FC = () => {
                     {staff.map((member) => (
                     <div
                       key={member.id}
-                      className={`p-4 border rounded-lg transition-all ${
+                      className={`p-4 border rounded-xl transition-all backdrop-blur-md ${
                         selectedStaff.has(member.id)
-                          ? "bg-emerald-50 border-emerald-300"
-                          : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                          ? "bg-emerald-50/80 border-emerald-300"
+                          : "bg-white/40 border-white/50 hover:bg-white/50"
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -977,7 +993,6 @@ const BonusManagementView: React.FC = () => {
                               newSelected.add(member.id);
                             } else {
                               newSelected.delete(member.id);
-                              // Clear amounts when unchecked
                               const newAmounts = { ...bonusAmounts };
                               const newReasons = { ...bonusReasons };
                               delete newAmounts[member.id];
@@ -995,7 +1010,7 @@ const BonusManagementView: React.FC = () => {
                               <div className="font-medium text-gray-900">
                                 {member.firstName} {member.lastName}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-gray-600">
                                 {member.role} • {member.department}
                               </div>
                               <div className="text-sm text-green-600 font-medium">
@@ -1018,7 +1033,7 @@ const BonusManagementView: React.FC = () => {
                                       [member.id]: Number(e.target.value),
                                     })
                                   }
-                                  className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                  className="w-full px-3 py-1 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-gray-800"
                                   placeholder="Enter amount"
                                   min="100"
                                   step="100"
@@ -1037,7 +1052,7 @@ const BonusManagementView: React.FC = () => {
                                       [member.id]: e.target.value,
                                     })
                                   }
-                                  className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                  className="w-full px-3 py-1 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-gray-800"
                                   placeholder="e.g., Performance bonus"
                                 />
                               </div>
@@ -1050,10 +1065,9 @@ const BonusManagementView: React.FC = () => {
                   </div>
                 )}
 
-                {/* Pagination */}
                 {staffTotal > staffLimit && (
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    <div className="text-sm text-gray-600">
+                  <div className="flex items-center justify-between pt-4 border-t border-white/30">
+                    <div className="text-sm text-gray-700">
                       Showing {((staffPage - 1) * staffLimit) + 1} - {Math.min(staffPage * staffLimit, staffTotal)} of {staffTotal} staff
                     </div>
                     <div className="flex items-center gap-2">
@@ -1061,7 +1075,7 @@ const BonusManagementView: React.FC = () => {
                         type="button"
                         onClick={() => setStaffPage(p => Math.max(1, p - 1))}
                         disabled={staffPage === 1}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 text-sm border border-white/50 bg-white/25 backdrop-blur-md rounded-xl hover:bg-white/35 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Previous
                       </button>
@@ -1072,7 +1086,7 @@ const BonusManagementView: React.FC = () => {
                         type="button"
                         onClick={() => setStaffPage(p => p + 1)}
                         disabled={staffPage >= Math.ceil(staffTotal / staffLimit)}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 text-sm border border-white/50 bg-white/25 backdrop-blur-md rounded-xl hover:bg-white/35 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Next
                       </button>
@@ -1081,8 +1095,7 @@ const BonusManagementView: React.FC = () => {
                 )}
               </div>
 
-              {/* Footer with summary and actions */}
-              <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="p-6 border-t border-white/40 bg-white/10 backdrop-blur-md">
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-sm">
                     <span className="font-medium text-gray-900">Selected: {selectedStaff.size} staff</span>
@@ -1105,14 +1118,14 @@ const BonusManagementView: React.FC = () => {
                       setStaffSearch("");
                       setStaffPage(1);
                     }}
-                    className="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 text-gray-700 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/50 transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={assigning || selectedStaff.size === 0}
-                    className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+                    className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center"
                   >
                     {assigning ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -1130,13 +1143,14 @@ const BonusManagementView: React.FC = () => {
 
       {/* Transfer Bonus Modal */}
       {showTransferModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4 flex items-center">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 w-full max-w-md mx-4 shadow-2xl border border-white/60 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
+            <h3 className="text-lg font-semibold mb-4 flex items-center relative z-10">
               <Send className="w-5 h-5 mr-2 text-emerald-600" />
               Transfer Bonus to Wallet
             </h3>
-            <form onSubmit={handleTransferBonus}>
+            <form onSubmit={handleTransferBonus} className="relative z-10">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1145,7 +1159,7 @@ const BonusManagementView: React.FC = () => {
                   <select
                     value={transferStaffId}
                     onChange={(e) => setTransferStaffId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
                     required
                   >
                     <option value="">Select staff member</option>
@@ -1166,14 +1180,14 @@ const BonusManagementView: React.FC = () => {
                     type="number"
                     value={transferAmount || ""}
                     onChange={(e) => setTransferAmount(e.target.value ? Number(e.target.value) : undefined)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
                     placeholder="Enter amount or leave empty for all"
                     min="100"
                     step="100"
                   />
                 </div>
                 {transferStaffId && (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                  <div className="bg-emerald-50/80 backdrop-blur-sm border border-emerald-200/50 rounded-[1.5rem] p-3">
                     <div className="text-sm text-emerald-700">
                       <strong>Current Bonus Balance: </strong>
                       {formatCurrency(getStaffBonusBalance(transferStaffId))}
@@ -1185,14 +1199,14 @@ const BonusManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowTransferModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-4 py-2 text-gray-700 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/50 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={transferring || !transferStaffId}
-                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center"
                 >
                   {transferring ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

@@ -35,7 +35,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">
       <StaffSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -47,7 +47,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({
 
       {/* Main Content */}
       <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 shadow-sm">
+        <header className="bg-gray-50  h-16 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 ">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
