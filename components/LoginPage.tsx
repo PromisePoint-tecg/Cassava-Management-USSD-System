@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Lock, User, Loader2 } from "lucide-react";
 import { login, introspect } from "../api/auth";
 import type { AdminInfo } from "../api/auth";
+import LeafInlineLoader, { LeafLoader } from "./Loader";
 
 interface LoginPageProps {
   onLoginSuccess: (admin: AdminInfo) => void;
@@ -40,129 +41,157 @@ const LoginPage: React.FC<LoginPageProps> = ({
     }
   };
 
+ 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl mb-4 shadow-lg">
-            <svg
-              className="w-10 h-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-              />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Promise Point
-          </h1>
-          <p className="text-gray-600">Agrictech Solution - Admin Portal</p>
-        </div>
-
-        {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Sign In</h2>
-
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Email
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors"
-                  placeholder="Enter your email"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors"
-                  placeholder="Enter your password"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </button>
-          </form>
-
-          {/* Forgot Password Link */}
-          {onForgotPassword && (
-            <div className="mt-6 text-center">
-              <button
-                onClick={onForgotPassword}
-                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
-              >
-                Forgot your password?
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          © 2025 Promise Point Agrictech Solution. All rights reserved.
-        </p>
+    <div className="min-h-screen flex relative overflow-hidden">
+      {/* Full Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url('/login-bg.webp')`,
+        }}
+      >
+        {/* Dark overlay for better contrast */}
+        <div className="absolute inset-0 bg-black/30" />
       </div>
-    </div>
+
+      {/* Left Side - Logo and Branding */}
+      <div className="hidden lg:flex lg:w-1/2 relative z-10 flex-col justify-center px-12 xl:px-16">
+        <div className="max-w-2xl">
+          <img 
+            src="/logo.png" 
+            alt="Promise Point Agritech Logo" 
+            className="h-20 mb-8"
+          />
+          <h1 className="text-5xl xl:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
+            Empowering Farmers, Growing Communities
+          </h1>
+          <p className="text-xl text-white/95 leading-relaxed drop-shadow-md">
+            Your trusted partner in agricultural innovation. Connecting farmers to markets, credit, and opportunities.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Side - Floating Glass Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-10">
+        <div className="w-full h-full flex items-center justify-center px-4 lg:px-8">
+          {/* Mobile Logo */}
+          <div className="lg:hidden text-center mb-8 absolute top-8">
+            <img 
+              src="https://res.cloudinary.com/dt9unisic/image/upload/v1768578156/Screenshot_2026-01-16_at_4.41.39_pm_x5zzrb.png" 
+              alt="Promise Point Agritech Logo" 
+              className="h-14 mx-auto mb-4 drop-shadow-lg"
+            />
+          </div>
+
+          {/* Floating Glass Login Card - Much Larger */}
+          <div className="bg-white/3 backdrop-blur-xl rounded-[2rem] border border-white/25 shadow-[0_8px_32px_0_rgba(0,0,0,0.3),0_1px_3px_0_rgba(255,255,255,0.3)_inset] p-10 lg:p-16 w-full max-w-2xl min-h-[85vh] flex flex-col justify-center relative overflow-hidden">
+            {/* Glass effect overlays */}
+            <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/15 via-white/5 to-transparent rounded-t-[2rem] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 to-transparent rounded-b-[2rem] pointer-events-none" />
+            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/10 blur-3xl rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-[#066f48]/15 blur-2xl rounded-full pointer-events-none" />
+
+            <div className="relative z-10">
+              <div className="mb-10">
+                <h2 className="text-4xl font-bold text-white mb-3 drop-shadow-lg">Welcome Back</h2>
+                <p className="text-white/90 text-base drop-shadow">Sign in to access your admin dashboard</p>
+              </div>
+
+              {error && (
+                <div className="mb-8 p-5 bg-red-500/20 backdrop-blur-sm border border-red-300/30 rounded-xl">
+                  <p className="text-sm text-white drop-shadow">{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Email Field */}
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-base font-medium text-white/95 mb-3 drop-shadow"
+                  >
+                    Email
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-white/60" />
+                    </div>
+                    <input
+                      id="email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="block w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-base"
+                      placeholder="Enter your email"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                {/* Password Field */}
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-base font-medium text-white/95 mb-3 drop-shadow"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-white/60" />
+                    </div>
+                    <input
+                      id="password"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="block w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-base"
+                      placeholder="Enter your password"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                {loading ? (
+                  <LeafInlineLoader />
+                ) : (
+                  <button
+                    type="submit"
+                    className="w-full flex items-center justify-center py-4 px-4 rounded-xl transition-all duration-300 group relative overflow-hidden text-white hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-[#066f48]/50 to-emerald-600/50 hover:from-[#066f48] hover:to-emerald-600 border border-white/30 text-base"
+                  >
+                    {/* Shimmer effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
+                    <span className="font-semibold relative z-10">Sign In</span>
+                  </button>
+                )}
+              </form>
+
+              {/* Forgot Password Link */}
+              {onForgotPassword && (
+                <div className="mt-8 ">
+                  <button
+                    onClick={onForgotPassword}
+                    className="text-base text-white/90 hover:text-white font-medium transition-colors drop-shadow"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+              )}
+
+              {/* Footer */}
+              <p className=" text-sm text-white/80 drop-shadow mt-8">
+                © 2025 Promise Point Agrictech Solution. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
   );
 };
 

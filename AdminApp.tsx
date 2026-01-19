@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Dashboard } from "./components/Dashboard";
 import { FarmersDirectory } from "./components/FarmersDirectory";
 import { PurchasesView } from "./components/PurchasesView";
@@ -29,6 +30,7 @@ import {
 } from "./api/auth";
 import type { AdminInfo } from "./api/auth";
 import SuccessModal from "./components/SuccessModal";
+import { LeafLoader } from "./components/Loader";
 
 const AdminApp: React.FC = () => {
   const navigate = useNavigate();
@@ -159,7 +161,7 @@ const AdminApp: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mb-4"></div>
+          <LeafLoader />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -190,9 +192,10 @@ const AdminApp: React.FC = () => {
         onLogout={handleLogout}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        userRole={adminInfo?.role} // Pass the user role to Sidebar
       />
       <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 shadow-sm">
+        <header className="bg-slate-50  h-16 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 ">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -210,35 +213,149 @@ const AdminApp: React.FC = () => {
             >
               {getInitials()}
             </button>
+             <div className="text-sm text-gray-600">
+      Role: <strong>{adminInfo?.role || 'Unknown'}</strong>
+    </div>
           </div>
         </header>
         <div className="p-4 sm:p-6 lg:p-8">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/farmers" element={<FarmersDirectory />} />
-            <Route path="/products" element={<ProductsView />} />
-            <Route path="/purchases" element={<PurchasesView />} />
-            <Route path="/loans" element={<LoansView />} />
-            <Route path="/transactions" element={<TransactionsView />} />
-            <Route path="/admins" element={<AdminManagementView />} />
-            <Route
-              path="/staff-management"
-              element={<StaffManagementView adminId={adminInfo?.id || ""} />}
+            
+            {/* Dashboard - All roles have access */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["dashboard"]}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
             />
-            <Route path="/payroll" element={<PayrollManagementView />} />
-            <Route path="/bonus" element={<BonusManagementView />} />
-            <Route path="/pension" element={<PensionManagementView />} />
-            <Route path="/ussd" element={<USSDAnalyticsView />} />
+            
+            {/* Farmers - Support, Verifier, Super Admin */}
+            <Route 
+              path="/farmers" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["farmers"]}>
+                  <FarmersDirectory />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Products - Finance, Support, Verifier, Super Admin */}
+            <Route 
+              path="/products" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["products"]}>
+                  <ProductsView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Purchases - Finance, Support, Verifier, Super Admin */}
+            <Route 
+              path="/purchases" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["purchases"]}>
+                  <PurchasesView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Loans - Verifier, Super Admin */}
+            <Route 
+              path="/loans" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["loans"]}>
+                  <LoansView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Transactions - Finance, Super Admin */}
+            <Route 
+              path="/transactions" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["transactions"]}>
+                  <TransactionsView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Admins - Super Admin only */}
+            <Route 
+              path="/admins" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["admins"]}>
+                  <AdminManagementView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Staff Management - Finance, Super Admin */}
+            <Route 
+              path="/staff-management" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["staff-management"]}>
+                  <StaffManagementView adminId={adminInfo?.id || ""} />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Payroll - Finance, Super Admin */}
+            <Route 
+              path="/payroll" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["payroll"]}>
+                  <PayrollManagementView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Bonus - Finance, Super Admin */}
+            <Route 
+              path="/bonus" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["bonus"]}>
+                  <BonusManagementView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Pension - Finance, Super Admin */}
+            <Route 
+              path="/pension" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["pension"]}>
+                  <PensionManagementView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* USSD - Support, Super Admin */}
+            <Route 
+              path="/ussd" 
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["ussd"]}>
+                  <USSDAnalyticsView />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Profile - All roles can access their own profile */}
             <Route path="/profile" element={<AdminProfilePage />} />
+            
+            {/* Settings - Super Admin only */}
             <Route
               path="/settings"
               element={
-                <SettingsView
-                  settings={settings}
-                  onSave={handleUpdateSettings}
-                  loading={settingsLoading}
-                />
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["settings"]}>
+                  <SettingsView
+                    settings={settings}
+                    onSave={handleUpdateSettings}
+                    loading={settingsLoading}
+                  />
+                </ProtectedRoute>
               }
             />
           </Routes>
