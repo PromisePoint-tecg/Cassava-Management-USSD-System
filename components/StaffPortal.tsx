@@ -17,7 +17,6 @@ import {
   LoanType,
   StaffLoanRequest,
 } from "../api/staff";
-import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";
 import LeafInlineLoader from "./Loader";

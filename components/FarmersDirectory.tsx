@@ -230,7 +230,7 @@ export const FarmersDirectory: React.FC = () => {
                 <div className="grid grid-cols-2 gap-3 text-sm relative z-10">
                   <div>
                     <span className="text-gray-500">LGA:</span>
-                    <p className="font-medium text-gray-800">{farmer.lga}</p>
+                    <p className="font-medium text-gray-800">{farmer.lga.toUpperCase()}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Farm Size:</span>
@@ -284,8 +284,8 @@ export const FarmersDirectory: React.FC = () => {
                           <p className="text-xs text-gray-500">ID: {farmer.id.substring(0, 8)}...</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-700">{farmer.phone}</td>
-                      <td className="px-6 py-4 text-gray-700">{farmer.lga}</td>
+                      <td className="px-6 py-4 text-gray-700 uppercase">{farmer.phone}</td>
+                      <td className="px-6 py-4 text-gray-700">{farmer.lga.toUpperCase()}</td>
                       <td className="px-6 py-4 text-gray-700">{farmer.farmSizeHectares} ha</td>
                       <td className="px-6 py-4 text-gray-700">{formatCurrency(farmer.walletBalance || 0)}</td>
                       <td className="px-6 py-4 text-gray-700">{farmer.totalSales}</td>
@@ -370,7 +370,7 @@ export const FarmersDirectory: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">LGA</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.lga}</p>
+                    <p className="font-medium text-gray-800">{viewingFarmer.lga.toUpperCase()}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Farm Size</p>

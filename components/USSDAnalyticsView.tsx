@@ -9,7 +9,6 @@ import {
   AlertCircle,
   Leaf,
 } from "lucide-react";
-import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import {
   PieChart,

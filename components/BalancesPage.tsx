@@ -6,6 +6,7 @@ import { BalancesView } from "./BalancesView";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";
+import LeafInlineLoader from "./Loader";
 
 interface BalancesPageProps {
   onLogout: () => void;
@@ -227,7 +228,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
       currentPath={location.pathname}
     >
       {loading ? (
-        <LoadingSpinner message="Loading balances..." />
+        <LeafInlineLoader />
       ) : error ? (
         <ErrorMessage
           title="Error Loading Balances"

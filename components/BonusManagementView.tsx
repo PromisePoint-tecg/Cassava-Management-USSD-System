@@ -33,6 +33,7 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
+import LeafInlineLoader from "./Loader";
 
 const BonusManagementView: React.FC = () => {
   const [bonusWallet, setBonusWallet] = useState<BonusWallet | null>(null);
@@ -359,7 +360,7 @@ const BonusManagementView: React.FC = () => {
   };
 
   if (loading && staff.length === 0) {
-    return <LoadingSpinner />;
+    return <LeafInlineLoader />;
   }
 
   return (

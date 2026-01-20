@@ -8,7 +8,6 @@ import {
   DollarSign,
 } from "lucide-react";
 import { StaffBalances } from "../api/staff";
-import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import LeafInlineLoader, { LeafLoader } from "./Loader";
 
@@ -37,9 +36,19 @@ export const BalancesView: React.FC<BalancesViewProps> = ({
     }).format(amount);
   };
 
-  if (loading) {
-    return <LeafInlineLoader />;
-  }
+ if (loading) {
+  return (
+    <div className="space-y-4 sm:space-y-5 px-3 sm:px-0">
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-12 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-2xl sm:rounded-t-[2rem] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-2xl sm:rounded-[2rem] pointer-events-none" />
+        <div className="flex items-center justify-center relative z-10">
+          <LeafInlineLoader />
+        </div>
+      </div>
+    </div>
+  );
+}
 
   if (error) {
     return (

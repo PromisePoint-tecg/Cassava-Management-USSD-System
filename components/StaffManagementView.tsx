@@ -15,7 +15,7 @@ import {
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { SuccessModal } from "./SuccessModal";
-import { LeafLoader } from "./Loader";
+import LeafInlineLoader, { LeafLoader } from "./Loader";
 
 interface StaffManagementViewProps {
   adminId: string;
@@ -171,7 +171,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
   if (loading && staff.length === 0) {
     return (
         <div className="flex items-center justify-center min-h-screen">
-          <LeafLoader />
+          <LeafInlineLoader />
         </div>
       );
   }
