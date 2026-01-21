@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
-import { staffApi } from "../api/staff";
-import type { Staff } from "../api/staff";
+import { staffApi } from "../services/staff";
+import type { Staff } from "../services/staff";
 import { setStaffAuthToken, getStaffAuthToken } from "../utils/cookies";
 
 interface StaffLoginPageProps {

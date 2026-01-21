@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Lock, User, Loader2 } from "lucide-react";
-import { login, introspect } from "../api/auth";
-import type { AdminInfo } from "../api/auth";
+import { login, introspect } from "../services/auth";
+import type { AdminInfo } from "../services/auth";
 import LeafInlineLoader, { LeafLoader } from "./Loader";
 
 interface LoginPageProps {

@@ -4,10 +4,10 @@ import { StatsCard } from './StatsCard';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
-import { purchasesApi, PurchaseKPIs, PurchaseItem } from '../api/purchases';
-import { loansApi, LoanKPIs } from '../api/loans';
-import { farmersApi } from '../api/farmers';
-import { transactionsApi, TransactionStats, Transaction } from '../api/transactions';
+import { purchasesApi, PurchaseKPIs, PurchaseItem } from '../services/purchases';
+import { loansApi, LoanKPIs } from '../services/loans';
+import { farmersApi } from '../services/farmers';
+import { transactionsApi, TransactionStats, Transaction } from '../services/transactions';
 import LeafInlineLoader from './Loader';
 
 interface DashboardData {

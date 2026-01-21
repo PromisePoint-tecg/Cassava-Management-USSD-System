@@ -18,7 +18,7 @@ import {
   updateProfile,
   AdminProfile,
   UpdateProfileRequest,
-} from "../api/auth";
+} from "../services/auth";
 import LeafInlineLoader from "./Loader";
 
 export const AdminProfilePage: React.FC = () => {

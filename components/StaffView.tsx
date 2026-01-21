@@ -11,7 +11,8 @@ import {
   Loader2,
   RefreshCw
 } from 'lucide-react';
-import { staffApi, StaffProfile, StaffBalances } from '../api/staff';
+import { staffApi, StaffProfile, StaffBalances } from '../services/staff';
+import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
 import LeafInlineLoader from './Loader';
 

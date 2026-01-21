@@ -7,9 +7,9 @@ import {
   RefreshCw,
   DollarSign,
 } from "lucide-react";
-import { StaffBalances } from "../api/staff";
+import { StaffBalances } from "../services/staff";
 import { ErrorMessage } from "./ErrorMessage";
-import LeafInlineLoader, { LeafLoader } from "./Loader";
+import LeafInlineLoader from "./Loader";
 
 interface BalancesViewProps {
   balances: StaffBalances | null;

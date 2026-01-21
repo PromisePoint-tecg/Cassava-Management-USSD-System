@@ -12,7 +12,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
-import { adminApi, Admin, AdminRole, AdminFilters, CreateAdminData } from '../api/admin';
+import { adminApi, Admin, AdminRole, AdminFilters, CreateAdminData } from '../services/admin';
 import { SuccessModal } from './SuccessModal';
 import LeafButtonLoader from './Loader';
 

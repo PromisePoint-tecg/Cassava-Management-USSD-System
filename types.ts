@@ -3,10 +3,10 @@ export enum UserRole {
   ADMIN = "ADMIN",
   FINANCE_OFFICER = "FINANCE_OFFICER",
 }
-
+ 
 export enum TransactionStatus {
   PENDING = "PENDING",
-  SUCCESS = "SUCCESS",
+  SUCCESS = "SUCCESS", 
   FAILED = "FAILED",
 }
 

@@ -18,7 +18,7 @@ import PensionManagementView from "./components/PensionManagementView";
 import BonusManagementView from "./components/BonusManagementView";
 import { AdminProfilePage } from "./components/AdminProfilePage";
 import AdminForgotPassword from "./components/AdminForgotPassword";
-import { settingsApi } from "./api/settings";
+import { settingsApi } from "./services/settings";
 import { SystemSettings } from "./types";
 import { Signal, Menu } from "lucide-react";
 import { getAuthToken } from "./utils/cookies";
@@ -27,8 +27,8 @@ import {
   logout as apiLogout,
   getProfile,
   AdminProfile,
-} from "./api/auth";
-import type { AdminInfo } from "./api/auth";
+} from "./services/auth";
+import type { AdminInfo } from "./services/auth";
 import SuccessModal from "./components/SuccessModal";
 import { LeafLoader } from "./components/Loader";
 

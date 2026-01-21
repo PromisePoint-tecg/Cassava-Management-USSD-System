@@ -29,7 +29,7 @@ import {
   USSDStats,
   USSDAnalytics,
   GetUSSDAnalyticsParams,
-} from "../api/ussd";
+} from "../services/ussd";
 import { LeafInlineLoader } from "./Loader";
 
 interface USSDAnalyticsData {

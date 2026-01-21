@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ArrowLeft, Phone, Lock, Loader2, CheckCircle } from "lucide-react";
-import { apiClient } from "../api/client";
+import { apiClient } from "../services/client";
 
 interface AdminForgotPasswordProps {
   onBackToLogin: () => void;

@@ -9,7 +9,7 @@ import {
   RefreshCw,
   Leaf,
 } from "lucide-react";
-import { staffApi, StaffProfile } from "../api/staff";
+import { staffApi, StaffProfile } from "../services/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";

@@ -6,8 +6,8 @@ import { BalancesPage } from "./components/BalancesPage";
 import { ProfilePage } from "./components/ProfilePage";
 import { DocumentsPage } from "./components/DocumentsPage";
 import { getStaffAuthToken, clearStaffAuthToken } from "./utils/cookies";
-import { staffApi } from "./api/staff";
-import type { Staff } from "./api/staff";
+import { staffApi } from "./services/staff";
+import type { Staff } from "./services/staff";
 
 const StaffApp: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
