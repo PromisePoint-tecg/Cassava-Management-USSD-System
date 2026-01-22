@@ -10,6 +10,75 @@ import { farmersApi } from '../services/farmers';
 import { transactionsApi, TransactionStats, Transaction } from '../services/transactions';
 import LeafInlineLoader from './Loader';
 
+
+
+interface DashboardProps {
+  userRole?: string;
+}
+
+// Role-based card visibility mapping
+const ROLE_CARD_PERMISSIONS = {
+  super_admin: {
+    totalCollected: true,
+    totalPaid: true,
+    activeFarmers: true,
+    outstandingLoans: true,
+    averagePurchaseSize: true,
+    loanDefaultRate: true,
+    totalDisbursed: true,
+    totalTransactions: true,
+    purchaseVolumeChart: true,
+    transactionBreakdown: true,
+    recentPurchases: true,
+    recentTransactions: true,
+  },
+  finance: {
+    totalCollected: false,
+    totalPaid: true,
+    activeFarmers: false,
+    outstandingLoans: true,
+    averagePurchaseSize: false,
+    loanDefaultRate: true,
+    totalDisbursed: true,
+    totalTransactions: true,
+    purchaseVolumeChart: false,
+    transactionBreakdown: true,
+    recentPurchases: false,
+    recentTransactions: true,
+  },
+  support: {
+    totalCollected: true,
+    totalPaid: true,
+    activeFarmers: true,
+    outstandingLoans: false,
+    averagePurchaseSize: true,
+    loanDefaultRate: false,
+    totalDisbursed: false,
+    totalTransactions: false,
+    purchaseVolumeChart: true,
+    transactionBreakdown: false,
+    recentPurchases: true,
+    recentTransactions: false,
+  },
+  verifier: {
+    totalCollected: true,
+    totalPaid: true,
+    activeFarmers: true,
+    outstandingLoans: true,
+    averagePurchaseSize: true,
+    loanDefaultRate: true,
+    totalDisbursed: false,
+    totalTransactions: false,
+    purchaseVolumeChart: true,
+    transactionBreakdown: false,
+    recentPurchases: true,
+    recentTransactions: false,
+  },
+};
+
+
+
+
 interface DashboardData {
   purchaseKPIs: PurchaseKPIs | null;
   loanKPIs: LoanKPIs | null;
@@ -22,7 +91,7 @@ interface DashboardData {
   error: string | null;
 }
 
-export const Dashboard: React.FC = () => {
+export const Dashboard: React.FC<DashboardProps> = ({ userRole = 'super_admin' }) => {
   const [data, setData] = useState<DashboardData>({
     purchaseKPIs: null,
     loanKPIs: null,
@@ -34,6 +103,8 @@ export const Dashboard: React.FC = () => {
     loading: true,
     error: null,
   });
+  // Get permissions for current role
+const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof ROLE_CARD_PERMISSIONS] || ROLE_CARD_PERMISSIONS.super_admin;
 
   const loadDashboardData = async () => {
     setData(prev => ({ ...prev, loading: true, error: null }));
@@ -216,6 +287,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Primary KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {permissions.totalCollected && (
         <StatsCard
           title="Total Collected"
           value={`${totalWeight.toLocaleString()} kg`}
@@ -224,6 +296,8 @@ export const Dashboard: React.FC = () => {
           icon={Scale}
           colorClass="bg-blue-600"
         />
+        )}
+        {permissions.totalPaid && (
         <StatsCard
           title="Total Paid"
           value={`₦${totalPaid.toLocaleString()}`}
@@ -232,6 +306,8 @@ export const Dashboard: React.FC = () => {
           icon={Wallet}
           colorClass="bg-emerald-600"
         />
+        )}
+        {permissions.activeFarmers && (
         <StatsCard
           title="Active Farmers"
           value={data.activeFarmers.toLocaleString()}
@@ -240,6 +316,8 @@ export const Dashboard: React.FC = () => {
           icon={Users}
           colorClass="bg-purple-600"
         />
+        )}
+        {permissions.outstandingLoans && (
         <StatsCard
           title="Outstanding Loans"
           value={`₦${outstandingLoans.toLocaleString()}`}
@@ -248,10 +326,12 @@ export const Dashboard: React.FC = () => {
           icon={AlertCircle}
           colorClass="bg-orange-600"
         />
+        )}
       </div>
 
       {/* Secondary Analytics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {permissions.averagePurchaseSize && (
         <StatsCard
           title="Average Purchase Size"
           value={`${Math.round(averagePurchaseSize).toLocaleString()} kg`}
@@ -260,6 +340,8 @@ export const Dashboard: React.FC = () => {
           icon={TrendingUp}
           colorClass="bg-indigo-600"
         />
+        )}
+        {permissions.loanDefaultRate && (
         <StatsCard
           title="Loan Default Rate"
           value={`${defaultRate.toFixed(1)}%`}
@@ -268,6 +350,8 @@ export const Dashboard: React.FC = () => {
           icon={Percent}
           colorClass={defaultRate > 5 ? "bg-red-600" : "bg-yellow-600"}
         />
+        )}
+        {permissions.totalDisbursed && (
         <StatsCard
           title="Total Disbursed"
           value={`₦${totalDisbursed.toLocaleString()}`}
@@ -276,6 +360,8 @@ export const Dashboard: React.FC = () => {
           icon={DollarSign}
           colorClass="bg-teal-600"
         />
+        )}
+        {permissions.totalTransactions && (
         <StatsCard
           title="Total Transactions"
           value={`₦${totalTransactions.toLocaleString()}`}
@@ -284,11 +370,13 @@ export const Dashboard: React.FC = () => {
           icon={TrendingUp}
           colorClass="bg-pink-600"
         />
+        )}
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Purchase Volume Chart - Liquid Glass */}
+        {permissions.purchaseVolumeChart && (
         <div className="lg:col-span-2 bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
           <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
@@ -330,8 +418,10 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+        )}
 
         {/* Transaction Breakdown - Liquid Glass */}
+        {permissions.transactionBreakdown && (
         <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
           <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
@@ -377,11 +467,14 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+        )}
       </div>
+      
 
       {/* Recent Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent Purchases - Liquid Glass */}
+        {permissions.recentPurchases && (
         <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
           <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
@@ -437,8 +530,10 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+        )}
 
         {/* Recent Transactions - Liquid Glass */}
+        {permissions.recentTransactions && (
         <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
           <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
@@ -498,6 +593,7 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );

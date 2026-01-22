@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Download, Eye, X, User, Wallet } from "lucide-react";
-import {
-  transactionsApi,
-  Transaction,
-  TransactionStats,
-  TransactionQueryParams,
-} from "../api/transactions";
-import { farmersApi, UserFinancialDetails } from "../api/farmers";
-import {
-  getAllPayrollTransactions,
-  PayrollTransaction,
-  PaginatedTransactionResponse,
-} from "../api/payroll";
+import { farmersApi, UserFinancialDetails } from "@/services/farmers";
+import { Transaction, TransactionQueryParams, transactionsApi, TransactionStats } from "@/services/transactions";
+import { getAllPayrollTransactions, PayrollTransaction } from "@/services/payroll";
 
 // Small helpers
 const formatCurrency = (value: number | undefined) => {
