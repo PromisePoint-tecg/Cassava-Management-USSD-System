@@ -11,6 +11,7 @@ import { SystemSettings } from "../types";
 import { settingsApi } from "../services/settings";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
+import LeafInlineLoader from "./Loader";
 
 interface SettingsViewProps {
   onSave: (settings: SystemSettings) => void;
@@ -103,7 +104,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading system settings..." />;
+    return <LeafInlineLoader />;
   }
 
   if (error) {

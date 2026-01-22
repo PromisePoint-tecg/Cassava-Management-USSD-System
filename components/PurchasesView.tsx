@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Plus,Search,CheckCircle2,AlertCircle,Eye,Clock,DollarSign,TrendingUp,RefreshCw,Scale,Users,ChevronLeft,ChevronRight,X,ShoppingCart,
 } from "lucide-react";
 import {purchasesApi,PurchaseItem,PurchaseKPIs,CreatePurchaseData,GetPurchasesQuery,CassavaPricing,
@@ -25,6 +25,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [farmerSearchTerm, setFarmerSearchTerm] = useState("");
   const [successModal, setSuccessModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -48,6 +49,16 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const itemsPerPage = 10;
+
+  const filteredFarmers = useMemo(() => {
+  if (!farmerSearchTerm.trim()) return farmers;
+  
+  const searchLower = farmerSearchTerm.toLowerCase();
+  return farmers.filter(farmer => 
+    (farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}`).toLowerCase().includes(searchLower) ||
+    farmer.phone.includes(farmerSearchTerm)
+  );
+}, [farmers, farmerSearchTerm]);
 
   // Load initial data
   useEffect(() => {
@@ -125,10 +136,11 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     loadFarmers();
   };
 
-  const handleCloseCreateModal = () => {
-    setIsCreateModalOpen(false);
-    setCreateForm({ farmerId: "", weightKg: "" });
-  };
+ const handleCloseCreateModal = () => {
+  setIsCreateModalOpen(false);
+  setCreateForm({ farmerId: "", weightKg: "" });
+  setFarmerSearchTerm(""); 
+};
 
   // Form submission handlers
   const handleCreatePurchase = async (e: React.FormEvent) => {
@@ -490,24 +502,40 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
             </div>
 
             <form onSubmit={handleCreatePurchase} className="p-6 space-y-4 relative z-10">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Farmer</label>
-                <select
-                  value={createForm.farmerId}
-                  onChange={(e) => setCreateForm({ ...createForm, farmerId: e.target.value })}
-                  required
-                  disabled={farmersLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                >
-                  <option value="">Select a farmer...</option>
-                  {farmers.map((farmer) => (
-                    <option key={farmer.id} value={farmer.id}>
-                      {farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone}
-                    </option>
-                  ))}
-                </select>
-                {farmersLoading && <p className="text-sm text-gray-500 mt-1">Loading farmers...</p>}
-              </div>
+             <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Select Farmer</label>
+  
+  {/* Add Search Input */}
+  <div className="relative mb-2">
+    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+    <input
+      type="text"
+      placeholder="Search farmers by name or phone..."
+      value={farmerSearchTerm}
+      onChange={(e) => setFarmerSearchTerm(e.target.value)}
+      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+    />
+  </div>
+  
+  <select
+    value={createForm.farmerId}
+    onChange={(e) => setCreateForm({ ...createForm, farmerId: e.target.value })}
+    required
+    disabled={farmersLoading}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+  >
+    <option value="">Select a farmer...</option>
+    {filteredFarmers.map((farmer) => (
+      <option key={farmer.id} value={farmer.id}>
+        {farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone}
+      </option>
+    ))}
+  </select>
+  {farmersLoading && <p className="text-sm text-gray-500 mt-1">Loading farmers...</p>}
+  {!farmersLoading && filteredFarmers.length === 0 && farmerSearchTerm && (
+    <p className="text-sm text-red-500 mt-1">No farmers found matching "{farmerSearchTerm}"</p>
+  )}
+</div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
