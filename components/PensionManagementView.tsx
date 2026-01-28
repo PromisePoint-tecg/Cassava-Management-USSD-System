@@ -109,15 +109,9 @@ export default function PensionManagementView() {
 
   return (
     <div className="space-y-5">
-      {/* Header - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-[#066f48]/10 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="flex items-center gap-3 relative z-10">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-[#066f48] shadow-lg">
             <Wallet className="w-6 h-6 text-white" />
           </div>
@@ -131,92 +125,71 @@ export default function PensionManagementView() {
       {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-medium text-gray-700">Total Staff</div>
-              <div className="w-10 h-10 bg-[#066f48] rounded-full flex items-center justify-center shadow-md">
-                <Users className="w-5 h-5 text-white" />
-              </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-gray-600">Total Staff</div>
+            <div className="w-10 h-10 bg-[#066f48] rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
             </div>
-            <div className="text-3xl font-bold text-gray-900">{filteredStaff.length}</div>
           </div>
+          <div className="text-3xl font-bold text-gray-800">{filteredStaff.length}</div>
         </div>
 
-        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-medium text-gray-700">Total Contributions</div>
-              <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-md">
-                <DollarSign className="w-5 h-5 text-white" />
-              </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-gray-600">Total Contributions</div>
+            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-white" />
             </div>
-            <div className="text-2xl font-bold text-gray-900 break-words">{formatCurrency(totalContributions)}</div>
           </div>
+          <div className="text-2xl font-bold text-gray-800 break-words">{formatCurrency(totalContributions)}</div>
         </div>
 
-        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-medium text-gray-700">Total Balance</div>
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
-                <Wallet className="w-5 h-5 text-white" />
-              </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-gray-600">Total Balance</div>
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-white" />
             </div>
-            <div className="text-2xl font-bold text-gray-900 break-words">{formatCurrency(totalPensionBalance)}</div>
           </div>
+          <div className="text-2xl font-bold text-gray-800 break-words">{formatCurrency(totalPensionBalance)}</div>
         </div>
 
-        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-medium text-gray-700">Average per Staff</div>
-              <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center shadow-md">
-                <TrendingUp className="w-5 h-5 text-white" />
-              </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-gray-600">Average per Staff</div>
+            <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-white" />
             </div>
-            <div className="text-2xl font-bold text-gray-900 break-words">{formatCurrency(averagePension)}</div>
           </div>
+          <div className="text-2xl font-bold text-gray-800 break-words">{formatCurrency(averagePension)}</div>
         </div>
       </div>
 
-      {/* Search Bar - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-white/30 to-transparent blur-2xl rounded-full pointer-events-none" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl">
-            <Search className="w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name or employee ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 bg-transparent focus:outline-none text-gray-800 placeholder-gray-500"
-            />
-          </div>
+      {/* Search Bar */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <div className="flex items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+          <Search className="w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name or employee ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 bg-transparent focus:outline-none text-gray-800 placeholder-gray-400"
+          />
         </div>
       </div>
 
-      {/* Pension Rates Info - Liquid Glass */}
-      <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-        <div className="flex items-start gap-3 relative z-10">
-          <div className="p-2 rounded-lg bg-[#066f48]/20">
+      {/* Pension Rates Info */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-[#066f48]/10">
             <Info className="w-5 h-5 text-[#066f48]" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Pension Contribution Rates (Nigerian Standard)</h3>
-            <div className="text-sm text-gray-700 space-y-1">
+            <h3 className="text-sm font-semibold text-gray-800 mb-2">Pension Contribution Rates (Nigerian Standard)</h3>
+            <div className="text-sm text-gray-600 space-y-1">
               <p>• Employee Contribution: <strong>8%</strong> of gross salary</p>
               <p>• Employer Contribution: <strong>10%</strong> of gross salary</p>
               <p>• Total Contribution: <strong>18%</strong> of gross salary</p>
@@ -225,63 +198,114 @@ export default function PensionManagementView() {
         </div>
       </div>
 
-      {/* Staff Pension Table - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        
-        <div className="px-6 py-4 border-b border-white/30 relative z-10">
-          <h2 className="text-lg font-semibold text-gray-900">Staff Pension Details</h2>
-          <p className="text-sm text-gray-600 mt-1">Comprehensive pension contribution tracking</p>
+      {/* Staff Pension Table */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">Staff Pension Details</h2>
+          <p className="text-sm text-gray-500 mt-1">Comprehensive pension contribution tracking</p>
         </div>
         
-        <div className="overflow-x-auto relative z-10">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium uppercase text-xs border-b border-white/30">
+        {/* Mobile Card View */}
+        <div className="lg:hidden space-y-4 p-4">
+          {filteredStaff.map((member) => {
+            const expectedMonthlyPension = member.monthlySalary * 0.18;
+            return (
+              <div key={member.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="font-medium text-gray-800">{member.fullName}</div>
+                    <div className="text-xs text-gray-500 mt-1">{member.employeeId}</div>
+                    <div className="text-xs text-gray-500 mt-1">{member.department} • {member.role}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm mt-3">
+                  <div>
+                    <span className="text-gray-500">Monthly Salary</span>
+                    <p className="font-medium text-gray-800">{formatCurrency(member.monthlySalary)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Expected Pension</span>
+                    <p className="font-medium text-gray-800">{formatCurrency(expectedMonthlyPension)}</p>
+                    <p className="text-xs text-gray-500">8% + 10% of salary</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Total Contributions</span>
+                    <p className="font-medium text-[#066f48]">{formatCurrency(member.pensionContributions)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Current Balance</span>
+                    <p className="font-medium text-blue-600">{formatCurrency(member.wallet?.pensionBalance || 0)}</p>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setSelectedStaff(member);
+                      setShowHistoryModal(true);
+                    }}
+                    className="w-full px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055a3a] font-medium transition-colors text-sm"
+                  >
+                    View History
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {filteredStaff.length === 0 && (
+            <div className="text-center py-12">
+              <Wallet className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+              <p className="text-gray-600">No staff members found</p>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3">Staff Member</th>
-                <th className="px-6 py-3">Department</th>
-                <th className="px-6 py-3 text-right">Monthly Salary</th>
-                <th className="px-6 py-3 text-right">Expected Pension</th>
-                <th className="px-6 py-3 text-right">Total Contributions</th>
-                <th className="px-6 py-3 text-right">Current Balance</th>
-                <th className="px-6 py-3">Action</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff Member</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Monthly Salary</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Expected Pension</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Contributions</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Current Balance</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/15">
+            <tbody className="bg-white divide-y divide-gray-200">
               {filteredStaff.map((member) => {
                 const expectedMonthlyPension = member.monthlySalary * 0.18;
                 return (
-                  <tr key={member.id} className="hover:bg-white/10 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{member.fullName}</div>
-                      <div className="text-gray-600 text-xs">{member.employeeId}</div>
+                  <tr key={member.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-medium text-gray-800">{member.fullName}</div>
+                      <div className="text-gray-500 text-xs">{member.employeeId}</div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-gray-900">{member.department}</div>
-                      <div className="text-gray-600 text-xs">{member.role}</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-gray-800">{member.department}</div>
+                      <div className="text-gray-500 text-xs">{member.role}</div>
                     </td>
-                    <td className="px-6 py-4 text-right text-gray-900">
+                    <td className="px-6 py-4 text-right whitespace-nowrap text-gray-800">
                       {formatCurrency(member.monthlySalary)}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="font-medium text-gray-900">{formatCurrency(expectedMonthlyPension)}</div>
-                      <div className="text-xs text-gray-600">8% + 10% of salary</div>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <div className="font-medium text-gray-800">{formatCurrency(expectedMonthlyPension)}</div>
+                      <div className="text-xs text-gray-500">8% + 10% of salary</div>
                     </td>
-                    <td className="px-6 py-4 text-right font-medium text-[#066f48]">
+                    <td className="px-6 py-4 text-right whitespace-nowrap font-medium text-[#066f48]">
                       {formatCurrency(member.pensionContributions)}
                     </td>
-                    <td className="px-6 py-4 text-right font-medium text-blue-600">
+                    <td className="px-6 py-4 text-right whitespace-nowrap font-medium text-blue-600">
                       {formatCurrency(member.wallet?.pensionBalance || 0)}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => {
                           setSelectedStaff(member);
                           setShowHistoryModal(true);
                         }}
-                        className="text-[#066f48] hover:text-[#055a3a] font-medium transition-colors"
+                        className="text-[#066f48] hover:text-[#055a3a] font-medium transition-colors text-sm"
                       >
                         View History
                       </button>
@@ -346,10 +370,10 @@ const PensionHistoryModal = ({ staff, onClose }: { staff: any; onClose: () => vo
 
   const getStatusBadge = (status: string) => {
     const badges: any = {
-      pending: <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100/90 text-gray-700 border border-gray-200/50">Pending</span>,
-      processing: <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-100/90 text-blue-700 border border-blue-200/50">Processing</span>,
-      completed: <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-green-100/90 text-green-700 border border-green-200/50">Completed</span>,
-      failed: <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-red-100/90 text-red-700 border border-red-200/50">Failed</span>,
+      pending: <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-yellow-100 text-yellow-700 border border-yellow-200">Pending</span>,
+      processing: <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 border border-blue-200">Processing</span>,
+      completed: <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 border border-green-200">Completed</span>,
+      failed: <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 border border-red-200">Failed</span>,
     };
     return badges[status] || status;
   };
@@ -377,18 +401,18 @@ const PensionHistoryModal = ({ staff, onClose }: { staff: any; onClose: () => vo
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
           {/* Summary Cards */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <div className="text-sm text-green-600 mb-1">Total Contributions</div>
-              <div className="text-2xl font-bold text-green-900">{formatCurrency(staff.pensionContributions)}</div>
+              <div className="text-sm text-green-700 mb-1">Total Contributions</div>
+              <div className="text-2xl font-bold text-green-800">{formatCurrency(staff.pensionContributions)}</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <div className="text-sm text-green-600 mb-1">Current Balance</div>
-              <div className="text-2xl font-bold text-green-900">{formatCurrency(staff.wallet?.pensionBalance || 0)}</div>
+              <div className="text-sm text-green-700 mb-1">Current Balance</div>
+              <div className="text-2xl font-bold text-green-800">{formatCurrency(staff.wallet?.pensionBalance || 0)}</div>
             </div>
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="text-sm text-gray-600 mb-1">Payment Count</div>
-              <div className="text-2xl font-bold text-gray-900">{transactions.length}</div>
+              <div className="text-2xl font-bold text-gray-800">{transactions.length}</div>
             </div>
           </div>
 
@@ -454,24 +478,22 @@ const PensionHistoryModal = ({ staff, onClose }: { staff: any; onClose: () => vo
               </div>
 
               {/* Pagination */}
-              <div className="mt-4 flex justify-between items-center">
-                <p className="text-sm text-gray-700">Page {page} of {totalPages}</p>
+              <div className="mt-4 px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                <p className="text-sm text-gray-600">Page {page} of {totalPages}</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setPage(Math.max(1, page - 1))}
                     disabled={page === 1}
-                    className="px-3 py-1 border border-white/50 rounded-lg text-sm disabled:opacity-50 bg-white/30 hover:bg-white/40 text-gray-700 transition-all disabled:cursor-not-allowed flex items-center gap-1"
+                    className="px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
-                    <ChevronLeft className="w-4 h-4" />
                     Previous
                   </button>
                   <button
                     onClick={() => setPage(Math.min(totalPages, page + 1))}
                     disabled={page === totalPages}
-                    className="px-3 py-1 border border-white/50 rounded-lg text-sm disabled:opacity-50 bg-white/30 hover:bg-white/40 text-gray-700 transition-all disabled:cursor-not-allowed flex items-center gap-1"
+                    className="px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     Next
-                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
