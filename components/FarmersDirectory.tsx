@@ -26,6 +26,8 @@ export const FarmersDirectory: React.FC = () => {
   // Modal states
   const [viewingFarmer, setViewingFarmer] = useState<FarmerDetail | null>(null);
   const [deactivatingFarmer, setDeactivatingFarmer] = useState<Farmer | null>(null);
+  const [suspendingFarmer, setSuspendingFarmer] = useState<Farmer | null>(null);
+  const [suspensionReason, setSuspensionReason] = useState('');
   
   // Action loading states
   const [loadingAction, setLoadingAction] = useState(false);
@@ -104,6 +106,34 @@ export const FarmersDirectory: React.FC = () => {
     }
   };
 
+  // Suspend farmer
+  const handleSuspendFarmer = async () => {
+    if (!suspendingFarmer || !suspensionReason.trim()) {
+      setActionError('Please provide a reason for suspension');
+      return;
+    }
+
+    try {
+      setLoadingAction(true);
+      setActionError(null);
+      
+      // TODO: Replace with actual API endpoint when backend is ready
+      // await farmersApi.suspendFarmer(suspendingFarmer.id, suspensionReason);
+      console.log('Suspending farmer:', suspendingFarmer.id, 'Reason:', suspensionReason);
+      
+      // For now, show success and close modal
+      alert(`Farmer suspended successfully. Reason: ${suspensionReason}`);
+      setSuspendingFarmer(null);
+      setSuspensionReason('');
+      setViewingFarmer(null);
+      fetchFarmers(); // Refresh list
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to suspend farmer');
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return `₦${(amount / 100).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
   };
@@ -118,13 +148,13 @@ export const FarmersDirectory: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
-      active: 'bg-green-100/90 text-green-700 border border-green-200/50',
-      inactive: 'bg-gray-100/90 text-gray-700 border border-gray-200/50',
-      suspended: 'bg-yellow-100/90 text-yellow-700 border border-yellow-200/50',
-      banned: 'bg-red-100/90 text-red-700 border border-red-200/50',
+      active: 'bg-green-100 text-green-700',
+      inactive: 'bg-gray-100 text-gray-700',
+      suspended: 'bg-yellow-100 text-yellow-700',
+      banned: 'bg-red-100 text-red-700',
     };
     return (
-      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm ${statusColors[status] || 'bg-gray-100/90 text-gray-700 border border-gray-200/50'}`}>
+      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${statusColors[status] || 'bg-gray-100 text-gray-700'}`}>
         {status}
       </span>
     );
@@ -132,17 +162,11 @@ export const FarmersDirectory: React.FC = () => {
 
   return (
     <div className="space-y-5">
-      {/* Header - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-[#066f48]/10 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="flex items-center justify-between relative z-10">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-[#066f48] shadow-lg">
+            <div className="p-3 rounded-xl bg-[#066f48]">
               <Users className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -153,26 +177,21 @@ export const FarmersDirectory: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+      {/* Filters */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* LGA Filter */}
           <input
             type="text"
             placeholder="Filter by LGA..."
-            className="px-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800 placeholder-gray-500"
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500"
             value={lgaFilter}
             onChange={(e) => setLgaFilter(e.target.value)}
           />
 
           {/* Status Filter */}
           <select
-            className="px-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
           >
@@ -186,7 +205,7 @@ export const FarmersDirectory: React.FC = () => {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50/90 backdrop-blur-sm border border-red-200/50 rounded-[1.5rem] p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-red-600" />
           <p className="text-red-800">{error}</p>
         </div>
@@ -198,19 +217,16 @@ export const FarmersDirectory: React.FC = () => {
           <LeafInlineLoader />
         </div>
       ) : farmers.length === 0 ? (
-        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-12 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4 relative z-10" />
-          <p className="text-gray-600 relative z-10">No farmers found</p>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">No farmers found</p>
         </div>
       ) : (
         <>
           {/* Mobile Card View */}
           <div className="lg:hidden space-y-4">
             {farmers.map((farmer) => (
-              <div key={farmer.id} className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-4 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-                <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-                <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
+              <div key={farmer.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all duration-200">
                 
                 <div className="flex items-start justify-between mb-3 relative z-10">
                   <div>
@@ -220,7 +236,7 @@ export const FarmersDirectory: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleViewFarmer(farmer)}
-                      className="p-2 text-blue-600 hover:bg-blue-50/80 rounded-lg backdrop-blur-sm transition-all"
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                       title="View Details"
                     >
                       <Eye className="w-4 h-4" />
@@ -253,16 +269,11 @@ export const FarmersDirectory: React.FC = () => {
             ))}
           </div>
 
-          {/* Desktop Table View - Liquid Glass */}
-          <div className="hidden lg:block bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
-            <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-            
-            <div className="overflow-x-auto relative z-10">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-gray-600">
-                <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium uppercase text-xs border-b border-white/30">
+                <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3">Farmer</th>
                     <th className="px-6 py-3">Phone</th>
@@ -275,9 +286,9 @@ export const FarmersDirectory: React.FC = () => {
                     <th className="px-6 py-3">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/15">
+                <tbody className="divide-y divide-gray-100">
                   {farmers.map((farmer) => (
-                    <tr key={farmer.id} className="hover:bg-white/10 transition-colors">
+                    <tr key={farmer.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-medium text-gray-800">{farmer.fullName.toUpperCase()}</p>
@@ -295,7 +306,7 @@ export const FarmersDirectory: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleViewFarmer(farmer)}
-                            className="p-2 text-blue-600 hover:bg-blue-50/80 rounded-lg backdrop-blur-sm transition-all"
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                             title="View Details"
                           >
                             <Eye className="w-4 h-4" />
@@ -309,12 +320,9 @@ export const FarmersDirectory: React.FC = () => {
             </div>
           </div>
 
-          {/* Pagination - Liquid Glass */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-white/30 to-transparent blur-2xl rounded-full pointer-events-none" />
-            
-            <div className="flex items-center justify-between relative z-10">
+          {/* Pagination */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600">
                 Page {currentPage} of {totalPages}
               </p>
@@ -322,7 +330,7 @@ export const FarmersDirectory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
@@ -330,7 +338,7 @@ export const FarmersDirectory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />
@@ -428,30 +436,145 @@ export const FarmersDirectory: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
                 {viewingFarmer.status === 'active' ? (
-                  <button
-                    onClick={() => {
-                      setDeactivatingFarmer(viewingFarmer);
-                      setViewingFarmer(null);
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 flex items-center gap-2 shadow-lg transition-all"
-                  >
-                    <UserX className="w-4 h-4" />
-                    Deactivate
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        setSuspendingFarmer({
+                          id: viewingFarmer.id,
+                          firstName: viewingFarmer.firstName,
+                          lastName: viewingFarmer.lastName,
+                          fullName: viewingFarmer.fullName,
+                          phone: viewingFarmer.phone,
+                          lga: viewingFarmer.lga,
+                          status: viewingFarmer.status,
+                          farmSizeHectares: viewingFarmer.farmSizeHectares,
+                          walletBalance: viewingFarmer.walletBalance,
+                          totalSales: viewingFarmer.totalSales,
+                          totalEarnings: viewingFarmer.totalEarnings,
+                        });
+                      }}
+                      className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all flex items-center gap-2 justify-center"
+                    >
+                      <UserX className="w-4 h-4" />
+                      Suspend Account
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeactivatingFarmer({
+                          id: viewingFarmer.id,
+                          firstName: viewingFarmer.firstName,
+                          lastName: viewingFarmer.lastName,
+                          fullName: viewingFarmer.fullName,
+                          phone: viewingFarmer.phone,
+                          lga: viewingFarmer.lga,
+                          status: viewingFarmer.status,
+                          farmSizeHectares: viewingFarmer.farmSizeHectares,
+                          walletBalance: viewingFarmer.walletBalance,
+                          totalSales: viewingFarmer.totalSales,
+                          totalEarnings: viewingFarmer.totalEarnings,
+                        });
+                        setViewingFarmer(null);
+                      }}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all flex items-center gap-2 justify-center"
+                    >
+                      <UserX className="w-4 h-4" />
+                      Deactivate Account
+                    </button>
+                  </>
                 ) : (
                   <button
                     onClick={() => {
-                      handleActivateFarmer(viewingFarmer);
+                      handleActivateFarmer({
+                        id: viewingFarmer.id,
+                        firstName: viewingFarmer.firstName,
+                        lastName: viewingFarmer.lastName,
+                        fullName: viewingFarmer.fullName,
+                        phone: viewingFarmer.phone,
+                        lga: viewingFarmer.lga,
+                        status: viewingFarmer.status,
+                        farmSizeHectares: viewingFarmer.farmSizeHectares,
+                        walletBalance: viewingFarmer.walletBalance,
+                        totalSales: viewingFarmer.totalSales,
+                        totalEarnings: viewingFarmer.totalEarnings,
+                      });
                       setViewingFarmer(null);
                     }}
-                    className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 flex items-center gap-2 shadow-lg transition-all"
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all flex items-center gap-2 justify-center"
                   >
                     <UserCheck className="w-4 h-4" />
-                    Activate
+                    Activate Account
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suspend Farmer Modal */}
+      {suspendingFarmer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 bg-yellow-50">
+              <h3 className="text-lg font-bold text-yellow-800">Suspend Farmer Account</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              {actionError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <p className="text-red-800 text-sm">{actionError}</p>
+                </div>
+              )}
+
+              <div>
+                <p className="text-gray-700 mb-4">
+                  You are about to suspend <strong>{suspendingFarmer.firstName} {suspendingFarmer.lastName}</strong>'s account. 
+                  Please provide a reason that will be sent to the farmer.
+                </p>
+                
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for Suspension <span className="text-red-600">*</span>
+                </label>
+                <textarea
+                  value={suspensionReason}
+                  onChange={(e) => setSuspensionReason(e.target.value)}
+                  placeholder="Enter the reason for suspending this account..."
+                  rows={4}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none resize-none text-gray-800"
+                />
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setSuspendingFarmer(null);
+                    setSuspensionReason('');
+                    setActionError(null);
+                  }}
+                  disabled={loadingAction}
+                  className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSuspendFarmer}
+                  disabled={loadingAction || !suspensionReason.trim()}
+                  className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingAction ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Suspending...
+                    </>
+                  ) : (
+                    <>
+                      <UserX className="w-4 h-4" />
+                      Suspend Account
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -478,17 +601,17 @@ export const FarmersDirectory: React.FC = () => {
                 This will suspend their account and they won't be able to access the system.
               </p>
 
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
                 <button
                   onClick={() => setDeactivatingFarmer(null)}
-                  className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all text-gray-700"
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-gray-700"
                   disabled={loadingAction}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeactivateFarmer}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 flex items-center gap-2 disabled:opacity-50 shadow-lg transition-all"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
                   disabled={loadingAction}
                 >
                   {loadingAction ? (
@@ -499,7 +622,7 @@ export const FarmersDirectory: React.FC = () => {
                   ) : (
                     <>
                       <UserX className="w-4 h-4" />
-                      Deactivate
+                      Deactivate Account
                     </>
                   )}
                 </button>

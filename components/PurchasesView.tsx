@@ -26,6 +26,8 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [farmerSearchTerm, setFarmerSearchTerm] = useState("");
+  const [showFarmerDropdown, setShowFarmerDropdown] = useState(false);
+  const [selectedFarmerName, setSelectedFarmerName] = useState("");
   const [successModal, setSuccessModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -62,9 +64,21 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
   // Load initial data
   useEffect(() => {
-    loadKPIs();
-    loadPurchases();
-    loadCassavaPricing();
+    const loadInitialData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          loadKPIs(),
+          loadPurchases(),
+          loadCassavaPricing()
+        ]);
+      } catch (err) {
+        console.error('Failed to load initial data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadInitialData();
   }, []);
 
   // Load data when filters change
@@ -84,7 +98,6 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
   const loadPurchases = async () => {
     try {
-      setLoading(true);
       const query: GetPurchasesQuery = {
         page: currentPage,
         limit: 10,
@@ -101,8 +114,6 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     } catch (err) {
       console.error("Failed to load purchases:", err);
       setError("Failed to load purchases");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -139,7 +150,9 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
  const handleCloseCreateModal = () => {
   setIsCreateModalOpen(false);
   setCreateForm({ farmerId: "", weightKg: "" });
-  setFarmerSearchTerm(""); 
+  setFarmerSearchTerm("");
+  setShowFarmerDropdown(false);
+  setSelectedFarmerName("");
 };
 
   // Form submission handlers
@@ -267,16 +280,16 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { bg: "bg-yellow-100/90", text: "text-yellow-700", border: "border-yellow-200/50", label: "Pending" },
-      completed: { bg: "bg-green-100/90", text: "text-green-700", border: "border-green-200/50", label: "Completed" },
-      failed: { bg: "bg-red-100/90", text: "text-red-700", border: "border-red-200/50", label: "Failed" },
-      cancelled: { bg: "bg-gray-100/90", text: "text-gray-700", border: "border-gray-200/50", label: "Cancelled" },
+      pending: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Pending" },
+      completed: { bg: "bg-green-100", text: "text-green-700", label: "Completed" },
+      failed: { bg: "bg-red-100", text: "text-red-700", label: "Failed" },
+      cancelled: { bg: "bg-gray-100", text: "text-gray-700", label: "Cancelled" },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
 
     return (
-      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold backdrop-blur-sm border ${config.bg} ${config.text} ${config.border}`}>
+      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${config.bg} ${config.text}`}>
         {config.label}
       </span>
     );
@@ -292,17 +305,11 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
   return (
     <div className="space-y-5">
-      {/* Header - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-[#066f48]/10 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="flex items-center justify-between relative z-10">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-[#066f48] shadow-lg">
+            <div className="p-3 rounded-xl bg-[#066f48]">
               <ShoppingCart className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -312,16 +319,15 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
           </div>
           <button
             onClick={handleOpenCreateModal}
-            className="px-4 py-2 bg-[#066f48] text-white rounded-xl hover:bg-[#055539] flex items-center gap-2 shadow-lg transition-all duration-300 relative overflow-hidden group"
+            className="px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] flex items-center gap-2 transition-all"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
-            <Plus className="w-4 h-4 relative z-10" />
-            <span className="relative z-10">New Purchase</span>
+            <Plus className="w-4 h-4" />
+            <span>New Purchase</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Cards - Liquid Glass */}
+      {/* KPI Cards */}
       {kpis && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -330,11 +336,8 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
             { icon: TrendingUp, label: "Average Price/kg", value: formatCurrency(kpis.averagePrice || 0), color: "purple" },
             { icon: Users, label: "Total Purchases", value: (kpis.totalPurchases || 0).toLocaleString(), color: "orange" },
           ].map((kpi, idx) => (
-            <div key={idx} className="bg-white/10 backdrop-blur-xl rounded-[1.5rem] border border-white/40 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-5 relative overflow-hidden group hover:bg-white/15 transition-all duration-300">
-              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-              
-              <div className="flex items-center justify-between relative z-10">
+            <div key={idx} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-gray-500 text-sm font-medium mb-1">{kpi.label}</h3>
                   <p className="text-2xl font-bold text-gray-800">{kpi.value}</p>
@@ -346,14 +349,9 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         </div>
       )}
 
-      {/* Filters - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        
-        <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+      {/* Filters */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -361,13 +359,13 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
               placeholder="Search purchases..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800 placeholder-gray-500"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
           >
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
@@ -378,22 +376,17 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         </div>
       </div>
 
-      {/* Purchases Table - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        
+      {/* Purchases Table */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {filteredPurchases.length === 0 ? (
-          <div className="text-center py-12 relative z-10">
+          <div className="text-center py-12">
             <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">No purchases found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto relative z-10">
+          <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-gray-600">
-              <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium uppercase text-xs border-b border-white/30">
+              <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3">Farmer</th>
                   <th className="px-6 py-3">Weight</th>
@@ -404,9 +397,9 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                   <th className="px-6 py-3">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/15">
+              <tbody className="divide-y divide-gray-100">
                 {paginatedPurchases.map((purchase) => (
-                  <tr key={purchase._id} className="hover:bg-white/10 transition-colors">
+                  <tr key={purchase._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-800">{purchase.farmerName}</div>
@@ -425,7 +418,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleViewPurchase(purchase._id)}
-                          className="p-2 text-blue-600 hover:bg-blue-50/80 rounded-lg backdrop-blur-sm transition-all"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
@@ -433,7 +426,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                         {purchase.status === "failed" && (
                           <button
                             onClick={() => handleRetryPurchase(purchase._id)}
-                            className="p-2 text-emerald-600 hover:bg-emerald-50/80 rounded-lg backdrop-blur-sm transition-all"
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
                             disabled={retryingPurchase === purchase._id}
                             title="Retry"
                           >
@@ -454,13 +447,10 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         )}
       </div>
 
-      {/* Pagination - Liquid Glass */}
+      {/* Pagination */}
       {!loading && filteredPurchases.length > 0 && (
-        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-white/30 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <div className="flex items-center justify-between relative z-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">
               Page {currentPage} of {totalPages}
             </p>
@@ -468,7 +458,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -476,7 +466,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -501,37 +491,106 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
             <form onSubmit={handleCreatePurchase} className="p-6 space-y-4">
              <div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">Select Farmer</label>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Select Farmer *</label>
   
-  {/* Add Search Input */}
-  <div className="relative mb-2">
-    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+  {/* Searchable Dropdown */}
+  <div className="relative">
+    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
     <input
       type="text"
-      placeholder="Search farmers by name or phone..."
+      placeholder={selectedFarmerName || "Search farmers by name or phone..."}
       value={farmerSearchTerm}
-      onChange={(e) => setFarmerSearchTerm(e.target.value)}
+      onChange={(e) => {
+        setFarmerSearchTerm(e.target.value);
+        setShowFarmerDropdown(true);
+      }}
+      onFocus={() => setShowFarmerDropdown(true)}
+      disabled={farmersLoading}
       className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
     />
+    
+    {/* Hidden required input for form validation */}
+    <input
+      type="text"
+      value={createForm.farmerId}
+      onChange={() => {}}
+      required
+      className="absolute opacity-0 pointer-events-none"
+      tabIndex={-1}
+    />
+    
+    {/* Dropdown Results */}
+    {showFarmerDropdown && !farmersLoading && (
+      <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        {filteredFarmers.length > 0 ? (
+          <ul className="py-1">
+            {filteredFarmers.map((farmer) => {
+              const farmerName = farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone;
+              const isSelected = createForm.farmerId === farmer.id;
+              
+              return (
+                <li
+                  key={farmer.id}
+                  onClick={() => {
+                    setCreateForm({ ...createForm, farmerId: farmer.id });
+                    setSelectedFarmerName(farmerName);
+                    setFarmerSearchTerm("");
+                    setShowFarmerDropdown(false);
+                  }}
+                  className={`px-4 py-2.5 cursor-pointer hover:bg-emerald-50 transition-colors ${
+                    isSelected ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium">{farmerName}</div>
+                      <div className="text-xs text-gray-500">{farmer.phone}</div>
+                    </div>
+                    {isSelected && (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="px-4 py-8 text-center text-gray-500">
+            <p className="text-sm">
+              {farmerSearchTerm ? `No farmers found matching "${farmerSearchTerm}"` : 'No farmers available'}
+            </p>
+          </div>
+        )}
+      </div>
+    )}
+    
+    {/* Selected Farmer Display */}
+    {selectedFarmerName && !showFarmerDropdown && (
+      <div className="mt-2 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <span className="text-sm font-medium text-emerald-700">{selectedFarmerName}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setCreateForm({ ...createForm, farmerId: "" });
+            setSelectedFarmerName("");
+            setFarmerSearchTerm("");
+          }}
+          className="text-emerald-600 hover:text-emerald-800 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    )}
   </div>
   
-  <select
-    value={createForm.farmerId}
-    onChange={(e) => setCreateForm({ ...createForm, farmerId: e.target.value })}
-    required
-    disabled={farmersLoading}
-    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-  >
-    <option value="">Select a farmer...</option>
-    {filteredFarmers.map((farmer) => (
-      <option key={farmer.id} value={farmer.id}>
-        {farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone}
-      </option>
-    ))}
-  </select>
-  {farmersLoading && <p className="text-sm text-gray-500 mt-1">Loading farmers...</p>}
-  {!farmersLoading && filteredFarmers.length === 0 && farmerSearchTerm && (
-    <p className="text-sm text-red-500 mt-1">No farmers found matching "{farmerSearchTerm}"</p>
+  {farmersLoading && (
+    <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
+      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-emerald-500"></div>
+      Loading farmers...
+    </p>
   )}
 </div>
 
@@ -610,14 +669,14 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                 <button
                   type="button"
                   onClick={handleCloseCreateModal}
-                  className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all text-gray-700"
+                  className="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createLoading}
-                  className="flex-1 px-4 py-2 bg-[#066f48] text-white rounded-xl hover:bg-[#055539] disabled:opacity-50 shadow-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] disabled:opacity-50 transition-all"
                 >
                   {createLoading ? "Creating..." : "Create Purchase"}
                 </button>
