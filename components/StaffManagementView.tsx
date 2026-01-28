@@ -177,64 +177,69 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
   }
 
   return (
-    <div className="h-full flex flex-col p-6 space-y-5">
-      {/* Header - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-[#066f48]/10 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="relative z-10">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Staff Management
-          </h1>
-          <p className="text-gray-600">
-            Manage staff members, approvals, and salaries
-          </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+              Staff Management
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
+              Manage staff members, approvals, and salaries
+            </p>
+          </div>
+          <button
+            onClick={() => setShowRegisterModal(true)}
+            className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all text-sm sm:text-base whitespace-nowrap"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Register Staff
+          </button>
+        </div>
 
-          {/* Pending Approvals Alert */}
-          {staff && staff.filter((s) => !s.isApproved).length > 0 && (
-            <div className="mt-4 bg-amber-50/80 backdrop-blur-sm border-l-4 border-amber-400 p-4 rounded-r-xl">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-amber-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+        {/* Pending Approvals Alert */}
+        {staff && staff.filter((s) => !s.isApproved).length > 0 && (
+          <div className="mt-4 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-amber-500"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-amber-800">
+                  <span className="font-semibold">
+                    {staff?.filter((s) => !s.isApproved).length || 0} staff
+                    member(s)
+                  </span>{" "}
+                  waiting for approval.
+                  <button
+                    onClick={() => setFilterApproval("pending")}
+                    className="ml-2 font-medium underline hover:text-amber-900"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-amber-800">
-                    <span className="font-semibold">
-                      {staff?.filter((s) => !s.isApproved).length || 0} staff
-                      member(s)
-                    </span>{" "}
-                    waiting for approval.
-                    <button
-                      onClick={() => setFilterApproval("pending")}
-                      className="ml-2 font-medium underline hover:text-amber-900"
-                    >
-                      View pending approvals →
-                    </button>
-                  </p>
-                </div>
+                    View pending approvals →
+                  </button>
+                </p>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50/90 backdrop-blur-sm border border-red-200/50 rounded-[1.5rem] p-4 flex items-start shadow-sm">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start shadow-sm">
           <div className="flex-shrink-0">
             <svg
               className="h-5 w-5 text-red-500"
@@ -266,197 +271,166 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
         </div>
       )}
 
-      {/* Actions Bar - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        
-        <div className="flex flex-col md:flex-row gap-4 relative z-10">
+      {/* Filters */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           {/* Search */}
-          <div className="flex-1">
-            <div className="flex gap-2">
+          <div className="flex-1 flex gap-2">
+            <div className="relative flex-1">
+              <svg className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
               <input
                 type="text"
-                placeholder="Search by name, phone, or employee ID..."
+                placeholder="Search by name or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 px-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800 placeholder-gray-500"
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500 text-sm sm:text-base"
               />
-              <button
-                onClick={handleSearch}
-                className="px-6 py-2.5 bg-[#066f48] text-white rounded-xl hover:bg-[#055a3a] transition-all shadow-lg"
-              >
-                Search
-              </button>
             </div>
+            <button
+              onClick={handleSearch}
+              className="px-4 sm:px-5 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all whitespace-nowrap text-sm sm:text-base"
+            >
+              Search
+            </button>
           </div>
 
           {/* Filters */}
           <select
-            value={filterApproval}
-            onChange={(e) => setFilterApproval(e.target.value)}
-            className="px-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
-          >
-            <option value="all">All Approvals</option>
-            <option value="approved">Approved</option>
-            <option value="pending">Pending</option>
-          </select>
-
-          <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-800 text-sm sm:text-base"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
 
-          {/* Register Button */}
-          <button
-            onClick={() => setShowRegisterModal(true)}
-            className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all whitespace-nowrap shadow-lg"
+          <select
+            value={filterApproval}
+            onChange={(e) => setFilterApproval(e.target.value)}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-800 text-sm sm:text-base"
           >
-            + Register Staff
-          </button>
+            <option value="all">All Approvals</option>
+            <option value="approved">Approved</option>
+            <option value="pending">Pending</option>
+          </select>
         </div>
       </div>
 
-      {/* Stats Cards - Liquid Glass */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white/10 backdrop-blur-xl rounded-[1.5rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 relative overflow-hidden hover:bg-white/15 transition-all">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <div className="text-sm text-gray-600 mb-1">Total Staff</div>
-            <div className="text-3xl font-bold text-gray-800">
-              {staff?.length || 0}
-            </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
+          <div className="text-sm text-gray-600 mb-1">Total Staff</div>
+          <div className="text-2xl sm:text-3xl font-bold text-gray-800">
+            {staff?.length || 0}
           </div>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-xl rounded-[1.5rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 relative overflow-hidden hover:bg-white/15 transition-all">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-1">
-              <div className="text-sm text-gray-600">Active</div>
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            </div>
-            <div className="text-3xl font-bold text-green-600">
-              {staff?.filter((s) => s.isActive && s.isApproved).length || 0}
-            </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-sm text-gray-600">Active</div>
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-bold text-green-600">
+            {staff?.filter((s) => s.isActive && s.isApproved).length || 0}
           </div>
         </div>
 
         <div
-          className="bg-white/10 backdrop-blur-xl rounded-[1.5rem] border border-amber-200/50 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 cursor-pointer hover:bg-white/15 transition-all relative overflow-hidden"
+          className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 cursor-pointer hover:shadow-md transition-all"
           onClick={() => setFilterApproval("pending")}
         >
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-1">
-              <div className="text-sm text-gray-600">Pending Approval</div>
-              {staff && staff.filter((s) => !s.isApproved).length > 0 && (
-                <span className="flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                </span>
-              )}
-            </div>
-            <div className="text-3xl font-bold text-amber-600">
-              {staff?.filter((s) => !s.isApproved).length || 0}
-            </div>
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-sm text-gray-600">Pending Approval</div>
             {staff && staff.filter((s) => !s.isApproved).length > 0 && (
-              <div className="text-xs text-amber-700 mt-1 font-medium">
-                Click to view →
-              </div>
+              <span className="flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
             )}
           </div>
+          <div className="text-2xl sm:text-3xl font-bold text-amber-600">
+            {staff?.filter((s) => !s.isApproved).length || 0}
+          </div>
+          {staff && staff.filter((s) => !s.isApproved).length > 0 && (
+            <div className="text-xs text-amber-700 mt-1 font-medium">
+              Click to view →
+            </div>
+          )}
         </div>
 
-        <div className="bg-white/10 backdrop-blur-xl rounded-[1.5rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 relative overflow-hidden hover:bg-white/15 transition-all">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-1">
-              <div className="text-sm text-gray-600">Deactivated</div>
-              <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-            </div>
-            <div className="text-3xl font-bold text-gray-600">
-              {staff?.filter((s) => !s.isActive && s.isApproved).length || 0}
-            </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-sm text-gray-600">Deactivated</div>
+            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-bold text-gray-600">
+            {staff?.filter((s) => !s.isActive && s.isApproved).length || 0}
           </div>
         </div>
       </div>
 
-      {/* Staff Table - Liquid Glass */}
-      <div className="flex-1 flex flex-col bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden min-h-0 relative">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        
-        <div className="flex-1 overflow-x-auto overflow-y-auto relative z-10">
-          <table className="min-w-full divide-y divide-white/15">
-            <thead className="bg-white/20 backdrop-blur-md">
+      {/* Staff Table */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Employee
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Role & Department
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Monthly Salary
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Pension
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/15">
+            <tbody className="bg-white divide-y divide-gray-200">
               {staff?.map((member) => (
-                <tr key={member.id} className="hover:bg-white/10 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={member.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-800">
+                      <div className="text-sm font-medium text-gray-900">
                         {member.fullName}
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-500">
                         {member.employeeId}
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-500">
                         {member.phone}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-800">{member.role}</div>
-                    <div className="text-sm text-gray-600">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{member.role}</div>
+                    <div className="text-sm text-gray-500">
                       {member.department}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatCurrency(member.monthlySalary)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatCurrency(member.pensionContributions)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(member)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex gap-3">
                       <button
                         onClick={() => {
@@ -517,53 +491,35 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Pagination - Sticky at bottom */}
-        <div className="flex-shrink-0 bg-white/20 backdrop-blur-md px-4 py-3 flex items-center justify-between border-t border-white/30 sm:px-6 relative z-10">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-white/50 text-sm font-medium rounded-xl text-gray-700 bg-white/25 hover:bg-white/35 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-white/50 text-sm font-medium rounded-xl text-gray-700 bg-white/25 hover:bg-white/35 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Page <span className="font-medium">{page}</span> of{" "}
-                <span className="font-medium">{totalPages}</span>
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="relative inline-flex items-center px-4 py-2 rounded-l-xl border border-white/50 bg-white/25 text-sm font-medium text-gray-700 hover:bg-white/35 disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="relative inline-flex items-center px-4 py-2 rounded-r-xl border border-white/50 bg-white/25 text-sm font-medium text-gray-700 hover:bg-white/35 disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </nav>
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
+            <p className="text-sm text-gray-600">
+              Page <span className="font-medium">{page}</span> of{" "}
+              <span className="font-medium">{totalPages}</span>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Modals */}
       {showDetailsModal && selectedStaff && (

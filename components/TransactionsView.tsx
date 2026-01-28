@@ -829,51 +829,32 @@ export const TransactionsView: React.FC = () => {
   };
 
   const tabs = [
-    {
-      id: "all",
-      label: "All Transactions",
-      count: stats?.totalTransactions || 0,
-    },
-    { id: "wallet", label: "Wallet", count: stats?.byType?.wallet || 0 },
-    { id: "loans", label: "Loans", count: stats?.byType?.loan || 0 },
-    {
-      id: "purchases",
-      label: "Purchases",
-      count: stats?.byType?.purchase || 0,
-    },
-    { id: "payroll", label: "Payroll", count: stats?.byType?.payroll || 0 },
-    {
-      id: "organization",
-      label: "Organization",
-      count: stats?.byType?.organization || 0,
-    },
+    { id: "all", label: "All Transactions" },
+    { id: "wallet", label: "Wallet" },
+    { id: "loans", label: "Loans" },
+    { id: "payroll", label: "Payroll" },
+    { id: "organization", label: "Organization" },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Header - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-[#066f48]/10 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
             Transactions
           </h2>
 
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center px-3 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/35 transition-all"
+              className="inline-flex w-full sm:w-auto justify-center items-center px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
             </button>
 
-            <button className="inline-flex items-center px-3 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/35 transition-all">
+            <button className="inline-flex w-full sm:w-auto justify-center items-center px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
               <Download className="w-4 h-4 mr-2" />
               Export
             </button>
@@ -884,50 +865,40 @@ export const TransactionsView: React.FC = () => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-4 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-            <div className="relative z-10">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
               <div className="text-sm text-gray-600">Total Transactions</div>
               <div className="text-2xl font-bold text-gray-800">
                 {stats.totalTransactions.toLocaleString()}
               </div>
             </div>
           </div>
-          <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-4 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-            <div className="relative z-10">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
               <div className="text-sm text-gray-600">Total Amount</div>
               <div className="text-2xl font-bold text-gray-800">
                 {formatCurrency(stats.totalAmount)}
               </div>
             </div>
           </div>
-          <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-4 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-            <div className="relative z-10">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
               <div className="text-sm text-gray-600">Completed</div>
               <div className="text-2xl font-bold text-green-600">
                 {stats.completedTransactions.toLocaleString()}
               </div>
             </div>
           </div>
-          <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-4 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-            <div className="relative z-10">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
               <div className="text-sm text-gray-600">Pending</div>
               <div className="text-2xl font-bold text-green-500">
                 {stats.pendingTransactions.toLocaleString()}
               </div>
             </div>
           </div>
-          <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-4 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-            <div className="relative z-10">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
               <div className="text-sm text-gray-600">Failed</div>
               <div className="text-2xl font-bold text-green-900">
                 {stats.failedTransactions.toLocaleString()}
@@ -939,13 +910,8 @@ export const TransactionsView: React.FC = () => {
 
       {/* Filter Panel */}
       {showFilters && (
-        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Search
@@ -957,7 +923,7 @@ export const TransactionsView: React.FC = () => {
                   placeholder="Search reference, description..."
                   value={filters.search || ""}
                   onChange={(e) => handleFilterChange("search", e.target.value)}
-                  className="pl-10 pr-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl text-sm w-full focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800 placeholder-gray-500"
+                  className="pl-10 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm w-full focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500"
                 />
               </div>
             </div>
@@ -969,7 +935,7 @@ export const TransactionsView: React.FC = () => {
               <select
                 value={filters.status || ""}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl text-sm focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800"
               >
                 <option value="">All Status</option>
                 <option value="pending">Pending</option>
@@ -986,7 +952,7 @@ export const TransactionsView: React.FC = () => {
               <select
                 value={filters.userType || ""}
                 onChange={(e) => handleFilterChange("userType", e.target.value)}
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl text-sm focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800"
               >
                 <option value="">All Users</option>
                 <option value="farmer">Farmers</option>
@@ -1005,7 +971,7 @@ export const TransactionsView: React.FC = () => {
                   onChange={(e) =>
                     handleFilterChange("startDate", e.target.value)
                   }
-                  className="flex-1 px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl text-sm focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                  className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800"
                 />
                 <input
                   type="date"
@@ -1013,7 +979,7 @@ export const TransactionsView: React.FC = () => {
                   onChange={(e) =>
                     handleFilterChange("endDate", e.target.value)
                   }
-                  className="flex-1 px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl text-sm focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                  className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800"
                 />
               </div>
             </div>
@@ -1022,40 +988,27 @@ export const TransactionsView: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-2 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="border-b border-white/30 relative z-10">
-          <nav className="-mb-px flex space-x-8 overflow-x-auto px-3">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-green-600 text-green-700"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
-                    {tab.count.toLocaleString()}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-2">
+        <nav className="-mb-px flex space-x-8 overflow-x-auto px-3">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                activeTab === tab.id
+                  ? "border-emerald-600 text-emerald-700"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
       {/* Transactions Table / Cards */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        
-        <div className="relative z-10">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div>
           {error && (
             <div className="p-4 bg-green-50 border-b border-green-200">
               <p className="text-green-900 text-sm">{error}</p>
@@ -1095,9 +1048,9 @@ export const TransactionsView: React.FC = () => {
               </div>
 
               {/* Desktop: table */}
-              <div className="hidden md:block w-full overflow-visible">
+              <div className="hidden md:block w-full overflow-x-auto">
                 <table className="w-full table-auto">
-                  <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium">
+                  <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         {activeTab === "payroll"
@@ -1123,7 +1076,7 @@ export const TransactionsView: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/15">
+                  <tbody className="divide-y divide-gray-100">
                     {transactions.length > 0 ? (
                       activeTab === "payroll" ? (
                         (transactions as PayrollTransaction[]).map(
@@ -1159,7 +1112,7 @@ export const TransactionsView: React.FC = () => {
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="px-4 py-3 bg-white/10 backdrop-blur-md border-t border-white/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                   <div className="text-sm text-gray-600 w-full md:w-auto">
                     Showing{" "}
                     {(pagination.currentPage - 1) * (filters.limit || 20) + 1} to{" "}
@@ -1169,40 +1122,42 @@ export const TransactionsView: React.FC = () => {
                     )}{" "}
                     of {pagination.total} transactions
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <button
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={pagination.currentPage === 1}
-                      className="px-3 py-1 rounded-xl bg-white/25 backdrop-blur-md border border-white/50 text-sm text-gray-600 hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      Previous
-                    </button>
-
-                    {getPageWindow(
-                      pagination.currentPage,
-                      pagination.totalPages
-                    ).map((page) => (
+                    <div className="flex flex-col md:flex-row items-center md:items-center space-x-0 md:space-x-1 gap-2 md:gap-0 w-full md:w-auto">
                       <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-3 py-1 rounded-xl text-sm transition-all ${
-                          page === pagination.currentPage
-                            ? "bg-green-600 text-white shadow-lg"
-                            : "bg-white/25 backdrop-blur-md border border-white/50 text-gray-600 hover:bg-white/35"
-                        }`}
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        disabled={pagination.currentPage === 1}
+                        className="w-full md:w-auto px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
-                        {page}
+                        Previous
                       </button>
-                    ))}
 
-                    <button
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
-                      className="px-3 py-1 rounded-xl bg-white/25 backdrop-blur-md border border-white/50 text-sm text-gray-600 hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      Next
-                    </button>
-                  </div>
+                      <div className="w-full md:w-auto flex md:inline-flex gap-2 md:gap-1">
+                        {getPageWindow(
+                          pagination.currentPage,
+                          pagination.totalPages
+                        ).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`w-full md:w-auto px-3 py-1 rounded-lg text-sm transition-all ${
+                              page === pagination.currentPage
+                                ? "bg-emerald-600 text-white shadow-sm"
+                                : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={pagination.currentPage === pagination.totalPages}
+                        className="w-full md:w-auto px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        Next
+                      </button>
+                    </div>
                 </div>
               )}
             </>
