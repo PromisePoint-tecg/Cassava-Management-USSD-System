@@ -9,6 +9,8 @@ import {
   DollarSign,
   X,
   Play,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   loansApi,
@@ -39,6 +41,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
   const [loadingLoanTypes, setLoadingLoanTypes] = useState(false);
   const [loadingFarmers, setLoadingFarmers] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Modal states
@@ -86,20 +89,27 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
   // Load initial data
   useEffect(() => {
-    loadKPIs();
-    loadLoans();
-    loadLoanRequests();
-    loadLoanTypes();
+    const initialLoad = async () => {
+      await Promise.all([
+        loadKPIs(),
+        activeTab === "loans" ? loadLoans() : loadLoanRequests(),
+        loadLoanTypes()
+      ]);
+      setIsInitialLoad(false);
+    };
+    initialLoad();
   }, []);
 
   // Load data when filters change
   useEffect(() => {
-    if (activeTab === "loans") {
-      loadLoans();
-    } else {
-      loadLoanRequests();
+    if (!isInitialLoad) {
+      if (activeTab === "loans") {
+        loadLoans();
+      } else {
+        loadLoanRequests();
+      }
     }
-  }, [activeTab, searchTerm, statusFilter, currentPage]);
+  }, [activeTab, searchTerm, statusFilter, currentPage, isInitialLoad]);
 
   const loadKPIs = async () => {
     try {
@@ -113,7 +123,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
   const loadLoans = async () => {
     try {
-      setLoading(true);
+      if (isInitialLoad) setLoading(true);
       const query: GetLoansQuery = {
         page: currentPage,
         limit: 10,
@@ -131,13 +141,13 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       console.error("Failed to load loans:", err);
       setError("Failed to load loans");
     } finally {
-      setLoading(false);
+      if (isInitialLoad) setLoading(false);
     }
   };
 
   const loadLoanRequests = async () => {
     try {
-      setLoading(true);
+      if (isInitialLoad) setLoading(true);
       const query: GetLoansQuery = {
         page: currentPage,
         limit: 10,
@@ -154,7 +164,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       console.error("Failed to load loan requests:", err);
       setError("Failed to load loan requests");
     } finally {
-      setLoading(false);
+      if (isInitialLoad) setLoading(false);
     }
   };
 
@@ -400,28 +410,23 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
   return (
    <div className="space-y-6">
-      {/* Header - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 sm:p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
             Loan Management
           </h2>
           <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 sm:gap-3">
             <button
               onClick={() => setIsCreateLoanTypeModalOpen(true)}
-              className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-[#066f48] text-white rounded-xl hover:bg-[#055b3d] transition-all shadow-lg text-sm sm:text-base"
+              className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-[#066f48] text-white rounded-lg hover:bg-[#055b3d] transition-all text-sm sm:text-base"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Create Loan Type
             </button>
             <button
               onClick={() => handleCreateNewLoan()}
-              className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg text-sm sm:text-base"
+              className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all text-sm sm:text-base"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Issue New Loan
@@ -430,7 +435,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         </div>
       </div>
 
-      {/* KPI Cards - Glass Style */}
+      {/* KPI Cards */}
       {kpis && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {[
@@ -461,10 +466,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
           ].map((item, i) => (
             <div
               key={i}
-              className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 sm:p-6 relative overflow-hidden hover:bg-white/15 transition-all"
+              className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 pointer-events-none" />
-              <div className="relative z-10 flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-gray-600 text-xs sm:text-sm font-medium">
                     {item.title}
@@ -474,7 +478,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   </p>
                 </div>
                 <div
-                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-${item.color}-600/90 backdrop-blur-sm`}
+                  className={`p-3 sm:p-4 rounded-xl bg-${item.color}-600`}
                 >
                   <item.icon className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                 </div>
@@ -484,11 +488,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         </div>
       )}
 
-      {/* Tabs - Glass Style */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 pointer-events-none" />
-
-        <nav className="relative z-10 -mb-px flex space-x-2 sm:space-x-8 px-2 sm:px-6 py-3 sm:py-4 overflow-x-auto">
+      {/* Tabs */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-2">
+        <nav className="-mb-px flex space-x-2 sm:space-x-8 px-2 sm:px-6 py-3 sm:py-4 overflow-x-auto">
           <button
             onClick={() => {
               setActiveTab("loans");
@@ -496,13 +498,13 @@ export const LoansView: React.FC<LoansViewProps> = () => {
               setSearchTerm("");
               setStatusFilter("");
             }}
-            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
+            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
               activeTab === "loans"
-                ? "bg-white/30 backdrop-blur-md text-emerald-700 shadow-inner"
-                : "text-gray-600 hover:bg-white/20"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
-            All Loans ({kpis ? kpis.totalLoanRequests : 0})
+            All Loans
           </button>
           <button
             onClick={() => {
@@ -511,22 +513,20 @@ export const LoansView: React.FC<LoansViewProps> = () => {
               setSearchTerm("");
               setStatusFilter("");
             }}
-            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
+            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
               activeTab === "requests"
-                ? "bg-white/30 backdrop-blur-md text-emerald-700 shadow-inner"
-                : "text-gray-600 hover:bg-white/20"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
-            Loan Requests ({kpis ? kpis.pendingRequests : 0})
+            Loan Requests
           </button>
         </nav>
       </div>
 
-      {/* Filters - Glass Style */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-4 sm:p-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
+      {/* Filters */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
             <input
@@ -534,7 +534,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
               placeholder="Search by name or reference..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-2.5 sm:py-3 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/40 focus:outline-none focus:bg-white/50 transition-all text-gray-800 placeholder-gray-500 text-sm sm:text-base"
+              className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500 text-sm sm:text-base"
             />
           </div>
 
@@ -542,7 +542,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 sm:px-5 py-2.5 sm:py-3 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/40 focus:outline-none focus:bg-white/50 transition-all text-gray-800 text-sm sm:text-base"
+              className="px-4 sm:px-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 text-sm sm:text-base"
             >
               <option value="">All Statuses</option>
               <option value="approved">Approved</option>
@@ -554,10 +554,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         </div>
       </div>
 
-      {/* Main Table Container - Glass Style */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 pointer-events-none" />
-
+      {/* Main Table Container */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <LeafLoader />
@@ -567,9 +565,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
         ) : (
           <>
             {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto relative z-10">
-              <table className="min-w-full divide-y divide-white/20">
-                <thead className="bg-white/15 backdrop-blur-md">
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
                     <th className="px-8 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Requester
@@ -591,11 +589,11 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10">
+                <tbody className="divide-y divide-gray-100">
                   {currentData.map((loan) => (
                     <tr
                       key={loan.id}
-                      className="hover:bg-white/10 transition-colors"
+                      className="hover:bg-gray-50 transition-colors"
                     >
                       <td className="px-8 py-5 whitespace-nowrap">
                         <div>
@@ -634,7 +632,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                         <div className="flex items-center justify-end space-x-3">
                           <button
                             onClick={() => handleViewDetails(loan)}
-                            className="p-2.5 text-emerald-700 hover:bg-white/30 rounded-xl transition-all backdrop-blur-sm"
+                            className="p-2.5 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all"
                             title="View Details"
                           >
                             <Eye className="w-5 h-5" />
@@ -668,11 +666,11 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden relative z-10 divide-y divide-white/10">
+            <div className="md:hidden divide-y divide-gray-100">
               {currentData.map((loan) => (
                 <div
                   key={loan.id}
-                  className="p-4 hover:bg-white/10 transition-colors"
+                  className="p-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
@@ -714,10 +712,10 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                     <button
                       onClick={() => handleViewDetails(loan)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-emerald-700 hover:bg-white/30 rounded-lg transition-all backdrop-blur-sm text-sm font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all text-sm font-medium"
                     >
                       <Eye className="w-4 h-4" />
                       View
@@ -726,7 +724,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     {loan.status === "requested" && (
                       <button
                         onClick={() => handleApprove(loan)}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-blue-700 hover:bg-white/30 rounded-lg transition-all backdrop-blur-sm text-sm font-medium"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-blue-700 hover:bg-blue-50 rounded-lg transition-all text-sm font-medium"
                       >
                         <CheckCircle2 className="w-4 h-4" />
                         Approve
@@ -736,7 +734,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     {loan.status === "approved" && (
                       <button
                         onClick={() => handleActivateLoan(loan)}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-green-700 hover:bg-white/30 rounded-lg transition-all backdrop-blur-sm text-sm font-medium"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-green-700 hover:bg-green-50 rounded-lg transition-all text-sm font-medium"
                       >
                         <Play className="w-4 h-4" />
                         Activate
@@ -747,43 +745,46 @@ export const LoansView: React.FC<LoansViewProps> = () => {
               ))}
             </div>
 
-            {/* Empty + Pagination */}
+            {/* Empty State */}
             {currentData.length === 0 && (
-              <div className="py-16 text-center text-gray-500 relative z-10">
+              <div className="py-16 text-center text-gray-500">
                 {activeTab === "loans"
                   ? "No loans found"
                   : "No loan requests found"}
               </div>
             )}
-
-            {totalPages > 1 && (
-              <div className="px-4 sm:px-8 py-4 sm:py-5 border-t border-white/20 flex flex-col sm:flex-row items-center justify-between gap-3 relative z-10 bg-white/5">
-                <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
-                  Showing page {currentPage} of {totalPages} ({total} total)
-                </div>
-                <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="flex-1 sm:flex-none px-4 sm:px-5 py-2 sm:py-2.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 text-sm sm:text-base"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="flex-1 sm:flex-none px-4 sm:px-5 py-2 sm:py-2.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 text-sm sm:text-base"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     
 
 
