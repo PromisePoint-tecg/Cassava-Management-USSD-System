@@ -349,21 +349,19 @@ const ProductsView: React.FC = () => {
         </>
       )}
 
-      {/* Create Product Modal - Enhanced Glass */}
+      {/* Create Product Modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden my-auto border border-white/60 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-              <div className="flex justify-between items-center relative z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden my-auto border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-[#066f48]">Create Product</h3>
-                <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all">
+                <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all">
                   <X className="w-6 h-6" />
                 </button>
               </div>
             </div>
-            <div className="p-6 space-y-4 relative z-10">
+            <div className="p-6 space-y-4">
               <form onSubmit={handleCreate} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
@@ -419,7 +417,7 @@ const ProductsView: React.FC = () => {
                     type="button" 
                     onClick={() => setShowCreate(false)} 
                     disabled={submitting}
-                    className="px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 transition-all text-gray-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all text-gray-700 disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -514,7 +512,7 @@ const ProductsView: React.FC = () => {
                     type="button" 
                     onClick={() => setEditingProduct(null)} 
                     disabled={submitting}
-                    className="px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 transition-all text-gray-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all text-gray-700 disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -533,14 +531,12 @@ const ProductsView: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal - Enhanced Glass */}
+      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && productToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/60 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-red-500/15 to-red-400/10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-              <div className="flex items-center gap-3 relative z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 bg-red-50">
+              <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
@@ -550,7 +546,7 @@ const ProductsView: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6 space-y-4 relative z-10">
+            <div className="p-6 space-y-4">
               <p className="text-gray-700">
                 Are you sure you want to delete <strong>"{productToDelete.productName}"</strong>? 
                 This will permanently remove the product from the system.
@@ -563,7 +559,7 @@ const ProductsView: React.FC = () => {
                     setProductToDelete(null);
                   }} 
                   disabled={submitting}
-                  className="px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 transition-all text-gray-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all text-gray-700 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -581,12 +577,11 @@ const ProductsView: React.FC = () => {
         </div>
       )}
 
-      {/* Success Modal - Enhanced Glass */}
+      {/* Success Modal */}
       {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/60 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            <div className="p-6 text-center space-y-4 relative z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+            <div className="p-6 text-center space-y-4">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle className="w-10 h-10 text-green-500" />
               </div>
@@ -594,7 +589,7 @@ const ProductsView: React.FC = () => {
               <p className="text-gray-600">{successMessage}</p>
               <button 
                 onClick={() => setShowSuccess(false)} 
-                className="px-6 py-2 bg-[#066f48] text-white rounded-xl hover:bg-[#055539] shadow-lg transition-all"
+                className="px-6 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] transition-all"
               >
                 OK
               </button>

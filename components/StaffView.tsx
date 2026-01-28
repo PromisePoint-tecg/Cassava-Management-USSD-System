@@ -14,6 +14,7 @@ import {
 import { staffApi, StaffProfile, StaffBalances } from '../services/staff';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
+import LeafInlineLoader from './Loader';
 
 export const StaffView: React.FC = () => {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
@@ -123,7 +124,7 @@ export const StaffView: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading profile..." />;
+    return <LeafInlineLoader/>;
   }
 
   if (error && !profile) {

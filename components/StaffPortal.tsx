@@ -340,24 +340,21 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
       {/* Loan Request Modal */}
       {showLoanRequestModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/60 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            
-            <div className="p-6 border-b border-white/40 flex justify-between items-center bg-gradient-to-r from-blue-600/15 to-purple-400/10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-              <h3 className="text-lg font-semibold text-gray-900 relative z-10">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Request Loan
               </h3>
               <button
                 onClick={() => setShowLoanRequestModal(false)}
-                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-white/50 rounded-lg transition-all relative z-10"
+                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded-lg transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleLoanRequestSubmit} className="p-6 space-y-4 relative z-10">
+            <form onSubmit={handleLoanRequestSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -376,7 +373,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                         durationMonths: selectedType?.duration_months || 6,
                       });
                     }}
-                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                     required
                     disabled={loadingLoanTypes}
                   >
@@ -408,7 +405,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                       })
                     }
                     placeholder="e.g., 100000"
-                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                     required
                     min={1000}
                     step={1000}
@@ -425,7 +422,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     type="number"
                     value={loanRequestForm.interestRate}
                     readOnly
-                    className="w-full px-3 py-2 border border-white/50 bg-white/20 backdrop-blur-md rounded-xl text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg text-gray-800"
                   />
                 </div>
 
@@ -437,7 +434,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     type="number"
                     value={loanRequestForm.durationMonths}
                     readOnly
-                    className="w-full px-3 py-2 border border-white/50 bg-white/20 backdrop-blur-md rounded-xl text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg text-gray-800"
                   />
                 </div>
               </div>
@@ -456,7 +453,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   }
                   placeholder="Describe the purpose of this loan..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
+                  className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                   required
                 />
               </div>
@@ -476,7 +473,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                       })
                     }
                     placeholder="e.g., Main Office"
-                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                   />
                 </div>
 
@@ -493,7 +490,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                         pickupDate: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                   />
                 </div>
               </div>
@@ -502,7 +499,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                 <button
                   type="button"
                   onClick={() => setShowLoanRequestModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl hover:bg-white/50 transition-all"
+                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
                 >
                   Cancel
                 </button>
@@ -521,13 +518,10 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
       {/* Loan Success Modal */}
       {showLoanSuccessModal && loanSuccessData && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/60 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            
-            <div className="p-6 border-b border-white/40 flex justify-between items-center bg-gradient-to-r from-green-600/15 to-emerald-400/10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-              <h3 className="text-lg font-semibold text-green-800 flex items-center relative z-10">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-green-50">
+              <h3 className="text-lg font-semibold text-green-800 flex items-center">
                 <CheckCircle2 className="w-6 h-6 mr-2" />
                 Loan Request Successful!
               </h3>
@@ -536,7 +530,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   setShowLoanSuccessModal(false);
                   setLoanSuccessData(null);
                 }}
-                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-white/50 rounded-lg transition-all relative z-10"
+                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded-lg transition-all"
               >
                 <X className="w-6 h-6" />
               </button>

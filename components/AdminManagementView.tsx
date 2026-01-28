@@ -66,40 +66,37 @@ const ViewAdminModal: React.FC<ViewAdminModalProps> = ({ isOpen, onClose, admin 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl max-w-md w-full mx-4 border border-white/60 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-        
-        <div className="bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 border-b border-white/40 px-6 py-4 relative overflow-hidden rounded-t-[2rem]">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-          <div className="flex justify-between items-center relative z-10">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 border border-gray-200 overflow-hidden">
+        <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+          <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-[#066f48]">Admin Details</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <span className="text-2xl">×</span>
             </button>
           </div>
         </div>
 
-        <div className="p-6 space-y-4 relative z-10">
+        <div className="p-6 space-y-4">
           {/* Admin Avatar and Basic Info */}
-          <div className="flex items-center space-x-4 pb-4 border-b border-white/30">
-            <div className="w-16 h-16 bg-[#066f48]/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50">
+          <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
+            <div className="w-16 h-16 bg-[#066f48]/20 rounded-full flex items-center justify-center border border-gray-300">
               <Users className="w-8 h-8 text-[#066f48]" />
             </div>
             <div>
               <h4 className="text-lg font-medium text-gray-900">{admin.fullName}</h4>
               <p className="text-sm text-gray-600">{admin.email}</p>
               <div className="flex items-center space-x-2 mt-2">
-                <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg backdrop-blur-sm ${getRoleColor(admin.role)}`}>
+                <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg ${getRoleColor(admin.role)}`}>
                   {getRoleDisplayName(admin.role)}
                 </span>
-                <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg backdrop-blur-sm border ${
+                <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg border ${
                   admin.isActive
-                    ? 'bg-green-100/90 text-green-800 border-green-200/50'
-                    : 'bg-gray-100/90 text-gray-800 border-gray-200/50'
+                    ? 'bg-green-100 text-green-800 border-green-200'
+                    : 'bg-gray-100 text-gray-800 border-gray-200'
                 }`}>
                   {admin.isActive ? 'Active' : 'Inactive'}
                 </span>
@@ -111,40 +108,40 @@ const ViewAdminModal: React.FC<ViewAdminModalProps> = ({ isOpen, onClose, admin 
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700">First Name</label>
-              <p className="text-sm text-gray-900 bg-white/40 backdrop-blur-sm p-2 rounded-xl border border-white/50">{admin.firstName}</p>
+              <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg border border-gray-200">{admin.firstName}</p>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700">Last Name</label>
-              <p className="text-sm text-gray-900 bg-white/40 backdrop-blur-sm p-2 rounded-xl border border-white/50">{admin.lastName}</p>
+              <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg border border-gray-200">{admin.lastName}</p>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700">Email Address</label>
-              <p className="text-sm text-gray-900 bg-white/40 backdrop-blur-sm p-2 rounded-xl border border-white/50">{admin.email}</p>
+              <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg border border-gray-200">{admin.email}</p>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700">Admin ID</label>
-              <p className="text-sm text-gray-900 bg-white/40 backdrop-blur-sm p-2 rounded-xl border border-white/50 font-mono">{admin.id}</p>
+              <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg border border-gray-200 font-mono">{admin.id}</p>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700">Created At</label>
-              <p className="text-sm text-gray-900 bg-white/40 backdrop-blur-sm p-2 rounded-xl border border-white/50">{formatDate(admin.createdAt)}</p>
+              <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg border border-gray-200">{formatDate(admin.createdAt)}</p>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700">Last Updated</label>
-              <p className="text-sm text-gray-900 bg-white/40 backdrop-blur-sm p-2 rounded-xl border border-white/50">{formatDate(admin.updatedAt)}</p>
+              <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg border border-gray-200">{formatDate(admin.updatedAt)}</p>
             </div>
           </div>
         </div>
 
-        <div className="p-6 pt-0 flex justify-end relative z-10">
+        <div className="p-6 pt-0 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 text-gray-700 transition-all"
+            className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 text-gray-700 transition-all"
           >
             Close
           </button>
@@ -200,26 +197,23 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl max-w-md w-full mx-4 border border-white/60 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-        
-        <div className="bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 border-b border-white/40 px-6 py-4 relative overflow-hidden rounded-t-[2rem]">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-          <div className="flex justify-between items-center relative z-10">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 border border-gray-200 overflow-hidden">
+        <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+          <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-[#066f48]">Create New Admin</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <span className="text-2xl">×</span>
             </button>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 relative z-10">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-red-50/90 backdrop-blur-sm border border-red-200/50 rounded-xl">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-800 text-sm">{error}</p>
             </div>
           )}
@@ -304,7 +298,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 text-gray-700 transition-all"
+              className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 text-gray-700 transition-all"
             >
               Cancel
             </button>
@@ -345,14 +339,13 @@ const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({ admin, onAction }) 
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 top-8 z-20 bg-white/90 backdrop-blur-xl border border-white/60 rounded-xl shadow-2xl py-1 min-w-[150px] transform -translate-x-2 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-xl py-1 min-w-[150px] transform -translate-x-2 overflow-hidden">
             <button
               onClick={() => {
                 onAction('view', admin);
                 setIsOpen(false);
               }}
-              className="relative w-full px-4 py-2 text-left text-sm text-[#066f48] hover:bg-white/40 flex items-center transition-all"
+              className="w-full px-4 py-2 text-left text-sm text-[#066f48] hover:bg-gray-100 flex items-center transition-all"
             >
               <Eye className="w-4 h-4 mr-2" />
               View Details
@@ -363,7 +356,7 @@ const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({ admin, onAction }) 
                   onAction('deactivate', admin);
                   setIsOpen(false);
                 }}
-                className="relative w-full px-4 py-2 text-left text-sm text-[#066f48] hover:bg-white/40 flex items-center transition-all"
+                className="w-full px-4 py-2 text-left text-sm text-[#066f48] hover:bg-gray-100 flex items-center transition-all"
               >
                 <UserX className="w-4 h-4 mr-2" />
                 Deactivate
@@ -374,7 +367,7 @@ const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({ admin, onAction }) 
                   onAction('activate', admin);
                   setIsOpen(false);
                 }}
-                className="relative w-full px-4 py-2 text-left text-sm text-[#066f48] hover:bg-white/40 flex items-center transition-all"
+                className="w-full px-4 py-2 text-left text-sm text-[#066f48] hover:bg-gray-100 flex items-center transition-all"
               >
                 <UserCheck className="w-4 h-4 mr-2" />
                 Activate

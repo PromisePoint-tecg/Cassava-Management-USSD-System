@@ -6,7 +6,7 @@ export enum UserRole {
  
 export enum TransactionStatus {
   PENDING = "PENDING",
-  SUCCESS = "SUCCESS",
+  SUCCESS = "SUCCESS", 
   FAILED = "FAILED",
 }
 

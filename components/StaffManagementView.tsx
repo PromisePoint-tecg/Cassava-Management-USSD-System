@@ -15,7 +15,7 @@ import {
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { SuccessModal } from "./SuccessModal";
-import { LeafLoader } from "./Loader";
+import LeafInlineLoader, { LeafLoader } from "./Loader";
 
 interface StaffManagementViewProps {
   adminId: string;
@@ -171,7 +171,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
   if (loading && staff.length === 0) {
     return (
         <div className="flex items-center justify-center min-h-screen">
-          <LeafLoader />
+          <LeafInlineLoader />
         </div>
       );
   }
@@ -635,7 +635,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
   );
 };
 
-// Staff Details Modal - Enhanced Glass
+// Staff Details Modal
 const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
   staff,
   onClose,
@@ -648,17 +648,14 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/60 relative my-auto">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-        
-        <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-          <div className="flex justify-between items-start relative z-10">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200 my-auto">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-[#066f48]">Staff Details</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -677,7 +674,7 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
           </div>
         </div>
 
-        <div className="p-6 space-y-6 relative z-10">
+        <div className="p-6 space-y-6">
           {/* Personal Information */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-3">
@@ -872,10 +869,10 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
           )}
         </div>
 
-        <div className="mt-6 flex justify-end p-6 border-t border-white/30 relative z-10">
+        <div className="mt-6 flex justify-end p-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-white/40 backdrop-blur-md border border-white/60 text-gray-800 rounded-xl hover:bg-white/50 transition-all"
+            className="px-6 py-2 bg-gray-100 border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-200 transition-all"
           >
             Close
           </button>
@@ -885,7 +882,7 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
   );
 };
 
-// Register Staff Modal - Enhanced Glass
+// Register Staff Modal
 const RegisterStaffModal: React.FC<{
   onClose: () => void;
   onSubmit: (data: RegisterStaffDto) => void;
@@ -906,19 +903,16 @@ const RegisterStaffModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-md w-full shadow-2xl border border-white/60 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-        
-        <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-          <div className="flex justify-between items-start relative z-10">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-xl border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-[#066f48]">
               Register New Staff
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -950,7 +944,7 @@ const RegisterStaffModal: React.FC<{
                 onChange={(e) =>
                   setFormData({ ...formData, firstName: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
             <div>
@@ -964,7 +958,7 @@ const RegisterStaffModal: React.FC<{
                 onChange={(e) =>
                   setFormData({ ...formData, lastName: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
           </div>
@@ -981,7 +975,7 @@ const RegisterStaffModal: React.FC<{
                 setFormData({ ...formData, phone: e.target.value })
               }
               placeholder="08012345678"
-              className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -996,7 +990,7 @@ const RegisterStaffModal: React.FC<{
               onChange={(e) =>
                 setFormData({ ...formData, lga: e.target.value })
               }
-              className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1011,7 +1005,7 @@ const RegisterStaffModal: React.FC<{
                 onChange={(e) =>
                   setFormData({ ...formData, role: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               >
                 <option value="">Select role</option>
                 <option value="Field Officer">Field Officer</option>
@@ -1030,7 +1024,7 @@ const RegisterStaffModal: React.FC<{
                 onChange={(e) =>
                   setFormData({ ...formData, department: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               >
                 <option value="">Select department</option>
                 <option value="Operations">Operations</option>
@@ -1057,7 +1051,7 @@ const RegisterStaffModal: React.FC<{
                   monthlySalary: parseFloat(e.target.value) * 100,
                 })
               }
-              className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1082,7 +1076,7 @@ const RegisterStaffModal: React.FC<{
   );
 };
 
-// Edit Staff Modal - Enhanced Glass
+// Edit Staff Modal
 const EditStaffModal: React.FC<{
   staff: Staff;
   onClose: () => void;
@@ -1103,17 +1097,14 @@ const EditStaffModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-md w-full shadow-2xl border border-white/60 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-        
-        <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-          <div className="flex justify-between items-start relative z-10">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-xl border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-[#066f48]">Edit Staff</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -1144,7 +1135,7 @@ const EditStaffModal: React.FC<{
                 onChange={(e) =>
                   setFormData({ ...formData, firstName: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
             <div>
@@ -1157,7 +1148,7 @@ const EditStaffModal: React.FC<{
                 onChange={(e) =>
                   setFormData({ ...formData, lastName: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
           </div>
@@ -1172,7 +1163,7 @@ const EditStaffModal: React.FC<{
               onChange={(e) =>
                 setFormData({ ...formData, lga: e.target.value })
               }
-              className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1186,7 +1177,7 @@ const EditStaffModal: React.FC<{
                 onChange={(e) =>
                   setFormData({ ...formData, role: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               >
                 <option value="Field Officer">Field Officer</option>
                 <option value="Manager">Manager</option>
@@ -1203,7 +1194,7 @@ const EditStaffModal: React.FC<{
                 onChange={(e) =>
                   setFormData({ ...formData, department: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               >
                 <option value="Operations">Operations</option>
                 <option value="Finance">Finance</option>
@@ -1228,7 +1219,7 @@ const EditStaffModal: React.FC<{
                   monthlySalary: parseFloat(e.target.value) * 100,
                 })
               }
-              className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1253,7 +1244,7 @@ const EditStaffModal: React.FC<{
   );
 };
 
-// Deactivate Staff Modal - Enhanced Glass
+// Deactivate Staff Modal
 const DeactivateStaffModal: React.FC<{
   staff: Staff;
   onClose: () => void;
@@ -1267,19 +1258,16 @@ const DeactivateStaffModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-md w-full shadow-2xl border border-white/60 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-        
-        <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-red-500/15 to-red-400/10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-          <div className="flex justify-between items-start relative z-10">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-xl border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-red-50">
+          <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-red-700">
               Deactivate Staff
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -1298,7 +1286,7 @@ const DeactivateStaffModal: React.FC<{
           </div>
         </div>
 
-        <div className="p-6 relative z-10">
+        <div className="p-6">
           <p className="text-sm text-gray-700 mb-4">
             You are about to deactivate <strong>{staff.fullName}</strong>.
             Please provide a reason.
@@ -1314,7 +1302,7 @@ const DeactivateStaffModal: React.FC<{
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={4}
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-red-500/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500/30 focus:outline-none focus:border-red-500 transition-all text-gray-800"
                 placeholder="Enter reason for deactivation..."
               />
             </div>
@@ -1323,7 +1311,7 @@ const DeactivateStaffModal: React.FC<{
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 text-gray-700 rounded-xl hover:bg-white/50 transition-all"
+                className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
               >
                 Cancel
               </button>
@@ -1341,7 +1329,7 @@ const DeactivateStaffModal: React.FC<{
   );
 };
 
-// Approve Staff Modal - Enhanced Glass
+// Approve Staff Modal
 interface ApproveStaffModalProps {
   staff: Staff;
   adminId: string;
@@ -1422,17 +1410,14 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/60 relative my-auto">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-        
-        <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-          <div className="flex justify-between items-center relative z-10">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200 my-auto">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-[#066f48]">Approve Staff</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -1451,8 +1436,8 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
           </div>
         </div>
 
-        <div className="p-6 relative z-10">
-          <div className="mb-6 p-4 bg-emerald-50/80 backdrop-blur-sm rounded-xl">
+        <div className="p-6">
+          <div className="mb-6 p-4 bg-emerald-50 rounded-lg">
             <h3 className="font-semibold text-gray-800 mb-2">
               {staff.fullName}
             </h3>
@@ -1516,7 +1501,7 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
                 onChange={(e) => setMonthlySalary(Number(e.target.value))}
                 min="0"
                 step="1000"
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
                 placeholder="Enter monthly salary"
               />
               <p className="mt-1 text-xs text-gray-600">
@@ -1535,7 +1520,7 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all text-gray-800"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
                 placeholder="Add any notes about the approval..."
               />
             </div>

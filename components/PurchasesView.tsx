@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Plus,Search,CheckCircle2,AlertCircle,Eye,Clock,DollarSign,TrendingUp,RefreshCw,Scale,Users,ChevronLeft,ChevronRight,X,ShoppingCart,
 } from "lucide-react";
 import {purchasesApi,PurchaseItem,PurchaseKPIs,CreatePurchaseData,GetPurchasesQuery,CassavaPricing,
@@ -25,6 +25,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [farmerSearchTerm, setFarmerSearchTerm] = useState("");
   const [successModal, setSuccessModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -48,6 +49,16 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const itemsPerPage = 10;
+
+  const filteredFarmers = useMemo(() => {
+  if (!farmerSearchTerm.trim()) return farmers;
+  
+  const searchLower = farmerSearchTerm.toLowerCase();
+  return farmers.filter(farmer => 
+    (farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}`).toLowerCase().includes(searchLower) ||
+    farmer.phone.includes(farmerSearchTerm)
+  );
+}, [farmers, farmerSearchTerm]);
 
   // Load initial data
   useEffect(() => {
@@ -125,10 +136,11 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     loadFarmers();
   };
 
-  const handleCloseCreateModal = () => {
-    setIsCreateModalOpen(false);
-    setCreateForm({ farmerId: "", weightKg: "" });
-  };
+ const handleCloseCreateModal = () => {
+  setIsCreateModalOpen(false);
+  setCreateForm({ farmerId: "", weightKg: "" });
+  setFarmerSearchTerm(""); 
+};
 
   // Form submission handlers
   const handleCreatePurchase = async (e: React.FormEvent) => {
@@ -474,40 +486,54 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         </div>
       )}
 
-      {/* Create Purchase Modal - Enhanced Glass */}
+      {/* Create Purchase Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden my-auto border border-white/60 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-              <div className="flex justify-between items-center relative z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden my-auto border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-[#066f48]">Record Cassava Purchase</h3>
-                <button onClick={handleCloseCreateModal} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all">
+                <button onClick={handleCloseCreateModal} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all">
                   <X className="w-6 h-6" />
                 </button>
               </div>
             </div>
 
-            <form onSubmit={handleCreatePurchase} className="p-6 space-y-4 relative z-10">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Farmer</label>
-                <select
-                  value={createForm.farmerId}
-                  onChange={(e) => setCreateForm({ ...createForm, farmerId: e.target.value })}
-                  required
-                  disabled={farmersLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                >
-                  <option value="">Select a farmer...</option>
-                  {farmers.map((farmer) => (
-                    <option key={farmer.id} value={farmer.id}>
-                      {farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone}
-                    </option>
-                  ))}
-                </select>
-                {farmersLoading && <p className="text-sm text-gray-500 mt-1">Loading farmers...</p>}
-              </div>
+            <form onSubmit={handleCreatePurchase} className="p-6 space-y-4">
+             <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Select Farmer</label>
+  
+  {/* Add Search Input */}
+  <div className="relative mb-2">
+    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+    <input
+      type="text"
+      placeholder="Search farmers by name or phone..."
+      value={farmerSearchTerm}
+      onChange={(e) => setFarmerSearchTerm(e.target.value)}
+      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+    />
+  </div>
+  
+  <select
+    value={createForm.farmerId}
+    onChange={(e) => setCreateForm({ ...createForm, farmerId: e.target.value })}
+    required
+    disabled={farmersLoading}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+  >
+    <option value="">Select a farmer...</option>
+    {filteredFarmers.map((farmer) => (
+      <option key={farmer.id} value={farmer.id}>
+        {farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone}
+      </option>
+    ))}
+  </select>
+  {farmersLoading && <p className="text-sm text-gray-500 mt-1">Loading farmers...</p>}
+  {!farmersLoading && filteredFarmers.length === 0 && farmerSearchTerm && (
+    <p className="text-sm text-red-500 mt-1">No farmers found matching "{farmerSearchTerm}"</p>
+  )}
+</div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
@@ -584,7 +610,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                 <button
                   type="button"
                   onClick={handleCloseCreateModal}
-                  className="flex-1 px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl hover:bg-white/50 transition-all text-gray-700"
+                  className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all text-gray-700"
                 >
                   Cancel
                 </button>
@@ -603,20 +629,18 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
       {/* View Purchase Modal - Enhanced Glass */}
       {isViewModalOpen && viewingPurchase && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden my-auto border border-white/60 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-              <div className="flex justify-between items-center relative z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden my-auto border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-[#066f48]">Purchase Details</h3>
-                <button onClick={() => { setIsViewModalOpen(false); setViewingPurchase(null); }} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white/50 rounded-lg transition-all">
+                <button onClick={() => { setIsViewModalOpen(false); setViewingPurchase(null); }} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all">
                   <X className="w-6 h-6" />
                 </button>
               </div>
             </div>
 
-            <div className="p-6 space-y-6 relative z-10">
+            <div className="p-6 space-y-6">
               {/* Purchase Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -713,10 +737,10 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-white/60 backdrop-blur-md border-t border-white/40 px-6 py-4 flex justify-end">
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end">
               <button
                 onClick={() => { setIsViewModalOpen(false); setViewingPurchase(null); }}
-                className="px-4 py-2 bg-[#066f48] text-white rounded-xl hover:bg-[#055539] shadow-lg transition-all"
+                className="px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] transition-all"
               >
                 Close
               </button>

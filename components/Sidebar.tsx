@@ -92,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: "purchases", label: "Purchases", icon: ShoppingCart },
     { id: "loans", label: "Credit Control", icon: CreditCard },
     { id: "transactions", label: "Ledger", icon: Receipt },
-    { id: "admins", label: "Security", icon: Shield },
+    { id: "admins", label: "admin management", icon: Shield },
     { id: "staff-management", label: "Staff Hub", icon: UserCog },
     { id: "payroll", label: "Payroll", icon: DollarSign },
     { id: "bonus", label: "Staff Bonus", icon: Gift },
