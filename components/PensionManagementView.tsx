@@ -357,14 +357,11 @@ const PensionHistoryModal = ({ staff, onClose }: { staff: any; onClose: () => vo
   let cumulativePension = 0;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden border border-white/60 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-        
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden border border-gray-200">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-white/40 bg-gradient-to-r from-[#066f48]/15 to-cyan-400/10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-          <div className="flex justify-between items-start relative z-10">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Pension Contribution History</h2>
               <div className="mt-2">
@@ -378,18 +375,18 @@ const PensionHistoryModal = ({ staff, onClose }: { staff: any; onClose: () => vo
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)] relative z-10">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
           {/* Summary Cards */}
           <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-green-50/80 backdrop-blur-sm rounded-xl p-4 border border-green-200/50">
+            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
               <div className="text-sm text-green-600 mb-1">Total Contributions</div>
               <div className="text-2xl font-bold text-green-900">{formatCurrency(staff.pensionContributions)}</div>
             </div>
-            <div className="bg-green-50/80 backdrop-blur-sm rounded-xl p-4 border border-green-200/50">
+            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
               <div className="text-sm text-green-600 mb-1">Current Balance</div>
               <div className="text-2xl font-bold text-green-900">{formatCurrency(staff.wallet?.pensionBalance || 0)}</div>
             </div>
-            <div className="bg-gray-50/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50">
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="text-sm text-gray-600 mb-1">Payment Count</div>
               <div className="text-2xl font-bold text-gray-900">{transactions.length}</div>
             </div>
@@ -404,9 +401,9 @@ const PensionHistoryModal = ({ staff, onClose }: { staff: any; onClose: () => vo
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto bg-white/30 backdrop-blur-sm rounded-xl border border-white/40">
-                <table className="min-w-full divide-y divide-white/20">
-                  <thead className="bg-white/40 backdrop-blur-md">
+              <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Period</th>
@@ -418,7 +415,7 @@ const PensionHistoryModal = ({ staff, onClose }: { staff: any; onClose: () => vo
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white/20 backdrop-blur-sm divide-y divide-white/10">
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {transactions.map((txn) => {
                       if (txn.paymentStatus === 'completed') {
                         cumulativePension += txn.totalPensionContribution;

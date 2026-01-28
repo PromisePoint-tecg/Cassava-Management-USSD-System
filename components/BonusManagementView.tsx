@@ -852,14 +852,13 @@ const BonusManagementView: React.FC = () => {
 
       {/* Fund Wallet Modal */}
       {showFundWalletModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 w-full max-w-md mx-4 shadow-2xl border border-white/60 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            <h3 className="text-lg font-semibold mb-4 flex items-center relative z-10">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl border border-gray-200">
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
               <Wallet className="w-5 h-5 mr-2 text-emerald-600" />
               Fund Bonus Wallet
             </h3>
-            <form onSubmit={handleFundWallet} className="relative z-10">
+            <form onSubmit={handleFundWallet}>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -869,7 +868,7 @@ const BonusManagementView: React.FC = () => {
                     type="number"
                     value={fundAmount || ""}
                     onChange={(e) => setFundAmount(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-gray-800"
                     placeholder="Enter amount"
                     min="1000"
                     step="100"
@@ -884,7 +883,7 @@ const BonusManagementView: React.FC = () => {
                     type="text"
                     value={fundReason}
                     onChange={(e) => setFundReason(e.target.value)}
-                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-gray-800"
                     placeholder="e.g., Quarterly bonus fund allocation"
                   />
                 </div>
@@ -893,7 +892,7 @@ const BonusManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowFundWalletModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/50 transition-all"
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all"
                 >
                   Cancel
                 </button>
@@ -916,13 +915,10 @@ const BonusManagementView: React.FC = () => {
 
       {/* Assign Bonus Modal */}
       {showAssignBonusModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] w-full max-w-5xl max-h-[95vh] flex flex-col shadow-2xl border border-white/60 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            
-            <div className="flex items-center justify-between p-6 border-b border-white/40 bg-gradient-to-r from-emerald-600/15 to-green-400/10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1/2 h-full bg-white/20 blur-xl rounded-full pointer-events-none" />
-              <h3 className="text-lg font-semibold flex items-center relative z-10">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-5xl max-h-[95vh] flex flex-col shadow-xl border border-gray-200 overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-lg font-semibold flex items-center">
                 <Gift className="w-5 h-5 mr-2 text-emerald-600" />
                 Assign Bonuses to Staff
               </h3>
@@ -932,15 +928,15 @@ const BonusManagementView: React.FC = () => {
                   setStaffSearch("");
                   setStaffPage(1);
                 }}
-                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-white/50 rounded-lg transition-all relative z-10"
+                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded-lg transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAssignBonuses} className="flex flex-col flex-1 overflow-hidden relative z-10">
+            <form onSubmit={handleAssignBonuses} className="flex flex-col flex-1 overflow-hidden">
               <div className="p-6 space-y-4 overflow-y-auto flex-1">
-                <div className="bg-emerald-50/80 backdrop-blur-sm border border-emerald-200/50 rounded-[1.5rem] p-4">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
                   <div className="flex items-center mb-2">
                     <Wallet className="w-4 h-4 mr-2 text-emerald-600" />
                     <span className="text-sm font-medium text-emerald-700">Available Balance</span>
@@ -960,7 +956,7 @@ const BonusManagementView: React.FC = () => {
                       setStaffSearch(e.target.value);
                       setStaffPage(1);
                     }}
-                    className="w-full pl-10 pr-4 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-gray-800"
                   />
                 </div>
                 
@@ -978,10 +974,10 @@ const BonusManagementView: React.FC = () => {
                     {staff.map((member) => (
                     <div
                       key={member.id}
-                      className={`p-4 border rounded-xl transition-all backdrop-blur-md ${
+                      className={`p-4 border rounded-lg transition-all ${
                         selectedStaff.has(member.id)
-                          ? "bg-emerald-50/80 border-emerald-300"
-                          : "bg-white/40 border-white/50 hover:bg-white/50"
+                          ? "bg-emerald-50 border-emerald-300"
+                          : "bg-white border-gray-200 hover:bg-gray-50"
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -1144,14 +1140,13 @@ const BonusManagementView: React.FC = () => {
 
       {/* Transfer Bonus Modal */}
       {showTransferModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 w-full max-w-md mx-4 shadow-2xl border border-white/60 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            <h3 className="text-lg font-semibold mb-4 flex items-center relative z-10">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl border border-gray-200">
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
               <Send className="w-5 h-5 mr-2 text-emerald-600" />
               Transfer Bonus to Wallet
             </h3>
-            <form onSubmit={handleTransferBonus} className="relative z-10">
+            <form onSubmit={handleTransferBonus}>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1160,7 +1155,7 @@ const BonusManagementView: React.FC = () => {
                   <select
                     value={transferStaffId}
                     onChange={(e) => setTransferStaffId(e.target.value)}
-                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-gray-800"
                     required
                   >
                     <option value="">Select staff member</option>
@@ -1181,14 +1176,14 @@ const BonusManagementView: React.FC = () => {
                     type="number"
                     value={transferAmount || ""}
                     onChange={(e) => setTransferAmount(e.target.value ? Number(e.target.value) : undefined)}
-                    className="w-full px-3 py-2 border border-white/50 bg-white/40 backdrop-blur-md rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white/50 transition-all text-gray-800"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-gray-800"
                     placeholder="Enter amount or leave empty for all"
                     min="100"
                     step="100"
                   />
                 </div>
                 {transferStaffId && (
-                  <div className="bg-emerald-50/80 backdrop-blur-sm border border-emerald-200/50 rounded-[1.5rem] p-3">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
                     <div className="text-sm text-emerald-700">
                       <strong>Current Bonus Balance: </strong>
                       {formatCurrency(getStaffBonusBalance(transferStaffId))}
@@ -1200,7 +1195,7 @@ const BonusManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowTransferModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl hover:bg-white/50 transition-all"
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all"
                 >
                   Cancel
                 </button>
