@@ -195,27 +195,27 @@ const AdminApp: React.FC = () => {
         userRole={adminInfo?.role} // Pass the user role to Sidebar
       />
       <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-        <header className="bg-slate-50  h-16 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 ">
+        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100"
+              className="lg:hidden text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Open menu"
             >
               <Menu className="w-6 h-6" />
             </button>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block text-sm text-gray-600">
+              Role: <strong className="text-gray-800">{adminInfo?.role || 'Unknown'}</strong>
+            </div>
             <button
               onClick={() => navigate("/profile")}
-              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold border border-gray-300 hover:bg-gray-300 transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-[#066f48] flex items-center justify-center text-white font-semibold hover:bg-[#055a3a] transition-colors cursor-pointer text-sm"
               title="View Profile"
             >
               {getInitials()}
             </button>
-             <div className="text-sm text-gray-600">
-      Role: <strong>{adminInfo?.role || 'Unknown'}</strong>
-    </div>
           </div>
         </header>
         <div className="p-4 sm:p-6 lg:p-8">

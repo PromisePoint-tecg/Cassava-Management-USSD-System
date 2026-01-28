@@ -175,41 +175,29 @@ export const Dashboard: React.FC = () => {
 
   if (totalWeight === 0 && totalPaid === 0 && data.activeFarmers === 0) {
     return (
-      <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-8 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-        <h3 className="text-lg font-semibold text-gray-800 relative z-10">No activity yet</h3>
-        <p className="text-sm text-gray-500 mt-2 relative z-10">No purchases or farmers have been recorded. Create products and record purchases to populate the dashboard.</p>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
+        <h3 className="text-lg font-semibold text-gray-800">No activity yet</h3>
+        <p className="text-sm text-gray-500 mt-2">No purchases or farmers have been recorded. Create products and record purchases to populate the dashboard.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-5">
-      {/* Header - Liquid Glass Container */}
-      <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="flex items-center justify-between relative z-10">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
             <p className="text-sm text-gray-600 mt-0.5">Real-time analytics and insights</p>
           </div>
           <button
             onClick={loadDashboardData}
-            className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-[#066f48] bg-white/50 hover:bg-white/70 backdrop-blur-lg rounded-xl border border-white/70 hover:border-[#066f48]/30 transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden group"
+            className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-[#066f48] bg-white hover:bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200"
             title="Refresh data"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
-            <RefreshCw className="w-4 h-4 mr-2 relative z-10" />
-            <span className="relative z-10">Refresh</span>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            <span>Refresh</span>
           </button>
         </div>
       </div>
@@ -288,16 +276,10 @@ export const Dashboard: React.FC = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Purchase Volume Chart - Liquid Glass */}
-        <div className="lg:col-span-2 bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Purchase Volume (Last 7 Days)</h3>
-          <div className="h-64 w-full relative z-10">
+        {/* Purchase Volume Chart */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">Purchase Volume (Last 7 Days)</h3>
+          <div className="h-64 w-full">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
@@ -312,11 +294,10 @@ export const Dashboard: React.FC = () => {
                   <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-                      backdropFilter: 'blur(12px)',
-                      borderRadius: '12px', 
-                      border: '1px solid rgba(255, 255, 255, 0.6)', 
-                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)' 
+                      backgroundColor: 'white', 
+                      borderRadius: '8px', 
+                      border: '1px solid #e5e7eb', 
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' 
                     }}
                     formatter={(value: number) => [`${value.toLocaleString()} kg`, 'Weight']}
                   />
@@ -331,16 +312,10 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Transaction Breakdown - Liquid Glass */}
-        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Transaction Breakdown</h3>
-          <div className="h-64 w-full relative z-10">
+        {/* Transaction Breakdown */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">Transaction Breakdown</h3>
+          <div className="h-64 w-full">
             {transactionBreakdown.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -360,11 +335,10 @@ export const Dashboard: React.FC = () => {
                   <Tooltip 
                     formatter={(value: number) => [`${value} transactions`, 'Count']}
                     contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-                      backdropFilter: 'blur(12px)',
-                      borderRadius: '12px', 
-                      border: '1px solid rgba(255, 255, 255, 0.6)', 
-                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)' 
+                      backgroundColor: 'white', 
+                      borderRadius: '8px', 
+                      border: '1px solid #e5e7eb', 
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' 
                     }}
                   />
                   <Legend />
@@ -381,37 +355,27 @@ export const Dashboard: React.FC = () => {
 
       {/* Recent Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Purchases - Liquid Glass */}
-        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Recent Purchases</h3>
-          <div className="space-y-3 relative z-10">
+        {/* Recent Purchases */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">Recent Purchases</h3>
+          <div className="space-y-3">
             {data.recentPurchases.length > 0 ? (
               data.recentPurchases.map((purchase) => {
                 const date = new Date(purchase.createdAt);
                 const timeAgo = getTimeAgo(date);
                 return (
-                  <div key={purchase._id} className="bg-white/30 backdrop-blur-xl rounded-[1.25rem] p-3.5 border border-white/40 shadow-[0_2px_8px_rgba(0,0,0,0.05),0_1px_2px_rgba(255,255,255,0.6)_inset] hover:bg-white/40 hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/60 via-white/25 to-transparent rounded-t-[1.25rem] pointer-events-none blur-[0.5px]" />
-                    <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/40 blur-2xl rounded-full pointer-events-none" />
-                    <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-[#066f48]/10 blur-xl rounded-full pointer-events-none" />
-                    
-                    <div className="flex items-start relative z-10">
-                      <div className="w-2 h-2 mt-1.5 rounded-full bg-[#066f48] mr-3 flex-shrink-0 group-hover:scale-125 transition-transform shadow-sm" />
+                  <div key={purchase._id} className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 hover:bg-gray-100 hover:shadow-sm transition-all duration-200">
+                    <div className="flex items-start">
+                      <div className="w-2 h-2 mt-1.5 rounded-full bg-[#066f48] mr-3 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <p className="text-sm text-gray-800 font-semibold truncate">
                             {purchase.weightKg.toLocaleString()}kg
                           </p>
-                          <span className={`text-xs px-2.5 py-1 rounded-lg flex-shrink-0 backdrop-blur-sm font-medium ${
-                            purchase.status === 'completed' ? 'bg-green-100/90 text-green-700' :
-                            purchase.status === 'pending' ? 'bg-yellow-100/90 text-yellow-700' :
-                            'bg-red-100/90 text-red-700'
+                          <span className={`text-xs px-2.5 py-1 rounded-md flex-shrink-0 font-medium ${
+                            purchase.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
                           }`}>
                             {purchase.status}
                           </span>
@@ -438,28 +402,18 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Recent Transactions - Liquid Glass */}
-        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Recent Transactions</h3>
-          <div className="space-y-3 relative z-10">
+        {/* Recent Transactions */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">Recent Transactions</h3>
+          <div className="space-y-3">
             {data.recentTransactions.length > 0 ? (
               data.recentTransactions.map((transaction) => {
                 const date = new Date(transaction.createdAt);
                 const timeAgo = getTimeAgo(date);
                 return (
-                  <div key={transaction.id} className="bg-white/30 backdrop-blur-xl rounded-[1.25rem] p-3.5 border border-white/40 shadow-[0_2px_8px_rgba(0,0,0,0.05),0_1px_2px_rgba(255,255,255,0.6)_inset] hover:bg-white/40 hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/60 via-white/25 to-transparent rounded-t-[1.25rem] pointer-events-none blur-[0.5px]" />
-                    <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/40 blur-2xl rounded-full pointer-events-none" />
-                    <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-[#066f48]/10 blur-xl rounded-full pointer-events-none" />
-                    
-                    <div className="flex items-start relative z-10">
-                      <div className={`w-2 h-2 mt-1.5 rounded-full mr-3 flex-shrink-0 group-hover:scale-125 transition-transform shadow-sm ${
+                  <div key={transaction.id} className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 hover:bg-gray-100 hover:shadow-sm transition-all duration-200">
+                    <div className="flex items-start">
+                      <div className={`w-2 h-2 mt-1.5 rounded-full mr-3 flex-shrink-0 ${
                         transaction.status === 'completed' ? 'bg-[#066f48]' :
                         transaction.status === 'pending' ? 'bg-yellow-500' :
                         'bg-red-500'
@@ -469,10 +423,10 @@ export const Dashboard: React.FC = () => {
                           <p className="text-sm text-gray-800 font-semibold truncate capitalize">
                             {transaction.type}
                           </p>
-                          <span className={`text-xs px-2.5 py-1 rounded-lg flex-shrink-0 backdrop-blur-sm font-medium ${
-                            transaction.status === 'completed' ? 'bg-green-100/90 text-green-700' :
-                            transaction.status === 'pending' ? 'bg-yellow-100/90 text-yellow-700' :
-                            'bg-red-100/90 text-red-700'
+                          <span className={`text-xs px-2.5 py-1 rounded-md flex-shrink-0 font-medium ${
+                            transaction.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
                           }`}>
                             {transaction.status}
                           </span>
