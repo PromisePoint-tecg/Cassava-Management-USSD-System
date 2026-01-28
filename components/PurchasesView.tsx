@@ -26,6 +26,8 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [farmerSearchTerm, setFarmerSearchTerm] = useState("");
+  const [showFarmerDropdown, setShowFarmerDropdown] = useState(false);
+  const [selectedFarmerName, setSelectedFarmerName] = useState("");
   const [successModal, setSuccessModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -148,7 +150,9 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
  const handleCloseCreateModal = () => {
   setIsCreateModalOpen(false);
   setCreateForm({ farmerId: "", weightKg: "" });
-  setFarmerSearchTerm(""); 
+  setFarmerSearchTerm("");
+  setShowFarmerDropdown(false);
+  setSelectedFarmerName("");
 };
 
   // Form submission handlers
@@ -487,37 +491,106 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
             <form onSubmit={handleCreatePurchase} className="p-6 space-y-4">
              <div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">Select Farmer</label>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Select Farmer *</label>
   
-  {/* Add Search Input */}
-  <div className="relative mb-2">
-    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+  {/* Searchable Dropdown */}
+  <div className="relative">
+    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
     <input
       type="text"
-      placeholder="Search farmers by name or phone..."
+      placeholder={selectedFarmerName || "Search farmers by name or phone..."}
       value={farmerSearchTerm}
-      onChange={(e) => setFarmerSearchTerm(e.target.value)}
+      onChange={(e) => {
+        setFarmerSearchTerm(e.target.value);
+        setShowFarmerDropdown(true);
+      }}
+      onFocus={() => setShowFarmerDropdown(true)}
+      disabled={farmersLoading}
       className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
     />
+    
+    {/* Hidden required input for form validation */}
+    <input
+      type="text"
+      value={createForm.farmerId}
+      onChange={() => {}}
+      required
+      className="absolute opacity-0 pointer-events-none"
+      tabIndex={-1}
+    />
+    
+    {/* Dropdown Results */}
+    {showFarmerDropdown && !farmersLoading && (
+      <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        {filteredFarmers.length > 0 ? (
+          <ul className="py-1">
+            {filteredFarmers.map((farmer) => {
+              const farmerName = farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone;
+              const isSelected = createForm.farmerId === farmer.id;
+              
+              return (
+                <li
+                  key={farmer.id}
+                  onClick={() => {
+                    setCreateForm({ ...createForm, farmerId: farmer.id });
+                    setSelectedFarmerName(farmerName);
+                    setFarmerSearchTerm("");
+                    setShowFarmerDropdown(false);
+                  }}
+                  className={`px-4 py-2.5 cursor-pointer hover:bg-emerald-50 transition-colors ${
+                    isSelected ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium">{farmerName}</div>
+                      <div className="text-xs text-gray-500">{farmer.phone}</div>
+                    </div>
+                    {isSelected && (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="px-4 py-8 text-center text-gray-500">
+            <p className="text-sm">
+              {farmerSearchTerm ? `No farmers found matching "${farmerSearchTerm}"` : 'No farmers available'}
+            </p>
+          </div>
+        )}
+      </div>
+    )}
+    
+    {/* Selected Farmer Display */}
+    {selectedFarmerName && !showFarmerDropdown && (
+      <div className="mt-2 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <span className="text-sm font-medium text-emerald-700">{selectedFarmerName}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setCreateForm({ ...createForm, farmerId: "" });
+            setSelectedFarmerName("");
+            setFarmerSearchTerm("");
+          }}
+          className="text-emerald-600 hover:text-emerald-800 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    )}
   </div>
   
-  <select
-    value={createForm.farmerId}
-    onChange={(e) => setCreateForm({ ...createForm, farmerId: e.target.value })}
-    required
-    disabled={farmersLoading}
-    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-  >
-    <option value="">Select a farmer...</option>
-    {filteredFarmers.map((farmer) => (
-      <option key={farmer.id} value={farmer.id}>
-        {farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone}
-      </option>
-    ))}
-  </select>
-  {farmersLoading && <p className="text-sm text-gray-500 mt-1">Loading farmers...</p>}
-  {!farmersLoading && filteredFarmers.length === 0 && farmerSearchTerm && (
-    <p className="text-sm text-red-500 mt-1">No farmers found matching "{farmerSearchTerm}"</p>
+  {farmersLoading && (
+    <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
+      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-emerald-500"></div>
+      Loading farmers...
+    </p>
   )}
 </div>
 
