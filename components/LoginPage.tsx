@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Lock, User, Loader2 } from "lucide-react";
+import { Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
 import { login, introspect } from "../services/auth";
 import type { AdminInfo } from "../services/auth";
 import LeafInlineLoader, { LeafLoader } from "./Loader";
@@ -17,6 +17,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,14 +155,25 @@ const LoginPage: React.FC<LoginPageProps> = ({
                     </div>
                     <input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="block w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-sm sm:text-base"
+                      className="block w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-sm sm:text-base"
                       placeholder="Enter your password"
                       disabled={loading}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-white/60 hover:text-white/80 transition-colors" />
+                      ) : (
+                        <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-white/60 hover:text-white/80 transition-colors" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
