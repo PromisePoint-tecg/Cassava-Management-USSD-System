@@ -363,17 +363,11 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Purchase Volume Chart - Liquid Glass */}
+        {/* Purchase Volume Chart */}
         {permissions.purchaseVolumeChart && (
-        <div className="lg:col-span-2 bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Purchase Volume (Last 7 Days)</h3>
-          <div className="h-64 w-full relative z-10">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">Purchase Volume (Last 7 Days)</h3>
+          <div className="h-64 w-full">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
@@ -407,17 +401,11 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
         </div>
         )}
 
-        {/* Transaction Breakdown - Liquid Glass */}
+        {/* Transaction Breakdown */}
         {permissions.transactionBreakdown && (
-        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Transaction Breakdown</h3>
-          <div className="h-64 w-full relative z-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">Transaction Breakdown</h3>
+          <div className="h-64 w-full">
             {transactionBreakdown.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -459,17 +447,11 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
 
       {/* Recent Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Purchases - Liquid Glass */}
+        {/* Recent Purchases */}
         {permissions.recentPurchases && (
-        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Recent Purchases</h3>
-          <div className="space-y-3 relative z-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">Recent Purchases</h3>
+          <div className="space-y-3">
             {data.recentPurchases.length > 0 ? (
               data.recentPurchases.map((purchase) => {
                 const date = new Date(purchase.createdAt);
@@ -514,17 +496,11 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
         </div>
         )}
 
-        {/* Recent Transactions - Liquid Glass */}
+        {/* Recent Transactions */}
         {permissions.recentTransactions && (
-        <div className="bg-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/80 via-white/40 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/10 via-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/10 via-transparent to-cyan-400/10 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/50 via-white/20 to-transparent blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-[#066f48]/15 to-transparent blur-2xl rounded-full pointer-events-none" />
-          
-          <h3 className="text-base font-semibold text-gray-800 mb-4 relative z-10">Recent Transactions</h3>
-          <div className="space-y-3 relative z-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">Recent Transactions</h3>
+          <div className="space-y-3">
             {data.recentTransactions.length > 0 ? (
               data.recentTransactions.map((transaction) => {
                 const date = new Date(transaction.createdAt);
