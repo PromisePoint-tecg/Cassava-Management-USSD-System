@@ -173,10 +173,10 @@ const ProductsView: React.FC = () => {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <div className="flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-[#066f48]">
+            <div className="p-3 rounded-lg bg-[#066f48]">
               <Package className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -186,7 +186,7 @@ const ProductsView: React.FC = () => {
           </div>
           <button 
             onClick={() => setShowCreate(true)} 
-            className="px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] flex items-center gap-2 transition-all"
+            className="w-full sm:w-auto px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] flex items-center justify-center gap-2 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Add Product</span>
@@ -195,7 +195,7 @@ const ProductsView: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -210,7 +210,7 @@ const ProductsView: React.FC = () => {
           <select
             value={filters.isActive || ''}
             onChange={(e) => handleFilterChange('isActive', e.target.value)}
-            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
+            className="w-full sm:w-auto px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
           >
             <option value="">All Status</option>
             <option value="true">Active</option>
@@ -236,8 +236,65 @@ const ProductsView: React.FC = () => {
         </div>
       ) : (
         <>
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-4">
+            {products.map((p) => (
+              <div key={p.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all duration-200">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-gray-800">{p.productName}</h3>
+                      <p className="text-xs text-gray-600 mt-1">{p.size}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                      p.isActive 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {p.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-gray-500">Farmer Price:</span>
+                      <p className="font-medium text-gray-800">₦{p.priceForFarmers.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Market Price:</span>
+                      <p className="font-medium text-gray-800">₦{p.priceForMarket.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2 border-t border-gray-200">
+                    <button 
+                      onClick={() => setEditingProduct(p)} 
+                      className="flex-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => toggleStatus(p)} 
+                      className="flex-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all"
+                    >
+                      {p.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button 
+                      onClick={() => confirmDelete(p)} 
+                      className="px-3 py-2 text-sm bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 transition-all"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {/* Desktop Table View */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="hidden lg:block bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-gray-600">
                 <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs border-b border-gray-200">
@@ -300,15 +357,15 @@ const ProductsView: React.FC = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
                 <p className="text-sm text-gray-600">
-                  Page {currentPage} of {totalPages}
+                  Page <span className="font-medium">{currentPage}</span> of <span className="font-medium">{totalPages}</span>
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 text-sm font-medium"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Previous
@@ -316,7 +373,7 @@ const ProductsView: React.FC = () => {
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages}
-                    className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 text-sm font-medium"
                   >
                     Next
                     <ChevronRight className="w-4 h-4" />

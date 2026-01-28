@@ -365,15 +365,9 @@ const BonusManagementView: React.FC = () => {
 
   return (
     <div className="space-y-5">
-      {/* Header - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-green-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-emerald-600/10 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-xl bg-emerald-600 shadow-lg">
               <Gift className="w-6 h-6 text-white" />
@@ -384,7 +378,7 @@ const BonusManagementView: React.FC = () => {
             </div>
           </div>
           {error && (
-            <div className="flex items-center text-red-700 bg-red-100/80 backdrop-blur-sm px-4 py-2 rounded-xl border border-red-200/50">
+            <div className="flex items-center text-red-700 bg-red-50 px-4 py-2 rounded-lg border border-red-200">
               <AlertCircle className="w-5 h-5 mr-2" />
               <span className="text-sm">{error}</span>
               <button
@@ -398,12 +392,9 @@ const BonusManagementView: React.FC = () => {
         </div>
       </div>
 
-      {/* Actions Bar - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-white/30 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-center relative z-10">
+      {/* Actions Bar */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
           <h2 className="text-lg font-semibold text-gray-800">Bonus Actions</h2>
           <div className="flex flex-wrap gap-3">
             <button
@@ -432,18 +423,15 @@ const BonusManagementView: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Cards - Liquid Glass */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* Bonus Wallet Balance */}
-        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          
-          <div className="flex items-center justify-between mb-2 relative z-10">
-            <div className="text-sm font-medium text-gray-700">Bonus Wallet Balance</div>
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium text-gray-600">Bonus Wallet Balance</div>
+            <Wallet className="w-5 h-5 text-emerald-600" />
           </div>
-          <div className="mt-2 relative z-10">
+          <div className="mt-2">
             {walletLoading ? (
               <div className="animate-pulse">
                 <div className="h-8 bg-emerald-200/50 rounded w-24 mb-1"></div>
@@ -465,55 +453,47 @@ const BonusManagementView: React.FC = () => {
         </div>
 
         {/* Total Staff */}
-        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          
-          <div className="flex items-center justify-between mb-2 relative z-10">
-            <div className="text-sm font-medium text-gray-700">Active Staff</div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium text-gray-600">Active Staff</div>
             <Users className="w-5 h-5 text-emerald-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-800 relative z-10">{staff.length}</div>
-          <div className="text-xs text-gray-600 mt-1 relative z-10">Eligible for bonuses</div>
+          <div className="text-2xl font-bold text-gray-800">{staff.length}</div>
+          <div className="text-xs text-gray-500 mt-1">Eligible for bonuses</div>
         </div>
 
         {/* Staff with Bonuses */}
-        <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/25 blur-2xl rounded-full pointer-events-none" />
-          
-          <div className="flex items-center justify-between mb-2 relative z-10">
-            <div className="text-sm font-medium text-gray-700">Staff with Bonuses</div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium text-gray-600">Staff with Bonuses</div>
             <Gift className="w-5 h-5 text-green-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-800 relative z-10">
+          <div className="text-2xl font-bold text-gray-800">
             {staffBonusBalances.filter(b => b.bonusBalance > 0).length}
           </div>
-          <div className="text-xs text-gray-600 mt-1 relative z-10">Have pending bonuses</div>
+          <div className="text-xs text-gray-500 mt-1">Have pending bonuses</div>
         </div>
       </div>
 
-      {/* Tabs - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-3 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-white/30 to-transparent blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="flex gap-2 relative z-10">
+      {/* Tabs */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3">
+        <div className="flex gap-2">
           <button
             onClick={() => setActiveTab("balances")}
-            className={`px-4 py-2 rounded-xl border transition-all ${
+            className={`px-4 py-2 rounded-lg transition-all ${
               activeTab === "balances"
-                ? "bg-emerald-600 text-white border-emerald-600 shadow-lg"
-                : "text-gray-700 border-white/50 bg-white/20 hover:bg-white/30 backdrop-blur-md"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "text-gray-700 bg-gray-50 hover:bg-gray-100"
             }`}
           >
             Balances
           </button>
           <button
             onClick={() => setActiveTab("transactions")}
-            className={`px-4 py-2 rounded-xl border transition-all ${
+            className={`px-4 py-2 rounded-lg transition-all ${
               activeTab === "transactions"
-                ? "bg-emerald-600 text-white border-emerald-600 shadow-lg"
-                : "text-gray-700 border-white/50 bg-white/20 hover:bg-white/30 backdrop-blur-md"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "text-gray-700 bg-gray-50 hover:bg-gray-100"
             }`}
           >
             Transactions
@@ -522,19 +502,14 @@ const BonusManagementView: React.FC = () => {
       </div>
 
       {activeTab === "balances" && (
-        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
-          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-green-400/5 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-          
-          <div className="p-6 border-b border-white/30 relative z-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800 flex items-center">
               <Users className="w-5 h-5 mr-2 text-emerald-600" />
               Staff Bonus Balances
             </h3>
           </div>
-          <div className="overflow-x-auto relative z-10">
+          <div>
             {staffBonusBalances.length === 0 ? (
               <div className="text-center py-12 text-gray-600">
                 <Gift className="w-12 h-12 mx-auto mb-3 text-gray-400" />
@@ -550,86 +525,145 @@ const BonusManagementView: React.FC = () => {
 
               return (
                 <>
-                  <table className="min-w-full text-left text-sm text-gray-700">
-                    <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium uppercase text-xs border-b border-white/30">
-                      <tr>
-                        <th className="px-6 py-3">Staff Member</th>
-                        <th className="px-6 py-3">Department</th>
-                        <th className="px-6 py-3 text-right">Bonus Balance</th>
-                        <th className="px-6 py-3 text-center">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/15">
-                      {paginatedBalances.map((balance) => {
-                        const staffMember = staff.find(s => s.id === balance.staffId);
-                        return (
-                          <tr key={balance.staffId} className="hover:bg-white/10 transition-colors">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10 bg-emerald-100/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50">
-                                  <span className="text-emerald-700 font-medium text-sm">
-                                    {balance.firstName?.[0]}{balance.lastName?.[0]}
-                                  </span>
+                  {/* Mobile Card View */}
+                  <div className="lg:hidden space-y-4 p-4">
+                    {paginatedBalances.map((balance) => {
+                      const staffMember = staff.find(s => s.id === balance.staffId);
+                      return (
+                        <div key={balance.staffId} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex-shrink-0 h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <span className="text-emerald-700 font-medium text-sm">
+                                  {balance.firstName?.[0]}{balance.lastName?.[0]}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-800">
+                                  {balance.firstName} {balance.lastName}
                                 </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-800">
-                                    {balance.firstName} {balance.lastName}
-                                  </div>
-                                  <div className="text-xs text-gray-600">
-                                    {staffMember?.employeeId || 'N/A'}
-                                  </div>
+                                <div className="text-xs text-gray-500">
+                                  {staffMember?.employeeId || 'N/A'}
                                 </div>
                               </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-800">{staffMember?.department || '—'}</div>
-                              <div className="text-xs text-gray-600">{staffMember?.role || '—'}</div>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="text-sm font-semibold text-emerald-700">
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-gray-500">Department:</span>
+                              <p className="font-medium text-gray-800">{staffMember?.department || '—'}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Role:</span>
+                              <p className="font-medium text-gray-800">{staffMember?.role || '—'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                            <div>
+                              <span className="text-xs text-gray-500">Bonus Balance</span>
+                              <p className="text-lg font-semibold text-emerald-600">
                                 {formatCurrency(balance.bonusBalance)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <button
-                                onClick={() => {
-                                  setTransferStaffId(balance.staffId);
-                                  setShowTransferModal(true);
-                                }}
-                                className="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg"
-                              >
-                                <Send className="w-3.5 h-3.5 mr-1.5" />
-                                Transfer
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setTransferStaffId(balance.staffId);
+                                setShowTransferModal(true);
+                              }}
+                              className="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-all"
+                            >
+                              <Send className="w-3.5 h-3.5 mr-1.5" />
+                              Transfer
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Desktop Table View */}
+                  <div className="hidden lg:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff Member</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Bonus Balance</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {paginatedBalances.map((balance) => {
+                          const staffMember = staff.find(s => s.id === balance.staffId);
+                          return (
+                            <tr key={balance.staffId} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                    <span className="text-emerald-700 font-medium text-sm">
+                                      {balance.firstName?.[0]}{balance.lastName?.[0]}
+                                    </span>
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-800">
+                                      {balance.firstName} {balance.lastName}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {staffMember?.employeeId || 'N/A'}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-800">{staffMember?.department || '—'}</div>
+                                <div className="text-xs text-gray-500">{staffMember?.role || '—'}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <div className="text-sm font-semibold text-emerald-600">
+                                  {formatCurrency(balance.bonusBalance)}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <button
+                                  onClick={() => {
+                                    setTransferStaffId(balance.staffId);
+                                    setShowTransferModal(true);
+                                  }}
+                                  className="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-all"
+                                >
+                                  <Send className="w-3.5 h-3.5 mr-1.5" />
+                                  Transfer
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                   
                   {totalPages > 1 && (
-                    <div className="px-6 py-4 border-t border-white/30 bg-white/10 backdrop-blur-md flex items-center justify-between">
-                      <div className="text-sm text-gray-700">
+                    <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                      <div className="text-sm text-gray-600">
                         Showing {startIndex + 1} - {Math.min(endIndex, balancesWithPositive.length)} of {balancesWithPositive.length} staff with bonuses
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setBalancesPage(p => Math.max(1, p - 1))}
                           disabled={balancesPage === 1}
-                          className="px-3 py-1 text-sm border border-white/50 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                         >
-                          <ChevronLeft className="w-4 h-4" />
+                          Previous
                         </button>
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-gray-600">
                           Page {balancesPage} of {totalPages}
                         </span>
                         <button
                           onClick={() => setBalancesPage(p => Math.min(totalPages, p + 1))}
                           disabled={balancesPage >= totalPages}
-                          className="px-3 py-1 text-sm border border-white/50 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          Next
                         </button>
                       </div>
                     </div>
@@ -642,13 +676,8 @@ const BonusManagementView: React.FC = () => {
       )}
 
       {activeTab === "transactions" && (
-        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-green-400/5 rounded-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-          
-          <div className="p-6 border-b border-white/30 relative z-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center">
                 <History className="w-5 h-5 mr-2 text-emerald-600" />
@@ -663,7 +692,7 @@ const BonusManagementView: React.FC = () => {
                       setTxPage(1);
                       setTxType(e.target.value as BonusTransactionType | "");
                     }}
-                    className="border border-white/50 bg-white/40 backdrop-blur-md rounded-xl px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-700"
+                    className="border border-gray-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-700"
                   >
                     <option value="">All types</option>
                     <option value="bonus_wallet_funding">Bonus Funding</option>
@@ -678,7 +707,7 @@ const BonusManagementView: React.FC = () => {
                       setTxPage(1);
                       setTxStaffId(e.target.value);
                     }}
-                    className="border border-white/50 bg-white/40 backdrop-blur-md rounded-xl px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-[180px] text-gray-700"
+                    className="border border-gray-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-[180px] text-gray-700"
                   >
                     <option value="">All staff</option>
                     {staff.map((s) => (
@@ -688,8 +717,8 @@ const BonusManagementView: React.FC = () => {
                     ))}
                   </select>
                 </div>
-                <div className="flex items-center border border-white/50 bg-white/40 backdrop-blur-md rounded-xl px-2 py-1">
-                  <Search className="w-4 h-4 text-emerald-600" />
+                <div className="flex items-center border border-gray-200 bg-white rounded-lg px-2 py-1.5">
+                  <Search className="w-4 h-4 text-gray-400" />
                   <input
                     value={txSearch}
                     onChange={(e) => {
@@ -697,13 +726,13 @@ const BonusManagementView: React.FC = () => {
                       setTxSearch(e.target.value);
                     }}
                     placeholder="Search reference"
-                    className="bg-transparent px-2 py-1 text-sm focus:outline-none min-w-[160px] text-gray-700 placeholder-gray-500"
+                    className="bg-transparent px-2 py-1 text-sm focus:outline-none min-w-[160px] text-gray-700 placeholder-gray-400"
                   />
                 </div>
                 <select
                   value={txLimit}
                   onChange={(e) => setTxLimit(Number(e.target.value))}
-                  className="border border-white/50 bg-white/40 backdrop-blur-md rounded-xl px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-700"
+                  className="border border-gray-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-700"
                 >
                   <option value={10}>10 / page</option>
                   <option value={20}>20 / page</option>
@@ -712,13 +741,13 @@ const BonusManagementView: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="p-6 relative z-10">
+          <div className="p-6">
             {txLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
               </div>
             ) : txError ? (
-              <div className="bg-red-50/90 backdrop-blur-sm border border-red-200/50 rounded-[1.5rem] p-4 flex items-center gap-3">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600" />
                 <p className="text-red-800">{txError}</p>
               </div>
@@ -728,83 +757,118 @@ const BonusManagementView: React.FC = () => {
                 <p>No bonus transactions found</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm text-gray-700">
-                  <thead className="bg-white/20 backdrop-blur-md text-gray-700 font-medium uppercase text-xs border-b border-white/30">
-                    <tr>
-                      <th className="py-3 px-4">Reference</th>
-                      <th className="py-3 px-4">Type</th>
-                      <th className="py-3 px-4 text-right">Amount</th>
-                      <th className="py-3 px-4">User</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/15">
-                    {bonusTransactions.map((tx) => (
-                      <tr
-                        key={tx._id || tx.reference}
-                        className="hover:bg-white/10 cursor-pointer transition-colors"
-                        onClick={() => setSelectedTx(tx)}
-                      >
-                        <td className="py-3 px-4 font-mono text-sm text-gray-800">{tx.reference}</td>
-                        <td className="py-3 px-4 text-gray-800">{formatTypeLabel(tx.type)}</td>
-                        <td className="py-3 px-4 text-right text-emerald-700 font-semibold">
-                          {formatCurrency((tx.amountNaira ?? tx.amount / 100) || 0)}
-                        </td>
-                        <td className="py-3 px-4 text-gray-800">
-                          {tx.user_type === 'staff' ? getStaffNameById(tx.user_id) : 'Organization'}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700 capitalize">{tx.status || 'completed'}</td>
-                        <td className="py-3 px-4 text-gray-600 text-sm">
-                          {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '—'}
-                        </td>
+              <>
+                {/* Mobile Card View */}
+                <div className="lg:hidden space-y-4">
+                  {bonusTransactions.map((tx) => (
+                    <div
+                      key={tx._id || tx.reference}
+                      className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => setSelectedTx(tx)}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1">{formatTypeLabel(tx.type)}</div>
+                          <div className="text-sm font-mono text-gray-800">{tx.reference}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-emerald-600">
+                            {formatCurrency((tx.amountNaira ?? tx.amount / 100) || 0)}
+                          </div>
+                          <div className="text-xs text-gray-500 capitalize mt-1">{tx.status || 'completed'}</div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{tx.user_type === 'staff' ? getStaffNameById(tx.user_id) : 'Organization'}</span>
+                        <span>{tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : '—'}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th className="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {bonusTransactions.map((tx) => (
+                        <tr
+                          key={tx._id || tx.reference}
+                          className="hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => setSelectedTx(tx)}
+                        >
+                          <td className="py-3 px-4 font-mono text-sm text-gray-800">{tx.reference}</td>
+                          <td className="py-3 px-4 text-sm text-gray-800">{formatTypeLabel(tx.type)}</td>
+                          <td className="py-3 px-4 text-right text-sm text-emerald-600 font-semibold">
+                            {formatCurrency((tx.amountNaira ?? tx.amount / 100) || 0)}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-800">
+                            {tx.user_type === 'staff' ? getStaffNameById(tx.user_id) : 'Organization'}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-700 capitalize">{tx.status || 'completed'}</td>
+                          <td className="py-3 px-4 text-sm text-gray-600">
+                            {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
 
-            <div className="flex items-center justify-between mt-4 text-sm text-gray-700">
-              <div>
-                Page {txPage} of {totalTxPages} • {txTotal} transactions
+            {bonusTransactions.length > 0 && (
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mt-4 gap-3 pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  Page {txPage} of {totalTxPages} • {txTotal} transactions
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setTxPage(Math.max(1, txPage - 1))}
+                    disabled={txPage === 1}
+                    className="px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    {txPage} / {totalTxPages}
+                  </span>
+                  <button
+                    onClick={() => setTxPage(Math.min(totalTxPages, txPage + 1))}
+                    disabled={txPage >= totalTxPages}
+                    className="px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setTxPage(Math.max(1, txPage - 1))}
-                  disabled={txPage === 1}
-                  className="flex items-center gap-1 px-3 py-1 border border-white/50 bg-white/25 backdrop-blur-md rounded-xl text-gray-700 hover:bg-white/35 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-4 h-4" /> Prev
-                </button>
-                <button
-                  onClick={() => setTxPage(Math.min(totalTxPages, txPage + 1))}
-                  disabled={txPage >= totalTxPages}
-                  className="flex items-center gap-1 px-3 py-1 border border-white/50 bg-white/25 backdrop-blur-md rounded-xl text-gray-700 hover:bg-white/35 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
 
       {selectedTx && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 w-full max-w-lg mx-4 shadow-2xl border border-white/60 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none rounded-[2rem]" />
-            <div className="flex items-center justify-between mb-4 relative z-10">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <History className="w-5 h-5 text-emerald-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Transaction Details</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Transaction Details</h3>
               </div>
-              <button onClick={() => setSelectedTx(null)} className="text-gray-500 hover:text-gray-700 p-1 hover:bg-white/50 rounded-lg transition-all">
+              <button onClick={() => setSelectedTx(null)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="space-y-2 text-sm text-gray-800 relative z-10">
+            <div className="space-y-2 text-sm text-gray-800">
               <div className="flex justify-between">
                 <span className="text-gray-600">Reference</span>
                 <span className="font-mono">{selectedTx.reference}</span>

@@ -307,7 +307,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     <div className="space-y-5">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-xl bg-[#066f48]">
               <ShoppingCart className="w-6 h-6 text-white" />
@@ -319,7 +319,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
           </div>
           <button
             onClick={handleOpenCreateModal}
-            className="px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] flex items-center gap-2 transition-all"
+            className="mt-3 sm:mt-0 w-full sm:w-auto px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] flex items-center justify-center gap-2 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>New Purchase</span>
@@ -384,8 +384,56 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
             <p className="text-gray-600">No purchases found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600">
+          <>
+            {/* Mobile: card list */}
+            <div className="md:hidden p-4 space-y-3">
+              {paginatedPurchases.map((purchase) => (
+                <div key={purchase._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-gray-800">{purchase.farmerName}</div>
+                      <div className="text-xs text-gray-500">{purchase.farmerPhone}</div>
+                    </div>
+                    <div className="text-sm font-semibold text-gray-800">{formatCurrency(purchase.totalAmount)}</div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                    <div>Weight: <span className="font-medium text-gray-800">{purchase.weightKg}kg</span></div>
+                    <div className="text-right">Unit Price: <span className="font-medium text-gray-800">{getPricePerKgForDisplay(purchase)}/kg</span></div>
+                    <div>Status: <span className="inline-block ml-1">{getStatusBadge(purchase.status)}</span></div>
+                    <div className="text-right">{formatDate(purchase.createdAt)}</div>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => handleViewPurchase(purchase._id)}
+                      className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-blue-600 flex items-center justify-center gap-2"
+                      title="View"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span className="text-sm">View</span>
+                    </button>
+                    {purchase.status === "failed" && (
+                      <button
+                        onClick={() => handleRetryPurchase(purchase._id)}
+                        className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-emerald-600 flex items-center justify-center gap-2"
+                        disabled={retryingPurchase === purchase._id}
+                        title="Retry"
+                      >
+                        {retryingPurchase === purchase._id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                        ) : (
+                          <RefreshCw className="w-4 h-4" />
+                        )}
+                        <span className="text-sm">Retry</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm text-gray-600">
               <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3">Farmer</th>
@@ -444,31 +492,30 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
       {/* Pagination */}
       {!loading && filteredPurchases.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </p>
-            <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-3">
+            <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+            <div className="flex w-full sm:w-auto gap-2">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                className="w-full sm:w-auto px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Previous
+                <span>Previous</span>
               </button>
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                className="w-full sm:w-auto px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700"
               >
-                Next
+                <span>Next</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
