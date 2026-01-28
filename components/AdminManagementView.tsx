@@ -66,8 +66,8 @@ const ViewAdminModal: React.FC<ViewAdminModalProps> = ({ isOpen, onClose, admin 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 border border-gray-200 overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-lg max-w-md w-full border border-gray-200 overflow-hidden">
         <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-[#066f48]">Admin Details</h3>
@@ -197,8 +197,8 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 border border-gray-200 overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-lg max-w-md w-full border border-gray-200 overflow-hidden">
         <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-[#066f48]">Create New Admin</h3>
@@ -339,7 +339,7 @@ const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({ admin, onAction }) 
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-xl py-1 min-w-[150px] transform -translate-x-2 overflow-hidden">
+          <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[150px] transform -translate-x-2 overflow-hidden">
             <button
               onClick={() => {
                 onAction('view', admin);
@@ -649,7 +649,72 @@ export const AdminManagementView: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-4 p-4">
+              {admins.length > 0 ? (
+                admins.map((admin) => (
+                  <div key={admin.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-[#066f48]/10 rounded-full flex items-center justify-center border border-gray-200">
+                            <Users className="w-6 h-6 text-[#066f48]" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-800">{admin.fullName}</h3>
+                            <p className="text-xs text-gray-600 mt-1">{admin.email}</p>
+                          </div>
+                        </div>
+                        {actionLoading === admin.id ? (
+                          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-[#066f48]"></div>
+                        ) : (
+                          <AdminActionsMenu
+                            admin={admin}
+                            onAction={handleAdminAction}
+                          />
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-500">Role:</span>
+                          <p className="mt-1">
+                            <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg ${
+                              adminApi.getRoleColor(admin.role)
+                            }`}>
+                              {adminApi.getRoleDisplayName(admin.role)}
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Status:</span>
+                          <p className="mt-1">
+                            <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg border ${
+                              admin.isActive
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : 'bg-gray-100 text-gray-800 border-gray-200'
+                            }`}>
+                              {admin.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-gray-500">Created:</span>
+                          <p className="font-medium text-gray-800">{new Date(admin.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-gray-500">
+                  No admins found
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>

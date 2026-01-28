@@ -375,7 +375,95 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
 
       {/* Staff Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="lg:hidden space-y-4 p-4">
+          {staff?.map((member) => (
+            <div key={member.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-gray-800">{member.fullName}</h3>
+                    <p className="text-xs text-gray-600 mt-1">{member.employeeId}</p>
+                    <p className="text-xs text-gray-600">{member.phone}</p>
+                  </div>
+                  {getStatusBadge(member)}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-500">Role:</span>
+                    <p className="font-medium text-gray-800">{member.role}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Department:</span>
+                    <p className="font-medium text-gray-800">{member.department}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Salary:</span>
+                    <p className="font-medium text-gray-800">{formatCurrency(member.monthlySalary)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Pension:</span>
+                    <p className="font-medium text-gray-800">{formatCurrency(member.pensionContributions)}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setSelectedStaff(member);
+                      setShowDetailsModal(true);
+                    }}
+                    className="flex-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg text-emerald-600 hover:bg-gray-50 transition-all font-medium"
+                  >
+                    View
+                  </button>
+                  {!member.isApproved && (
+                    <button
+                      onClick={() => handleApprove(member)}
+                      className="flex-1 px-3 py-2 text-sm bg-green-600 rounded-lg text-white hover:bg-green-700 transition-all font-medium"
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {member.isApproved && member.isActive && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setSelectedStaff(member);
+                          setShowEditModal(true);
+                        }}
+                        className="px-3 py-2 text-sm bg-white border border-amber-300 rounded-lg text-amber-600 hover:bg-amber-50 transition-all font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedStaff(member);
+                          setShowDeactivateModal(true);
+                        }}
+                        className="px-3 py-2 text-sm bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 transition-all font-medium"
+                      >
+                        Deactivate
+                      </button>
+                    </>
+                  )}
+                  {member.isApproved && !member.isActive && (
+                    <button
+                      onClick={() => handleReactivate(member.id)}
+                      className="flex-1 px-3 py-2 text-sm bg-green-600 rounded-lg text-white hover:bg-green-700 transition-all font-medium"
+                    >
+                      Reactivate
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
