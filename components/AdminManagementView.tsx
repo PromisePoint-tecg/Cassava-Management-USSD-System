@@ -228,7 +228,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
                 required
                 value={formData.firstName}
                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all"
               />
             </div>
             <div>
@@ -240,7 +240,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
                 required
                 value={formData.lastName}
                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all"
               />
             </div>
           </div>
@@ -252,7 +252,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all"
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all"
               placeholder="admin@promisepoint.com"
             />
           </div>
@@ -266,7 +266,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
                 minLength={8}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-3 py-2 pr-10 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all"
+                className="w-full px-3 py-2 pr-10 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all"
                 placeholder="Minimum 8 characters"
               />
               <button
@@ -285,7 +285,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
               required
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as AdminRole })}
-              className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all"
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all"
             >
               <option value={AdminRole.SUPPORT}>Support</option>
               <option value={AdminRole.VERIFIER}>Verifier</option>
@@ -305,7 +305,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-[#066f48] text-white rounded-xl hover:bg-[#055a3a] disabled:opacity-50 shadow-lg transition-all"
+              className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-all"
             >
               {loading ? 'Creating...' : 'Create Admin'}
             </button>
@@ -328,7 +328,7 @@ const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({ admin, onAction }) 
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white/20 backdrop-blur-sm transition-all"
+        className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all"
       >
         <MoreVertical className="w-4 h-4" />
       </button>
@@ -512,23 +512,18 @@ export const AdminManagementView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Header - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center">
-              <div className="p-2 rounded-xl bg-[#066f48] mr-3 shadow-lg">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center">
+              <div className="p-2 rounded-lg bg-[#066f48] mr-3">
                 <Shield className="w-5 h-5 text-white" />
               </div>
               Admin Management
             </h2>
-            <p className="text-gray-600 text-sm mt-1 ml-12">
+            <p className="text-sm sm:text-base text-gray-600 mt-1 ml-12">
               Manage admin accounts, roles, and permissions
             </p>
           </div>
@@ -536,7 +531,7 @@ export const AdminManagementView: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/35 transition-all"
+              className="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
@@ -544,7 +539,7 @@ export const AdminManagementView: React.FC = () => {
             
             <button
               onClick={() => setCreateModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-[#066f48] text-white rounded-xl text-sm font-medium hover:bg-[#055a3a] shadow-lg transition-all"
+              className="inline-flex items-center justify-center px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-all"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Admin
@@ -554,38 +549,29 @@ export const AdminManagementView: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {[
           { label: 'Total Admins', value: pagination.total, color: 'gray' },
           { label: 'Active', value: admins.filter(admin => admin.isActive).length, color: 'green' },
           { label: 'Inactive', value: admins.filter(admin => !admin.isActive).length, color: 'red' },
           { label: 'Super Admins', value: admins.filter(admin => admin.role === AdminRole.SUPER_ADMIN).length, color: 'purple' },
         ].map((stat, index) => (
-          <div key={index} className="bg-gradient-to-br from-white/22 via-white/18 to-white/20 backdrop-blur-2xl rounded-[2rem] border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),0_1px_3px_0_rgba(255,255,255,0.8)_inset] p-5 relative overflow-hidden hover:from-white/25 hover:via-white/22 hover:to-white/23 transition-all duration-300">
-            <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/25 via-white/8 to-transparent rounded-t-[2rem] pointer-events-none blur-[1px]" />
-            <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/2 via-black/1 to-transparent rounded-b-[2rem] pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/2 via-transparent to-cyan-400/2 rounded-[2rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-white/15 via-white/5 to-transparent blur-3xl rounded-full pointer-events-none" />
-            <div className="relative z-10">
-              <div className="text-sm text-gray-600">{stat.label}</div>
-              <div className={`text-2xl font-bold ${
-                stat.color === 'green' ? 'text-green-600' : 
-                stat.color === 'red' ? 'text-red-600' : 
-                stat.color === 'purple' ? 'text-purple-600' : 
-                'text-gray-800'
-              }`}>{stat.value}</div>
-            </div>
+          <div key={index} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
+            <div className="text-sm text-gray-600 mb-1">{stat.label}</div>
+            <div className={`text-2xl sm:text-3xl font-bold ${
+              stat.color === 'green' ? 'text-green-600' : 
+              stat.color === 'red' ? 'text-red-600' : 
+              stat.color === 'purple' ? 'text-purple-600' : 
+              'text-gray-800'
+            }`}>{stat.value}</div>
           </div>
         ))}
       </div>
 
-      {/* Filter Panel - Liquid Glass */}
+      {/* Filters */}
       {showFilters && (
-        <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
               <div className="relative">
@@ -595,7 +581,7 @@ export const AdminManagementView: React.FC = () => {
                   placeholder="Search by name or email..."
                   value={filters.search || ''}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="pl-10 pr-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl text-sm w-full focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all"
+                  className="pl-10 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm w-full focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -605,7 +591,7 @@ export const AdminManagementView: React.FC = () => {
               <select
                 value={filters.role || ''}
                 onChange={(e) => handleFilterChange('role', e.target.value)}
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl text-sm focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all"
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
               >
                 <option value="">All Roles</option>
                 <option value={AdminRole.SUPER_ADMIN}>Super Admin</option>
@@ -620,7 +606,7 @@ export const AdminManagementView: React.FC = () => {
               <select
                 value={filters.status || 'all'}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full px-3 py-2 bg-white/40 backdrop-blur-md border border-white/50 rounded-xl text-sm focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:bg-white/50 transition-all"
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -639,7 +625,7 @@ export const AdminManagementView: React.FC = () => {
                     status: 'all',
                   });
                 }}
-                className="w-full px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl text-sm hover:bg-white/35 text-gray-700 transition-all"
+                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 text-gray-700 transition-all"
               >
                 Clear Filters
               </button>
@@ -648,86 +634,81 @@ export const AdminManagementView: React.FC = () => {
         </div>
       )}
 
-      {/* Admin Table - Liquid Glass */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#066f48]/5 via-transparent to-cyan-400/5 rounded-[2rem] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-        
+      {/* Admin Table */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {error && (
-          <div className="p-4 bg-red-50/90 backdrop-blur-sm border-b border-red-200/50 relative z-10">
+          <div className="p-4 bg-red-50 border-b border-red-200">
             <p className="text-red-800 text-sm">{error}</p>
           </div>
         )}
         
         {loading ? (
-          <div className="p-8 text-center relative z-10">
-                  <LeafButtonLoader />
-            <p className="text-gray-600">Loading admins...</p>
+          <div className="p-8 text-center">
+            <LeafButtonLoader />
+            <p className="text-gray-600 mt-4">Loading admins...</p>
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto relative z-10">
-              <table className="min-w-full">
-                <thead className="bg-white/20 backdrop-blur-md border-b border-white/30">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Admin
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Created
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {admins.length > 0 ? (
                     admins.map((admin) => (
-                      <tr key={admin.id} className="hover:bg-white/10 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                      <tr key={admin.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 bg-[#066f48]/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50">
+                            <div className="w-10 h-10 bg-[#066f48]/10 rounded-full flex items-center justify-center border border-gray-200">
                               <Users className="w-5 h-5 text-[#066f48]" />
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">
                                 {admin.fullName}
                               </div>
-                              <div className="text-sm text-gray-600">
+                              <div className="text-sm text-gray-500">
                                 {admin.email}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg backdrop-blur-sm ${
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg ${
                             adminApi.getRoleColor(admin.role)
                           }`}>
                             {adminApi.getRoleDisplayName(admin.role)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg backdrop-blur-sm border ${
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg border ${
                             admin.isActive
-                              ? 'bg-green-100/90 text-green-800 border-green-200/50'
-                              : 'bg-gray-100/90 text-gray-800 border-gray-200/50'
+                              ? 'bg-green-100 text-green-800 border-green-200'
+                              : 'bg-gray-100 text-gray-800 border-gray-200'
                           }`}>
                             {admin.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {new Date(admin.createdAt).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
                           {actionLoading === admin.id ? (
                             <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-[#066f48]"></div>
                           ) : (
@@ -749,52 +730,38 @@ export const AdminManagementView: React.FC = () => {
                 </tbody>
               </table>
             </div>
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="px-6 py-3 bg-white/20 backdrop-blur-md border-t border-white/30 flex items-center justify-between relative z-10">
-                <div className="text-sm text-gray-700">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} admins
-                </div>
-                <div className="flex space-x-1">
-                  <button
-                    onClick={() => handleFilterChange('page', pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                    className="px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl text-sm text-gray-700 hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    Previous
-                  </button>
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    const page = i + 1;
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handleFilterChange('page', page)}
-                        className={`px-4 py-2 rounded-xl text-sm transition-all ${
-                          page === pagination.page
-                            ? 'bg-[#066f48] text-white shadow-lg'
-                            : 'bg-white/25 backdrop-blur-md border border-white/50 text-gray-700 hover:bg-white/35'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
-                  <button
-                    onClick={() => handleFilterChange('page', pagination.page + 1)}
-                    disabled={pagination.page === pagination.totalPages}
-                    className="px-4 py-2 bg-white/25 backdrop-blur-md border border-white/50 rounded-xl text-sm text-gray-700 hover:bg-white/35 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
+
+      {/* Pagination */}
+      {!loading && pagination.totalPages > 1 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
+            <p className="text-sm text-gray-600">
+              Showing <span className="font-medium">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
+              <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of{' '}
+              <span className="font-medium">{pagination.total}</span> admins
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => handleFilterChange('page', pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => handleFilterChange('page', pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       <CreateAdminModal
