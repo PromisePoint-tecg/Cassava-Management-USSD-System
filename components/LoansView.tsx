@@ -60,9 +60,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
     useState<CreateLoanTypeData>({
       name: "",
       description: "",
+      user_type: "farmer",
       category: "",
       interest_rate: 0,
       duration_months: 0,
+      min_amount: undefined,
+      max_amount: undefined,
     });
   const [loanData, setLoanData] = useState<CreateLoanData>({
     farmer_id: "",
@@ -201,15 +204,33 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       setCreateLoanTypeLoading(true);
       setError(null);
 
-      await loansApi.createLoanType(createLoanTypeForm);
+      // Convert amounts to kobo for staff loans
+      const formDataToSubmit = {
+        ...createLoanTypeForm,
+        min_amount:
+          createLoanTypeForm.user_type === "staff" &&
+          createLoanTypeForm.min_amount
+            ? Math.round(createLoanTypeForm.min_amount * 100)
+            : undefined,
+        max_amount:
+          createLoanTypeForm.user_type === "staff" &&
+          createLoanTypeForm.max_amount
+            ? Math.round(createLoanTypeForm.max_amount * 100)
+            : undefined,
+      };
+
+      await loansApi.createLoanType(formDataToSubmit);
 
       setIsCreateLoanTypeModalOpen(false);
       setCreateLoanTypeForm({
         name: "",
         description: "",
+        user_type: "farmer",
         category: "",
         interest_rate: 0,
         duration_months: 0,
+        min_amount: undefined,
+        max_amount: undefined,
       });
 
       setSuccessMessage("Loan type created successfully!");
@@ -983,7 +1004,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Approve Loan Request
+                  Approve {selectedLoan.user_type === "staff" ? "Staff" : "Farmer"} Loan Request
                 </h3>
                 <button
                   onClick={() => setIsApprovalModalOpen(false)}
@@ -995,66 +1016,120 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             </div>
 
             <form onSubmit={handleApprovalSubmit} className="p-6 space-y-4">
-              <div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Approving loan for {selectedLoan.name} -{" "}
-                  {formatCurrency(selectedLoan.principal_amount)}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-700">
+                  <strong>{selectedLoan.name}</strong>
                 </p>
+                <p className="text-sm text-gray-600">
+                  Amount: {formatCurrency(selectedLoan.principal_amount)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Type: {selectedLoan.loan_type_name}
+                </p>
+                {selectedLoan.user_type === "staff" && (
+                  <p className="text-xs text-blue-700 mt-2">
+                    This is a cash loan that will be deducted from staff salary during payroll
+                  </p>
+                )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pickup Date & Time *
-                </label>
-                <input
-                  type="datetime-local"
-                  value={approvalData.pickup_date}
-                  onChange={(e) =>
-                    setApprovalData({
-                      ...approvalData,
-                      pickup_date: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  required
-                />
-              </div>
+              {selectedLoan.user_type === "farmer" ? (
+                <>
+                  {/* Farmer Loan Fields */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Pickup Date & Time *
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={approvalData.pickup_date}
+                      onChange={(e) =>
+                        setApprovalData({
+                          ...approvalData,
+                          pickup_date: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      When should the farmer pick up the inputs from the factory?
+                    </p>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pickup Location
-                </label>
-                <input
-                  type="text"
-                  value={approvalData.pickup_location}
-                  onChange={(e) =>
-                    setApprovalData({
-                      ...approvalData,
-                      pickup_location: e.target.value,
-                    })
-                  }
-                  placeholder="e.g., Main Office, Warehouse A, etc."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Pickup Location
+                    </label>
+                    <input
+                      type="text"
+                      value={approvalData.pickup_location}
+                      onChange={(e) =>
+                        setApprovalData({
+                          ...approvalData,
+                          pickup_location: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., Main Office, Warehouse A, etc."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Admin Notes (for farmer)
-                </label>
-                <textarea
-                  value={approvalData.admin_notes}
-                  onChange={(e) =>
-                    setApprovalData({
-                      ...approvalData,
-                      admin_notes: e.target.value,
-                    })
-                  }
-                  placeholder="Any special instructions for the farmer..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Admin Notes (for farmer)
+                    </label>
+                    <textarea
+                      value={approvalData.admin_notes}
+                      onChange={(e) =>
+                        setApprovalData({
+                          ...approvalData,
+                          admin_notes: e.target.value,
+                        })
+                      }
+                      placeholder="Any special instructions for the farmer..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Staff Loan Fields */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-green-800 mb-2">
+                      Staff Cash Loan
+                    </h4>
+                    <p className="text-sm text-gray-700">
+                      Upon approval, this loan will be:
+                    </p>
+                    <ul className="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                      <li>Immediately activated</li>
+                      <li>Cash credited to staff wallet</li>
+                      <li>Deducted from monthly salary over {selectedLoan.duration_months} months</li>
+                      <li>Monthly deduction: {formatCurrency(selectedLoan.monthly_payment)}</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Admin Notes (optional)
+                    </label>
+                    <textarea
+                      value={approvalData.admin_notes}
+                      onChange={(e) =>
+                        setApprovalData({
+                          ...approvalData,
+                          admin_notes: e.target.value,
+                        })
+                      }
+                      placeholder="Any special notes about this loan..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="flex space-x-3 pt-4">
                 <button
@@ -1068,7 +1143,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
                 >
-                  Approve & Send SMS
+                  {selectedLoan.user_type === "staff" 
+                    ? "Approve & Activate" 
+                    : "Approve & Send SMS"}
                 </button>
               </div>
             </form>
@@ -1357,9 +1434,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   setCreateLoanTypeForm({
                     name: "",
                     description: "",
+                    user_type: "farmer",
                     category: "",
                     interest_rate: 0,
                     duration_months: 0,
+                    min_amount: undefined,
+                    max_amount: undefined,
                   });
                 }}
                 className="text-gray-400 hover:text-gray-600"
@@ -1391,6 +1471,28 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    User Type *
+                  </label>
+                  <select
+                    value={createLoanTypeForm.user_type}
+                    onChange={(e) =>
+                      setCreateLoanTypeForm({
+                        ...createLoanTypeForm,
+                        user_type: e.target.value as "farmer" | "staff",
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="farmer">Farmer</option>
+                    <option value="staff">Staff</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category *
                   </label>
                   <select
@@ -1405,9 +1507,41 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     required
                   >
                     <option value="">Select category...</option>
-                    <option value="input_credit">Input Credit</option>
-                    <option value="farm_tools">Farm Tools</option>
-                    <option value="equipment">Equipment</option>
+                    {createLoanTypeForm.user_type === "farmer" ? (
+                      <>
+                        <option value="input_credit">Input Credit</option>
+                        <option value="farm_tools">Farm Tools</option>
+                        <option value="equipment">Equipment</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="personal_loan">Personal Loan</option>
+                        <option value="emergency_loan">Emergency Loan</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Duration (Months) *
+                  </label>
+                  <select
+                    value={createLoanTypeForm.duration_months}
+                    onChange={(e) =>
+                      setCreateLoanTypeForm({
+                        ...createLoanTypeForm,
+                        duration_months: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select duration...</option>
+                    <option value="3">3 months</option>
+                    <option value="6">6 months</option>
+                    <option value="9">9 months</option>
+                    <option value="12">12 months</option>
                   </select>
                 </div>
               </div>
@@ -1439,7 +1573,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     type="number"
                     required
                     min="0"
-                    max="100"
+                    max="30"
                     step="0.1"
                     value={createLoanTypeForm.interest_rate}
                     onChange={(e) =>
@@ -1451,26 +1585,68 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Duration (Months) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    value={createLoanTypeForm.duration_months}
-                    onChange={(e) =>
-                      setCreateLoanTypeForm({
-                        ...createLoanTypeForm,
-                        duration_months: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
               </div>
+
+              {/* Staff Loan Amount Fields */}
+              {createLoanTypeForm.user_type === "staff" && (
+                <div className="border-t border-gray-200 pt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    Loan Amount Limits (for Staff Cash Loans)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Minimum Amount (₦) *
+                      </label>
+                      <input
+                        type="number"
+                        required={createLoanTypeForm.user_type === "staff"}
+                        min="0"
+                        step="1000"
+                        value={createLoanTypeForm.min_amount || ""}
+                        onChange={(e) =>
+                          setCreateLoanTypeForm({
+                            ...createLoanTypeForm,
+                            min_amount: parseFloat(e.target.value) || undefined,
+                          })
+                        }
+                        placeholder="e.g., 50000"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Maximum Amount (₦) *
+                      </label>
+                      <input
+                        type="number"
+                        required={createLoanTypeForm.user_type === "staff"}
+                        min="0"
+                        step="1000"
+                        value={createLoanTypeForm.max_amount || ""}
+                        onChange={(e) =>
+                          setCreateLoanTypeForm({
+                            ...createLoanTypeForm,
+                            max_amount: parseFloat(e.target.value) || undefined,
+                          })
+                        }
+                        placeholder="e.g., 500000"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    These amounts will be deducted from staff salaries during payroll processing
+                  </p>
+                </div>
+              )}
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  {error}
+                </div>
+              )}
 
               <div className="flex space-x-3 pt-4">
                 <button
@@ -1480,9 +1656,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     setCreateLoanTypeForm({
                       name: "",
                       description: "",
+                      user_type: "farmer",
                       category: "",
                       interest_rate: 0,
                       duration_months: 0,
+                      min_amount: undefined,
+                      max_amount: undefined,
                     });
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"

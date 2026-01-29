@@ -23,14 +23,15 @@ export interface LoanItem {
 export interface LoanType {
   id: string;
   name: string;
+  user_type: "farmer" | "staff";
   category: string;
   description?: string;
   interest_rate: number;
   duration_months: number;
-  max_amount: number;
-  min_amount: number;
+  max_amount?: number; // for staff loans
+  min_amount?: number; // for staff loans
   is_active: boolean;
-  created_by: string;
+  created_by?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -110,9 +111,12 @@ export interface CreateLoanData {
 export interface CreateLoanTypeData {
   name: string;
   description: string;
+  user_type: "farmer" | "staff";
   category: string;
   interest_rate: number;
   duration_months: number;
+  min_amount?: number; // for staff loans (in kobo)
+  max_amount?: number; // for staff loans (in kobo)
 }
 
 export interface ApproveLoanData {
