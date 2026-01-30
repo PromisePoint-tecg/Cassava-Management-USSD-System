@@ -181,25 +181,20 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
         />
       ) : (
         <div className="space-y-5">
-          {/* Header - Liquid Glass */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-purple-400/5 rounded-[2rem] pointer-events-none" />
-            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-            
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+          {/* Header */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                   Welcome back, {profile.firstName}!
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-sm text-gray-600">
                   Here's an overview of your account
                 </p>
               </div>
               <button
                 onClick={handleOpenLoanRequest}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg"
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm w-full sm:w-auto justify-center sm:justify-start"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Request Loan
@@ -207,90 +202,77 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
             </div>
           </div>
 
-          {/* Balance Cards - Liquid Glass */}
+          {/* Balance Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-green-400/20 to-transparent blur-2xl rounded-full pointer-events-none" />
-              
-              <div className="flex items-center justify-between mb-4 relative z-10">
-                <div className="p-3 bg-green-500/20 backdrop-blur-sm rounded-full border border-green-200/30">
-                  <PiggyBank className="w-6 h-6 text-green-700" />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <PiggyBank className="w-5 h-5 text-green-600" />
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1 relative z-10">
+              <h3 className="text-sm font-medium text-gray-600 mb-1">
                 Savings
               </h3>
-              <p className="text-2xl font-bold text-gray-800 relative z-10">
+              <p className="text-xl sm:text-2xl font-bold text-gray-800">
                 {formatCurrency(profile.balances?.savings || 0)}
               </p>
             </div>
 
-            <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-blue-400/20 to-transparent blur-2xl rounded-full pointer-events-none" />
-              
-              <div className="flex items-center justify-between mb-4 relative z-10">
-                <div className="p-3 bg-blue-500/20 backdrop-blur-sm rounded-full border border-blue-200/30">
-                  <Building2 className="w-6 h-6 text-blue-700" />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Building2 className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1 relative z-10">
+              <h3 className="text-sm font-medium text-gray-600 mb-1">
                 Pension
               </h3>
-              <p className="text-2xl font-bold text-gray-800 relative z-10">
+              <p className="text-xl sm:text-2xl font-bold text-gray-800">
                 {formatCurrency(profile.balances?.pension || 0)}
               </p>
             </div>
 
-            <div className="bg-white/15 backdrop-blur-lg rounded-[1.5rem] border border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.4)_inset] p-6 relative overflow-hidden hover:bg-white/20 transition-all duration-300">
-              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[1.5rem] pointer-events-none" />
-              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-purple-400/20 to-transparent blur-2xl rounded-full pointer-events-none" />
-              
-              <div className="flex items-center justify-between mb-4 relative z-10">
-                <div className="p-3 bg-purple-500/20 backdrop-blur-sm rounded-full border border-purple-200/30">
-                  <Wallet className="w-6 h-6 text-purple-700" />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Wallet className="w-5 h-5 text-purple-600" />
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1 relative z-10">Wallet</h3>
-              <p className="text-2xl font-bold text-gray-800 relative z-10">
+              <h3 className="text-sm font-medium text-gray-600 mb-1">Wallet</h3>
+              <p className="text-xl sm:text-2xl font-bold text-gray-800">
                 {formatCurrency(profile.balances?.wallet || 0)}
               </p>
             </div>
           </div>
 
-          {/* Quick Stats - Liquid Glass */}
+          {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-              <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-              
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 relative z-10">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
                 Account Status
               </h3>
-              <div className="space-y-3 relative z-10">
-                <div className="flex items-center justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">Status</span>
                   <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full backdrop-blur-sm ${
+                    className={`px-2 py-1 text-xs font-medium rounded-lg ${
                       profile.isActive
-                        ? "bg-green-100/80 text-green-800 border border-green-200/50"
-                        : "bg-gray-100/80 text-gray-800 border border-gray-200/50"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
                     }`}
                   >
                     {profile.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">Role</span>
                   <span className="text-sm font-medium text-gray-900 capitalize">
                     {profile.role}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2">
                   <span className="text-sm text-gray-600">Member Since</span>
                   <span className="text-sm font-medium text-gray-900">
                     {new Date(profile.createdAt).toLocaleDateString("en-NG", {
@@ -302,16 +284,12 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.1),0_1px_2px_0_rgba(255,255,255,0.5)_inset] p-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-t-[2rem] pointer-events-none" />
-              <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/5 to-transparent rounded-b-[2rem] pointer-events-none" />
-              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent blur-3xl rounded-full pointer-events-none" />
-              
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 relative z-10">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
                 Document Status
               </h3>
-              <div className="space-y-3 relative z-10">
-                <div className="flex items-center justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">NIN Document</span>
                   {profile.hasNin ? (
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -319,7 +297,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     <XCircle className="w-5 h-5 text-gray-400" />
                   )}
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">BVN Document</span>
                   {profile.hasBvn ? (
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -328,7 +306,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   )}
                 </div>
                 {(!profile.hasNin || !profile.hasBvn) && (
-                  <p className="text-xs text-amber-600 mt-2">
+                  <p className="text-xs text-amber-600 mt-2 py-2">
                     Please upload missing documents in the Documents section
                   </p>
                 )}
