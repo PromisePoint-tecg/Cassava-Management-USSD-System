@@ -11,10 +11,6 @@ import {
   Play,
   ChevronLeft,
   ChevronRight,
-  Edit2,
-  Trash2,
-  ToggleLeft,
-  ToggleRight,
 } from "lucide-react";
 import {
   loansApi,
@@ -32,7 +28,7 @@ import { LeafLoader } from "./Loader";
 
 interface LoansViewProps {}
 
-type TabType = "loans" | "requests" | "loan-types";
+type TabType = "loans" | "requests";
 
 export const LoansView: React.FC<LoansViewProps> = () => {
   // State management
@@ -64,28 +60,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
     useState<CreateLoanTypeData>({
       name: "",
       description: "",
-      user_type: "farmer",
       category: "",
       interest_rate: 0,
       duration_months: 0,
-      min_amount: undefined,
-      max_amount: undefined,
-    });
-  const [isEditLoanTypeModalOpen, setIsEditLoanTypeModalOpen] = useState(false);
-  const [editLoanTypeLoading, setEditLoanTypeLoading] = useState(false);
-  const [selectedLoanType, setSelectedLoanType] = useState<LoanType | null>(
-    null
-  );
-  const [editLoanTypeForm, setEditLoanTypeForm] =
-    useState<CreateLoanTypeData>({
-      name: "",
-      description: "",
-      user_type: "farmer",
-      category: "",
-      interest_rate: 0,
-      duration_months: 0,
-      min_amount: undefined,
-      max_amount: undefined,
     });
   const [loanData, setLoanData] = useState<CreateLoanData>({
     farmer_id: "",
@@ -224,33 +201,15 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       setCreateLoanTypeLoading(true);
       setError(null);
 
-      // Convert amounts to kobo for staff loans
-      const formDataToSubmit = {
-        ...createLoanTypeForm,
-        min_amount:
-          createLoanTypeForm.user_type === "staff" &&
-          createLoanTypeForm.min_amount
-            ? Math.round(createLoanTypeForm.min_amount * 100)
-            : undefined,
-        max_amount:
-          createLoanTypeForm.user_type === "staff" &&
-          createLoanTypeForm.max_amount
-            ? Math.round(createLoanTypeForm.max_amount * 100)
-            : undefined,
-      };
-
-      await loansApi.createLoanType(formDataToSubmit);
+      await loansApi.createLoanType(createLoanTypeForm);
 
       setIsCreateLoanTypeModalOpen(false);
       setCreateLoanTypeForm({
         name: "",
         description: "",
-        user_type: "farmer",
         category: "",
         interest_rate: 0,
         duration_months: 0,
-        min_amount: undefined,
-        max_amount: undefined,
       });
 
       setSuccessMessage("Loan type created successfully!");
@@ -260,93 +219,6 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       setError(err.message || "Failed to create loan type");
     } finally {
       setCreateLoanTypeLoading(false);
-    }
-  };
-
-  const handleEditLoanType = (loanType: LoanType) => {
-    setSelectedLoanType(loanType);
-    setEditLoanTypeForm({
-      name: loanType.name,
-      description: loanType.description || "",
-      user_type: loanType.user_type,
-      category: loanType.category,
-      interest_rate: loanType.interest_rate,
-      duration_months: loanType.duration_months,
-      min_amount: loanType.min_amount ? loanType.min_amount / 100 : undefined,
-      max_amount: loanType.max_amount ? loanType.max_amount / 100 : undefined,
-    });
-    setIsEditLoanTypeModalOpen(true);
-  };
-
-  const handleUpdateLoanType = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedLoanType) return;
-
-    try {
-      setEditLoanTypeLoading(true);
-      setError(null);
-
-      // Convert amounts to kobo for staff loans
-      const formDataToSubmit = {
-        ...editLoanTypeForm,
-        min_amount:
-          editLoanTypeForm.user_type === "staff" && editLoanTypeForm.min_amount
-            ? Math.round(editLoanTypeForm.min_amount * 100)
-            : undefined,
-        max_amount:
-          editLoanTypeForm.user_type === "staff" && editLoanTypeForm.max_amount
-            ? Math.round(editLoanTypeForm.max_amount * 100)
-            : undefined,
-      };
-
-      await loansApi.updateLoanType(selectedLoanType.id, formDataToSubmit);
-
-      setIsEditLoanTypeModalOpen(false);
-      setSelectedLoanType(null);
-      setSuccessMessage("Loan type updated successfully!");
-      setIsSuccessModalOpen(true);
-      loadLoanTypes();
-    } catch (err: any) {
-      setError(err.message || "Failed to update loan type");
-    } finally {
-      setEditLoanTypeLoading(false);
-    }
-  };
-
-  const handleDeleteLoanType = async (loanType: LoanType) => {
-    const confirmMessage = `Are you sure you want to delete the loan type "${loanType.name}"?\n\nThis action cannot be undone. This will not affect existing loans using this type.`;
-
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
-    try {
-      await loansApi.deleteLoanType(loanType.id);
-      setSuccessMessage(`Loan type "${loanType.name}" deleted successfully!`);
-      setIsSuccessModalOpen(true);
-      loadLoanTypes();
-    } catch (err: any) {
-      alert(err.message || "Failed to delete loan type");
-    }
-  };
-
-  const handleToggleLoanTypeActive = async (loanType: LoanType) => {
-    const action = loanType.is_active ? "deactivate" : "activate";
-    const confirmMessage = `Are you sure you want to ${action} the loan type "${loanType.name}"?`;
-
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
-    try {
-      await loansApi.toggleLoanTypeActive(loanType.id);
-      setSuccessMessage(
-        `Loan type "${loanType.name}" ${action}d successfully!`
-      );
-      setIsSuccessModalOpen(true);
-      loadLoanTypes();
-    } catch (err: any) {
-      alert(err.message || `Failed to ${action} loan type`);
     }
   };
 
@@ -649,218 +521,40 @@ export const LoansView: React.FC<LoansViewProps> = () => {
           >
             Loan Requests
           </button>
-          <button
-            onClick={() => {
-              setActiveTab("loan-types");
-              setCurrentPage(1);
-              setSearchTerm("");
-              setStatusFilter("");
-            }}
-            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
-              activeTab === "loan-types"
-                ? "bg-emerald-50 text-emerald-700"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Loan Types
-          </button>
         </nav>
       </div>
 
       {/* Filters */}
-      {activeTab !== "loan-types" && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
-              <input
-                type="text"
-                placeholder="Search by name or reference..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500 text-sm sm:text-base"
-              />
-            </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
+            <input
+              type="text"
+              placeholder="Search by name or reference..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500 text-sm sm:text-base"
+            />
+          </div>
 
-            {activeTab === "loans" && (
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 sm:px-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 text-sm sm:text-base"
-              >
-                <option value="">All Statuses</option>
-                <option value="approved">Approved</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="defaulted">Defaulted</option>
-              </select>
+          {activeTab === "loans" && (
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 sm:px-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 text-sm sm:text-base"
+            >
+              <option value="">All Statuses</option>
+              <option value="approved">Approved</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="defaulted">Defaulted</option>
+            </select>
           )}
         </div>
       </div>
-      )}
-
-      {/* Loan Types Table */}
-      {activeTab === "loan-types" && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          {loadingLoanTypes ? (
-            <div className="flex justify-center items-center py-20">
-              <LeafLoader />
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm">
-                        Name
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm">
-                        User Type
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm">
-                        Category
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm">
-                        Interest Rate
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm">
-                        Duration
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm">
-                        Amount Range
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm">
-                        Status
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {loanTypes.length > 0 ? (
-                      loanTypes.map((loanType) => (
-                        <tr
-                          key={loanType.id}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="py-4 px-6">
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {loanType.name}
-                              </div>
-                              {loanType.description && (
-                                <div className="text-sm text-gray-500 mt-1">
-                                  {loanType.description}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                loanType.user_type === "staff"
-                                  ? "bg-purple-100 text-purple-800"
-                                  : "bg-blue-100 text-blue-800"
-                              }`}
-                            >
-                              {loanType.user_type === "staff"
-                                ? "Staff"
-                                : "Farmer"}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6 text-gray-700 capitalize">
-                            {loanType.category.replace(/_/g, " ")}
-                          </td>
-                          <td className="py-4 px-6 text-gray-700">
-                            {loanType.interest_rate}%
-                          </td>
-                          <td className="py-4 px-6 text-gray-700">
-                            {loanType.duration_months} months
-                          </td>
-                          <td className="py-4 px-6 text-gray-700">
-                            {loanType.user_type === "staff" &&
-                            loanType.min_amount &&
-                            loanType.max_amount ? (
-                              <div className="text-sm">
-                                <div>
-                                  Min: {formatCurrency(loanType.min_amount / 100)}
-                                </div>
-                                <div>
-                                  Max: {formatCurrency(loanType.max_amount / 100)}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </td>
-                          <td className="py-4 px-6">
-                            {loanType.is_active ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Active
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                Inactive
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleEditLoanType(loanType)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Edit"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleToggleLoanTypeActive(loanType)
-                                }
-                                className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                                title={
-                                  loanType.is_active ? "Deactivate" : "Activate"
-                                }
-                              >
-                                {loanType.is_active ? (
-                                  <ToggleRight className="w-4 h-4" />
-                                ) : (
-                                  <ToggleLeft className="w-4 h-4" />
-                                )}
-                              </button>
-                              <button
-                                onClick={() => handleDeleteLoanType(loanType)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={8}
-                          className="py-12 text-center text-gray-500"
-                        >
-                          No loan types found. Create one to get started.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </div>
-      )}
 
       {/* Main Table Container */}
-      {activeTab !== "loan-types" && (
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center py-20">
@@ -1062,10 +756,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
           </>
         )}
       </div>
-      )}
 
       {/* Pagination */}
-      {!loading && totalPages > 1 && activeTab !== "loan-types" && (
+      {!loading && totalPages > 1 && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
             <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
@@ -1290,7 +983,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Approve {selectedLoan.user_type === "staff" ? "Staff" : "Farmer"} Loan Request
+                  Approve Loan Request
                 </h3>
                 <button
                   onClick={() => setIsApprovalModalOpen(false)}
@@ -1302,120 +995,66 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             </div>
 
             <form onSubmit={handleApprovalSubmit} className="p-6 space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-gray-700">
-                  <strong>{selectedLoan.name}</strong>
+              <div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Approving loan for {selectedLoan.name} -{" "}
+                  {formatCurrency(selectedLoan.principal_amount)}
                 </p>
-                <p className="text-sm text-gray-600">
-                  Amount: {formatCurrency(selectedLoan.principal_amount)}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Type: {selectedLoan.loan_type_name}
-                </p>
-                {selectedLoan.user_type === "staff" && (
-                  <p className="text-xs text-blue-700 mt-2">
-                    This is a cash loan that will be deducted from staff salary during payroll
-                  </p>
-                )}
               </div>
 
-              {selectedLoan.user_type === "farmer" ? (
-                <>
-                  {/* Farmer Loan Fields */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Pickup Date & Time *
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={approvalData.pickup_date}
-                      onChange={(e) =>
-                        setApprovalData({
-                          ...approvalData,
-                          pickup_date: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      When should the farmer pick up the inputs from the factory?
-                    </p>
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pickup Date & Time *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={approvalData.pickup_date}
+                  onChange={(e) =>
+                    setApprovalData({
+                      ...approvalData,
+                      pickup_date: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  required
+                />
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Pickup Location
-                    </label>
-                    <input
-                      type="text"
-                      value={approvalData.pickup_location}
-                      onChange={(e) =>
-                        setApprovalData({
-                          ...approvalData,
-                          pickup_location: e.target.value,
-                        })
-                      }
-                      placeholder="e.g., Main Office, Warehouse A, etc."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pickup Location
+                </label>
+                <input
+                  type="text"
+                  value={approvalData.pickup_location}
+                  onChange={(e) =>
+                    setApprovalData({
+                      ...approvalData,
+                      pickup_location: e.target.value,
+                    })
+                  }
+                  placeholder="e.g., Main Office, Warehouse A, etc."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Admin Notes (for farmer)
-                    </label>
-                    <textarea
-                      value={approvalData.admin_notes}
-                      onChange={(e) =>
-                        setApprovalData({
-                          ...approvalData,
-                          admin_notes: e.target.value,
-                        })
-                      }
-                      placeholder="Any special instructions for the farmer..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Staff Loan Fields */}
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-green-800 mb-2">
-                      Staff Cash Loan
-                    </h4>
-                    <p className="text-sm text-gray-700">
-                      Upon approval, this loan will be:
-                    </p>
-                    <ul className="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                      <li>Immediately activated</li>
-                      <li>Cash credited to staff wallet</li>
-                      <li>Deducted from monthly salary over {selectedLoan.duration_months} months</li>
-                      <li>Monthly deduction: {formatCurrency(selectedLoan.monthly_payment)}</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Admin Notes (optional)
-                    </label>
-                    <textarea
-                      value={approvalData.admin_notes}
-                      onChange={(e) =>
-                        setApprovalData({
-                          ...approvalData,
-                          admin_notes: e.target.value,
-                        })
-                      }
-                      placeholder="Any special notes about this loan..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                  </div>
-                </>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Admin Notes (for farmer)
+                </label>
+                <textarea
+                  value={approvalData.admin_notes}
+                  onChange={(e) =>
+                    setApprovalData({
+                      ...approvalData,
+                      admin_notes: e.target.value,
+                    })
+                  }
+                  placeholder="Any special instructions for the farmer..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
 
               <div className="flex space-x-3 pt-4">
                 <button
@@ -1429,9 +1068,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
                 >
-                  {selectedLoan.user_type === "staff" 
-                    ? "Approve & Activate" 
-                    : "Approve & Send SMS"}
+                  Approve & Send SMS
                 </button>
               </div>
             </form>
@@ -1720,12 +1357,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   setCreateLoanTypeForm({
                     name: "",
                     description: "",
-                    user_type: "farmer",
                     category: "",
                     interest_rate: 0,
                     duration_months: 0,
-                    min_amount: undefined,
-                    max_amount: undefined,
                   });
                 }}
                 className="text-gray-400 hover:text-gray-600"
@@ -1757,28 +1391,6 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    User Type *
-                  </label>
-                  <select
-                    value={createLoanTypeForm.user_type}
-                    onChange={(e) =>
-                      setCreateLoanTypeForm({
-                        ...createLoanTypeForm,
-                        user_type: e.target.value as "farmer" | "staff",
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="farmer">Farmer</option>
-                    <option value="staff">Staff</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category *
                   </label>
                   <select
@@ -1793,41 +1405,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     required
                   >
                     <option value="">Select category...</option>
-                    {createLoanTypeForm.user_type === "farmer" ? (
-                      <>
-                        <option value="input_credit">Input Credit</option>
-                        <option value="farm_tools">Farm Tools</option>
-                        <option value="equipment">Equipment</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="personal_loan">Personal Loan</option>
-                        <option value="emergency_loan">Emergency Loan</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Duration (Months) *
-                  </label>
-                  <select
-                    value={createLoanTypeForm.duration_months}
-                    onChange={(e) =>
-                      setCreateLoanTypeForm({
-                        ...createLoanTypeForm,
-                        duration_months: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select duration...</option>
-                    <option value="3">3 months</option>
-                    <option value="6">6 months</option>
-                    <option value="9">9 months</option>
-                    <option value="12">12 months</option>
+                    <option value="input_credit">Input Credit</option>
+                    <option value="farm_tools">Farm Tools</option>
+                    <option value="equipment">Equipment</option>
                   </select>
                 </div>
               </div>
@@ -1859,7 +1439,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     type="number"
                     required
                     min="0"
-                    max="30"
+                    max="100"
                     step="0.1"
                     value={createLoanTypeForm.interest_rate}
                     onChange={(e) =>
@@ -1871,68 +1451,26 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Duration (Months) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={createLoanTypeForm.duration_months}
+                    onChange={(e) =>
+                      setCreateLoanTypeForm({
+                        ...createLoanTypeForm,
+                        duration_months: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
-
-              {/* Staff Loan Amount Fields */}
-              {createLoanTypeForm.user_type === "staff" && (
-                <div className="border-t border-gray-200 pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">
-                    Loan Amount Limits (for Staff Cash Loans)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Minimum Amount (₦) *
-                      </label>
-                      <input
-                        type="number"
-                        required={createLoanTypeForm.user_type === "staff"}
-                        min="0"
-                        step="1000"
-                        value={createLoanTypeForm.min_amount || ""}
-                        onChange={(e) =>
-                          setCreateLoanTypeForm({
-                            ...createLoanTypeForm,
-                            min_amount: parseFloat(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="e.g., 50000"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Maximum Amount (₦) *
-                      </label>
-                      <input
-                        type="number"
-                        required={createLoanTypeForm.user_type === "staff"}
-                        min="0"
-                        step="1000"
-                        value={createLoanTypeForm.max_amount || ""}
-                        onChange={(e) =>
-                          setCreateLoanTypeForm({
-                            ...createLoanTypeForm,
-                            max_amount: parseFloat(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="e.g., 500000"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    These amounts will be deducted from staff salaries during payroll processing
-                  </p>
-                </div>
-              )}
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {error}
-                </div>
-              )}
 
               <div className="flex space-x-3 pt-4">
                 <button
@@ -1942,12 +1480,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     setCreateLoanTypeForm({
                       name: "",
                       description: "",
-                      user_type: "farmer",
                       category: "",
                       interest_rate: 0,
                       duration_months: 0,
-                      min_amount: undefined,
-                      max_amount: undefined,
                     });
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -1960,246 +1495,6 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createLoanTypeLoading ? "Creating..." : "Create Loan Type"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Loan Type Modal */}
-      {isEditLoanTypeModalOpen && selectedLoanType && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-800">
-                Edit Loan Type
-              </h3>
-              <button
-                onClick={() => {
-                  setIsEditLoanTypeModalOpen(false);
-                  setSelectedLoanType(null);
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <form onSubmit={handleUpdateLoanType} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Loan Type Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editLoanTypeForm.name}
-                    onChange={(e) =>
-                      setEditLoanTypeForm({
-                        ...editLoanTypeForm,
-                        name: e.target.value,
-                      })
-                    }
-                    placeholder="e.g., Equipment Loan"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    User Type *
-                  </label>
-                  <select
-                    value={editLoanTypeForm.user_type}
-                    onChange={(e) =>
-                      setEditLoanTypeForm({
-                        ...editLoanTypeForm,
-                        user_type: e.target.value as "farmer" | "staff",
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="farmer">Farmer</option>
-                    <option value="staff">Staff</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category *
-                  </label>
-                  <select
-                    value={editLoanTypeForm.category}
-                    onChange={(e) =>
-                      setEditLoanTypeForm({
-                        ...editLoanTypeForm,
-                        category: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select category...</option>
-                    {editLoanTypeForm.user_type === "farmer" ? (
-                      <>
-                        <option value="input_credit">Input Credit</option>
-                        <option value="farm_tools">Farm Tools</option>
-                        <option value="equipment">Equipment</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="personal_loan">Personal Loan</option>
-                        <option value="emergency_loan">Emergency Loan</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Duration (Months) *
-                  </label>
-                  <select
-                    value={editLoanTypeForm.duration_months}
-                    onChange={(e) =>
-                      setEditLoanTypeForm({
-                        ...editLoanTypeForm,
-                        duration_months: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select duration...</option>
-                    <option value="3">3 months</option>
-                    <option value="6">6 months</option>
-                    <option value="9">9 months</option>
-                    <option value="12">12 months</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={editLoanTypeForm.description}
-                  onChange={(e) =>
-                    setEditLoanTypeForm({
-                      ...editLoanTypeForm,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="Describe the loan type and its purpose..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Interest Rate (%) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    max="30"
-                    step="0.1"
-                    value={editLoanTypeForm.interest_rate}
-                    onChange={(e) =>
-                      setEditLoanTypeForm({
-                        ...editLoanTypeForm,
-                        interest_rate: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Staff Loan Amount Fields */}
-              {editLoanTypeForm.user_type === "staff" && (
-                <div className="border-t border-gray-200 pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">
-                    Loan Amount Limits (for Staff Cash Loans)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Minimum Amount (₦) *
-                      </label>
-                      <input
-                        type="number"
-                        required={editLoanTypeForm.user_type === "staff"}
-                        min="0"
-                        step="1000"
-                        value={editLoanTypeForm.min_amount || ""}
-                        onChange={(e) =>
-                          setEditLoanTypeForm({
-                            ...editLoanTypeForm,
-                            min_amount: parseFloat(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="e.g., 50000"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Maximum Amount (₦) *
-                      </label>
-                      <input
-                        type="number"
-                        required={editLoanTypeForm.user_type === "staff"}
-                        min="0"
-                        step="1000"
-                        value={editLoanTypeForm.max_amount || ""}
-                        onChange={(e) =>
-                          setEditLoanTypeForm({
-                            ...editLoanTypeForm,
-                            max_amount: parseFloat(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="e.g., 500000"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditLoanTypeModalOpen(false);
-                    setSelectedLoanType(null);
-                  }}
-                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={editLoanTypeLoading}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {editLoanTypeLoading ? "Updating..." : "Update Loan Type"}
                 </button>
               </div>
             </form>
