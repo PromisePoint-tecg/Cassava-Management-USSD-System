@@ -163,6 +163,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
     password: '',
     firstName: '',
     lastName: '',
+    phone: '',
     role: AdminRole.SUPPORT,
     permissions: [],
   });
@@ -184,6 +185,7 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
         password: '',
         firstName: '',
         lastName: '',
+        phone: '',
         role: AdminRole.SUPPORT,
         permissions: [],
       });
@@ -254,6 +256,20 @@ const CreateAdminModal: React.FC<CreateAdminModalProps> = ({ isOpen, onClose, on
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all"
               placeholder="admin@promisepoint.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <input
+              type="tel"
+              required
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all"
+              placeholder="08012345678"
+              pattern="^0\d{10}$"
+              title="Phone number must be 11 digits starting with 0"
             />
           </div>
 
