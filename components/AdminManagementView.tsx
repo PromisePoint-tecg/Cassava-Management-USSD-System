@@ -467,6 +467,7 @@ export const AdminManagementView: React.FC = () => {
 
   const handleCreateSuccess = (admin: Admin) => {
     setAdmins(prev => [admin, ...prev]);
+    setCreateModalOpen(false);
     setSuccessModal({
       isOpen: true,
       title: 'Admin Created!',
