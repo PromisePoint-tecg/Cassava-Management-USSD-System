@@ -136,6 +136,14 @@ export const farmersApi = {
   },
 
   /**
+   * Suspend farmer account with reason
+   */
+  async suspendFarmer(farmerId: string, reason: string): Promise<{ message: string; farmer: FarmerDetail }> {
+    const response = await apiClient.patch<{ message: string; farmer: FarmerDetail }>(`/admins/farmers/${farmerId}/suspend`, { reason });
+    return response;
+  },
+
+  /**
    * Get farmer's detailed financial status including wallet, loans, and transactions
    */
   async getFarmerFinancialStatus(farmerId: string): Promise<UserFinancialDetails> {

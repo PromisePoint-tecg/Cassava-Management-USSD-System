@@ -117,12 +117,8 @@ export const FarmersDirectory: React.FC = () => {
       setLoadingAction(true);
       setActionError(null);
       
-      // TODO: Replace with actual API endpoint when backend is ready
-      // await farmersApi.suspendFarmer(suspendingFarmer.id, suspensionReason);
-      console.log('Suspending farmer:', suspendingFarmer.id, 'Reason:', suspensionReason);
+      await farmersApi.suspendFarmer(suspendingFarmer.id, suspensionReason);
       
-      // For now, show success and close modal
-      alert(`Farmer suspended successfully. Reason: ${suspensionReason}`);
       setSuspendingFarmer(null);
       setSuspensionReason('');
       setViewingFarmer(null);

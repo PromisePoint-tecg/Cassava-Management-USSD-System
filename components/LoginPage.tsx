@@ -33,10 +33,19 @@ const LoginPage: React.FC<LoginPageProps> = ({
 
       // Step 3: Call parent callback with admin info
       onLoginSuccess(adminInfo);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Login failed. Please try again."
-      );
+    } catch (err: any) {
+      // Extract the actual error message from the API response
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (err?.response?.data?.message) {
+        // API error with message field
+        errorMessage = err.response.data.message;
+      } else if (err?.message) {
+        // Error object with message
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -110,8 +119,11 @@ const LoginPage: React.FC<LoginPageProps> = ({
               </div>
 
               {error && (
-                <div className="mb-6 sm:mb-8 p-4 sm:p-5 bg-red-500/20 backdrop-blur-sm border border-red-300/30 rounded-xl">
-                  <p className="text-sm text-white drop-shadow">{error}</p>
+                <div className="mb-6 sm:mb-8 p-4 sm:p-5 bg-red-500/25 backdrop-blur-sm border border-red-400/40 rounded-xl shadow-lg">
+                  <p className="text-sm sm:text-base text-white font-medium drop-shadow flex items-start gap-2">
+                    <span className="text-red-200 text-lg">⚠</span>
+                    <span>{error}</span>
+                  </p>
                 </div>
               )}
 
@@ -133,7 +145,10 @@ const LoginPage: React.FC<LoginPageProps> = ({
                       type="email"
                       required
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError(""); // Clear error when user types
+                      }}
                       className="block w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-sm sm:text-base"
                       placeholder="Enter your email"
                       disabled={loading}
@@ -158,7 +173,10 @@ const LoginPage: React.FC<LoginPageProps> = ({
                       type={showPassword ? "text" : "password"}
                       required
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError(""); // Clear error when user types
+                      }}
                       className="block w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-sm sm:text-base"
                       placeholder="Enter your password"
                       disabled={loading}
