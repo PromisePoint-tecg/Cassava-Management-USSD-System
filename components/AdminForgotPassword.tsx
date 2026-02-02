@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, Phone, Lock, Loader2, CheckCircle, Mail } from "lucide-react";
+import { ArrowLeft, Phone, Lock, Loader2, CheckCircle, Mail, Eye, EyeOff } from "lucide-react";
 import { apiClient } from "../services/client";
 
 interface AdminForgotPasswordProps {
@@ -20,6 +20,8 @@ const AdminForgotPassword: React.FC<AdminForgotPasswordProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +103,9 @@ const AdminForgotPassword: React.FC<AdminForgotPasswordProps> = ({
         onBackToLogin();
       }, 2000);
     } catch (err: any) {
-      setError(err.message || "Failed to reset password. Please try again.");
+      // Display the detailed error message from the backend
+      const errorMessage = err.message || "Failed to reset password. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -369,15 +373,29 @@ const AdminForgotPassword: React.FC<AdminForgotPasswordProps> = ({
                       </div>
                       <input
                         id="newPassword"
-                        type="password"
+                        type={showNewPassword ? "text" : "password"}
                         required
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="block w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-base"
+                        className="block w-full pl-12 pr-12 py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-base"
                         placeholder="Enter new password"
                         disabled={loading}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="h-5 w-5 text-white/60 hover:text-white/80 transition-colors" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-white/60 hover:text-white/80 transition-colors" />
+                        )}
+                      </button>
                     </div>
+                    <p className="mt-2 text-sm text-white/70 drop-shadow">
+                      Password must contain at least 8 characters with uppercase, lowercase, number and special character
+                    </p>
                   </div>
 
                   {/* Confirm Password Input */}
@@ -394,14 +412,25 @@ const AdminForgotPassword: React.FC<AdminForgotPasswordProps> = ({
                       </div>
                       <input
                         id="confirmPassword"
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="block w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-base"
+                        className="block w-full pl-12 pr-12 py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-xl focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15 outline-none transition-all text-white placeholder-white/50 text-base"
                         placeholder="Confirm new password"
                         disabled={loading}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-5 w-5 text-white/60 hover:text-white/80 transition-colors" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-white/60 hover:text-white/80 transition-colors" />
+                        )}
+                      </button>
                     </div>
                   </div>
 

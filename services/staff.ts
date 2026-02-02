@@ -95,10 +95,13 @@ export interface DeactivateStaffDto {
 export interface LoanType {
   id: string;
   name: string;
+  user_type: "farmer" | "staff";
   description: string;
   category: string;
   interest_rate: number;
   duration_months: number;
+  min_amount?: number;
+  max_amount?: number;
   is_active: boolean;
   times_issued: number;
   createdAt: string;

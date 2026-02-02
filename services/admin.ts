@@ -45,6 +45,7 @@ export interface CreateAdminData {
   password: string;
   firstName: string;
   lastName: string;
+  phone: string;
   role: AdminRole;
   permissions?: string[];
   createdBy?: string;
