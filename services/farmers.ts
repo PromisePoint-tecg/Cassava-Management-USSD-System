@@ -100,6 +100,11 @@ export interface FarmerDashboardKpiTable {
   generatedAt: string;
 }
 
+export interface DashboardKpiDateFilterParams {
+  startDate?: string;
+  endDate?: string;
+}
+
 export const farmersApi = {
   /**
    * Get all farmers with pagination and filters
@@ -173,9 +178,17 @@ export const farmersApi = {
   /**
    * Get dashboard KPI table used on dashboard/farmers analytics surfaces
    */
-  async getDashboardKpiTable(): Promise<FarmerDashboardKpiTable> {
+  async getDashboardKpiTable(
+    params?: DashboardKpiDateFilterParams,
+  ): Promise<FarmerDashboardKpiTable> {
+    const queryParams = new URLSearchParams();
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    const queryString = queryParams.toString();
+    const url = `/admins/dashboard/kpis${queryString ? `?${queryString}` : ''}`;
+
     const response = await apiClient.get<{ kpiTable: FarmerDashboardKpiTable }>(
-      '/admins/dashboard/kpis',
+      url,
     );
     return response.kpiTable;
   },

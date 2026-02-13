@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Users, 
   Eye, 
@@ -8,13 +8,18 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  FileDown,
+  RotateCcw,
 } from 'lucide-react';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import {
   farmersApi,
@@ -27,11 +32,15 @@ import {
 import LeafInlineLoader from './Loader';
 
 export const FarmersDirectory: React.FC = () => {
+  const farmersPageRef = useRef<HTMLDivElement>(null);
   const [farmers, setFarmers] = useState<Farmer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [kpiFilterError, setKpiFilterError] = useState<string | null>(null);
   const [lgaFilter, setLgaFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'suspended'>('all');
+  const [kpiStartDate, setKpiStartDate] = useState('');
+  const [kpiEndDate, setKpiEndDate] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -52,6 +61,7 @@ export const FarmersDirectory: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      setKpiFilterError(null);
       
       const params: GetAllFarmersParams = {
         page: currentPage,
@@ -61,9 +71,21 @@ export const FarmersDirectory: React.FC = () => {
       if (lgaFilter) params.lga = lgaFilter;
       if (statusFilter !== 'all') params.status = statusFilter;
 
+      const hasInvalidDateRange =
+        Boolean(kpiStartDate) &&
+        Boolean(kpiEndDate) &&
+        new Date(kpiStartDate) > new Date(kpiEndDate);
+
+      const dashboardKpiFilters = {
+        ...(kpiStartDate ? { startDate: kpiStartDate } : {}),
+        ...(kpiEndDate ? { endDate: kpiEndDate } : {}),
+      };
+
       const [farmersResult, kpiResult] = await Promise.allSettled([
         farmersApi.getAllFarmers(params),
-        farmersApi.getDashboardKpiTable(),
+        hasInvalidDateRange
+          ? Promise.resolve<FarmerDashboardKpiTable | null>(null)
+          : farmersApi.getDashboardKpiTable(dashboardKpiFilters),
       ]);
 
       if (farmersResult.status === 'rejected') {
@@ -74,7 +96,10 @@ export const FarmersDirectory: React.FC = () => {
       setTotalPages(farmersResult.value.totalPages);
       setTotal(farmersResult.value.total);
 
-      if (kpiResult.status === 'fulfilled') {
+      if (hasInvalidDateRange) {
+        setKpiTable(null);
+        setKpiFilterError('KPI date range is invalid. Start date cannot be after end date.');
+      } else if (kpiResult.status === 'fulfilled' && kpiResult.value) {
         setKpiTable(kpiResult.value);
       } else {
         setKpiTable(null);
@@ -88,7 +113,56 @@ export const FarmersDirectory: React.FC = () => {
 
   useEffect(() => {
     loadFarmersData();
-  }, [currentPage, statusFilter, lgaFilter]);
+  }, [currentPage, statusFilter, lgaFilter, kpiStartDate, kpiEndDate]);
+
+  const clearKpiDateFilter = () => {
+    setKpiStartDate('');
+    setKpiEndDate('');
+  };
+
+  const exportFarmersPagePdf = () => {
+    if (!farmersPageRef.current) {
+      return;
+    }
+
+    const html = farmersPageRef.current.outerHTML;
+    const styleTags = Array.from(
+      document.querySelectorAll('style, link[rel="stylesheet"]'),
+    )
+      .map((el) => el.outerHTML)
+      .join('\n');
+
+    const printWindow = window.open('', '_blank', 'width=1280,height=900');
+    if (!printWindow) {
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Farmers KPI Dashboard Export</title>
+          ${styleTags}
+          <style>
+            body { background: white; margin: 0; padding: 16px; }
+            .no-print { display: none !important; }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 700);
+  };
 
   // View farmer details
   const handleViewFarmer = async (farmer: Farmer) => {
@@ -216,10 +290,10 @@ export const FarmersDirectory: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <div ref={farmersPageRef} className="space-y-5">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-xl bg-[#066f48]">
               <Users className="w-6 h-6 text-white" />
@@ -229,6 +303,23 @@ export const FarmersDirectory: React.FC = () => {
               <p className="text-sm text-gray-600">{total} total farmers</p>
             </div>
           </div>
+          <Button
+            onClick={exportFarmersPagePdf}
+            variant="contained"
+            startIcon={<FileDown className="w-4 h-4" />}
+            className="no-print"
+            sx={{
+              backgroundColor: '#066f48',
+              textTransform: 'none',
+              fontWeight: 700,
+              borderRadius: '0.625rem',
+              px: 2,
+              py: 1,
+              '&:hover': { backgroundColor: '#055a3b' },
+            }}
+          >
+            Export PDF
+          </Button>
         </div>
       </div>
 
@@ -244,18 +335,88 @@ export const FarmersDirectory: React.FC = () => {
             backgroundColor: '#ffffff',
           }}
         >
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              justifyContent: 'space-between',
+              alignItems: { xs: 'flex-start', lg: 'center' },
+              flexDirection: { xs: 'column', lg: 'row' },
+              mb: 2,
+            }}
           >
-            Farmer KPI Snapshot
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{ color: '#6b7280', display: 'block', mt: 0.5, mb: 2 }}
-          >
-            {kpiTable?.period}
-          </Typography>
+            <Box>
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}
+              >
+                Farmer KPI Snapshot
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: '#6b7280', display: 'block', mt: 0.5 }}
+              >
+                {kpiTable?.period}
+              </Typography>
+            </Box>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1.25}
+              className="no-print"
+              sx={{ width: { xs: '100%', lg: 'auto' } }}
+            >
+              <TextField
+                label="Start date"
+                type="date"
+                size="small"
+                value={kpiStartDate}
+                onChange={(event) => setKpiStartDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  minWidth: { xs: '100%', sm: 170 },
+                  '& .MuiOutlinedInput-root': { borderRadius: '0.625rem' },
+                }}
+              />
+              <TextField
+                label="End date"
+                type="date"
+                size="small"
+                value={kpiEndDate}
+                onChange={(event) => setKpiEndDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  minWidth: { xs: '100%', sm: 170 },
+                  '& .MuiOutlinedInput-root': { borderRadius: '0.625rem' },
+                }}
+              />
+              <Button
+                onClick={clearKpiDateFilter}
+                variant="outlined"
+                startIcon={<RotateCcw className="w-4 h-4" />}
+                sx={{
+                  borderColor: '#d1d5db',
+                  color: '#374151',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  borderRadius: '0.625rem',
+                  '&:hover': {
+                    borderColor: '#9ca3af',
+                    backgroundColor: '#f9fafb',
+                  },
+                }}
+              >
+                Clear dates
+              </Button>
+            </Stack>
+          </Box>
+          {kpiFilterError && (
+            <Typography
+              variant="caption"
+              sx={{ color: '#b91c1c', display: 'block', mb: 1.5 }}
+            >
+              {kpiFilterError}
+            </Typography>
+          )}
           <Box
             sx={{
               display: 'grid',
