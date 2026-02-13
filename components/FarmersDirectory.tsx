@@ -416,6 +416,35 @@ export const FarmersDirectory: React.FC = () => {
                 </div>
               </div>
 
+              {/* Withdrawal Account Information */}
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-3">Withdrawal Account</h4>
+                {viewingFarmer.walletBankName && viewingFarmer.walletAccountNumber ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Bank Name</p>
+                      <p className="font-medium text-gray-800">{viewingFarmer.walletBankName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Account Number</p>
+                      <p className="font-medium text-gray-800">{viewingFarmer.walletAccountNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Account Name</p>
+                      <p className="font-medium text-gray-800">{viewingFarmer.walletAccountName || 'N/A'}</p>
+                    </div>
+                    {viewingFarmer.walletBvn && (
+                      <div>
+                        <p className="text-sm text-gray-500">BVN</p>
+                        <p className="font-medium text-gray-800">••••••••{viewingFarmer.walletBvn?.slice(-4)}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No withdrawal account configured</p>
+                )}
+              </div>
+
               {/* Activity */}
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3">Activity</h4>
@@ -439,9 +468,11 @@ export const FarmersDirectory: React.FC = () => {
                       onClick={() => {
                         setSuspendingFarmer({
                           id: viewingFarmer.id,
+                          userId: viewingFarmer.userId,
                           firstName: viewingFarmer.firstName,
                           lastName: viewingFarmer.lastName,
                           fullName: viewingFarmer.fullName,
+                          name: viewingFarmer.fullName,
                           phone: viewingFarmer.phone,
                           lga: viewingFarmer.lga,
                           status: viewingFarmer.status,
@@ -449,6 +480,11 @@ export const FarmersDirectory: React.FC = () => {
                           walletBalance: viewingFarmer.walletBalance,
                           totalSales: viewingFarmer.totalSales,
                           totalEarnings: viewingFarmer.totalEarnings,
+                          completedSales: viewingFarmer.completedSales,
+                          loanDefaults: 0,
+                          activeLoan: false,
+                          createdAt: viewingFarmer.createdAt,
+                          updatedAt: viewingFarmer.updatedAt,
                         });
                       }}
                       className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all flex items-center gap-2 justify-center"
@@ -460,9 +496,11 @@ export const FarmersDirectory: React.FC = () => {
                       onClick={() => {
                         setDeactivatingFarmer({
                           id: viewingFarmer.id,
+                          userId: viewingFarmer.userId,
                           firstName: viewingFarmer.firstName,
                           lastName: viewingFarmer.lastName,
                           fullName: viewingFarmer.fullName,
+                          name: viewingFarmer.fullName,
                           phone: viewingFarmer.phone,
                           lga: viewingFarmer.lga,
                           status: viewingFarmer.status,
@@ -470,6 +508,11 @@ export const FarmersDirectory: React.FC = () => {
                           walletBalance: viewingFarmer.walletBalance,
                           totalSales: viewingFarmer.totalSales,
                           totalEarnings: viewingFarmer.totalEarnings,
+                          completedSales: viewingFarmer.completedSales,
+                          loanDefaults: 0,
+                          activeLoan: false,
+                          createdAt: viewingFarmer.createdAt,
+                          updatedAt: viewingFarmer.updatedAt,
                         });
                         setViewingFarmer(null);
                       }}
@@ -484,9 +527,11 @@ export const FarmersDirectory: React.FC = () => {
                     onClick={() => {
                       handleActivateFarmer({
                         id: viewingFarmer.id,
+                        userId: viewingFarmer.userId,
                         firstName: viewingFarmer.firstName,
                         lastName: viewingFarmer.lastName,
                         fullName: viewingFarmer.fullName,
+                        name: viewingFarmer.fullName,
                         phone: viewingFarmer.phone,
                         lga: viewingFarmer.lga,
                         status: viewingFarmer.status,
@@ -494,6 +539,11 @@ export const FarmersDirectory: React.FC = () => {
                         walletBalance: viewingFarmer.walletBalance,
                         totalSales: viewingFarmer.totalSales,
                         totalEarnings: viewingFarmer.totalEarnings,
+                        completedSales: viewingFarmer.completedSales,
+                        loanDefaults: 0,
+                        activeLoan: false,
+                        createdAt: viewingFarmer.createdAt,
+                        updatedAt: viewingFarmer.updatedAt,
                       });
                       setViewingFarmer(null);
                     }}

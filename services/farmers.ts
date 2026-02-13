@@ -23,6 +23,11 @@ export interface Farmer {
 
 export interface FarmerDetail extends Farmer {
   walletBalance: number;
+  walletBankName?: string;
+  walletBankCode?: string;
+  walletAccountNumber?: string;
+  walletAccountName?: string;
+  walletBvn?: string;
 }
 
 export interface PaginatedFarmersResponse {
