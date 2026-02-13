@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Scale, Wallet, Users, AlertCircle, RefreshCw, TrendingUp, TrendingDown, DollarSign, Percent } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Scale, Wallet, Users, AlertCircle, RefreshCw, TrendingUp, TrendingDown, DollarSign, Percent, FileDown } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
@@ -8,6 +8,7 @@ import { purchasesApi, PurchaseKPIs, PurchaseItem } from '../services/purchases'
 import { loansApi, LoanKPIs } from '../services/loans';
 import { farmersApi } from '../services/farmers';
 import { transactionsApi, TransactionStats, Transaction } from '../services/transactions';
+import { adminApi, DashboardKpisResponse, DashboardKpiUnit } from '../services/admin';
 import LeafInlineLoader from './Loader';
 
 
@@ -76,12 +77,10 @@ const ROLE_CARD_PERMISSIONS = {
   },
 };
 
-
-
-
 interface DashboardData {
   purchaseKPIs: PurchaseKPIs | null;
   loanKPIs: LoanKPIs | null;
+  dashboardKPIs: DashboardKpisResponse | null;
   activeFarmers: number;
   totalFarmers: number;
   transactionStats: TransactionStats | null;
@@ -92,9 +91,11 @@ interface DashboardData {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ userRole = 'super_admin' }) => {
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<DashboardData>({
     purchaseKPIs: null,
     loanKPIs: null,
+    dashboardKPIs: null,
     activeFarmers: 0,
     totalFarmers: 0,
     transactionStats: null,
@@ -109,7 +110,7 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
   const loadDashboardData = async () => {
     setData(prev => ({ ...prev, loading: true, error: null }));
     try {
-      const [purchaseKPIs, loanKPIs, farmersResponse, transactionStats, recentPurchases, recentTransactions] = await Promise.allSettled([
+      const [purchaseKPIs, loanKPIs, farmersResponse, transactionStats, recentPurchases, recentTransactions, dashboardKPIs] = await Promise.allSettled([
         purchasesApi.getPurchaseKPIs(),
         loansApi.getLoanKPIs(),
         farmersApi.getAllFarmers({ page: 1, limit: 1, status: 'active' }),
@@ -126,6 +127,7 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
           sortBy: 'createdAt', 
           sortOrder: 'desc' 
         }),
+        adminApi.getDashboardKPIs(),
       ]);
 
       const activeFarmers = farmersResponse.status === 'fulfilled' ? farmersResponse.value.total : 0;
@@ -140,6 +142,7 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
       setData({
         purchaseKPIs: purchaseKPIs.status === 'fulfilled' ? purchaseKPIs.value : null,
         loanKPIs: loanKPIs.status === 'fulfilled' ? loanKPIs.value : null,
+        dashboardKPIs: dashboardKPIs.status === 'fulfilled' ? dashboardKPIs.value : null,
         activeFarmers,
         totalFarmers,
         transactionStats: transactionStats.status === 'fulfilled' ? transactionStats.value : null,
@@ -229,6 +232,51 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
   const defaultRate = data.loanKPIs?.defaultRate || 0;
   const totalDisbursed = data.loanKPIs?.totalDisbursed || 0;
   const totalTransactions = data.transactionStats?.totalAmount || 0;
+  const kpiRows = data.dashboardKPIs?.kpiTable?.rows ?? [];
+
+  const exportDashboardPdf = () => {
+    if (!dashboardRef.current) {
+      return;
+    }
+
+    const html = dashboardRef.current.outerHTML;
+    const styleTags = Array.from(
+      document.querySelectorAll('style, link[rel="stylesheet"]'),
+    )
+      .map((el) => el.outerHTML)
+      .join('\n');
+
+    const printWindow = window.open('', '_blank', 'width=1280,height=900');
+    if (!printWindow) {
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Dashboard Export</title>
+          ${styleTags}
+          <style>
+            body { background: white; margin: 0; padding: 16px; }
+            .no-print { display: none !important; }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 700);
+  };
 
   if (data.loading) {
     return <LeafInlineLoader />;
@@ -254,7 +302,7 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
   }
 
   return (
-    <div className="space-y-5">
+    <div ref={dashboardRef} className="space-y-5">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -262,14 +310,24 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
             <h2 className="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
             <p className="text-sm text-gray-600 mt-0.5">Real-time analytics and insights</p>
           </div>
-          <button
-            onClick={loadDashboardData}
-            className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-[#066f48] bg-white hover:bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200"
-            title="Refresh data"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            <span>Refresh</span>
-          </button>
+          <div className="flex items-center gap-2 no-print">
+            <button
+              onClick={loadDashboardData}
+              className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-[#066f48] bg-white hover:bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200"
+              title="Refresh data"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              <span>Refresh</span>
+            </button>
+            <button
+              onClick={exportDashboardPdf}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:text-[#066f48] bg-white hover:bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200"
+              title="Export full dashboard as PDF"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>Export PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -360,6 +418,40 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
         />
         )}
       </div>
+
+      {/* KPI Table */}
+      {kpiRows.length ? (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-gray-800">KPI Summary</h3>
+            <p className="text-xs text-gray-500">
+              {data.dashboardKPIs?.kpiTable.period}
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm border border-gray-200">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="text-left px-3 py-2 border-b border-gray-200 font-semibold text-gray-700">KPI</th>
+                  <th className="text-left px-3 py-2 border-b border-gray-200 font-semibold text-gray-700">Actual</th>
+                </tr>
+              </thead>
+              <tbody>
+                {kpiRows.map((row, index) => (
+                  <tr key={`${row.kpi}-${index}`} className="hover:bg-gray-50">
+                    <td className="px-3 py-2 border-b border-gray-100 text-gray-800">
+                      {formatKpiLabel(row.kpi, row.unit)}
+                    </td>
+                    <td className="px-3 py-2 border-b border-gray-100 text-gray-900 font-medium">
+                      {formatKpiValue(row.actual, row.unit)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -563,4 +655,24 @@ function getTimeAgo(date: Date): string {
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
   if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
   return date.toLocaleDateString();
+}
+
+function formatKpiValue(value: number, unit: DashboardKpiUnit): string {
+  if (unit === 'percent') {
+    return `${value.toFixed(2)}%`;
+  }
+  if (unit === 'minutes') {
+    return `${value.toFixed(2)} mins`;
+  }
+  return Math.round(value).toLocaleString();
+}
+
+function formatKpiLabel(label: string, unit: DashboardKpiUnit): string {
+  if (unit === 'percent' && !label.includes('%')) {
+    return `${label} (%)`;
+  }
+  if (unit === 'minutes' && !label.toLowerCase().includes('min')) {
+    return `${label} (mins)`;
+  }
+  return label;
 }
