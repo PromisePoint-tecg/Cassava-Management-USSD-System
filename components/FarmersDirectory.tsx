@@ -11,6 +11,10 @@ import {
   AlertCircle,
   FileDown,
   RotateCcw,
+  Printer,
+  PlusCircle,
+  ArrowUpRight,
+  PencilLine,
 } from 'lucide-react';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
@@ -28,8 +32,72 @@ import {
   FarmerDashboardKpiRow,
   FarmerDashboardKpiTable,
   GetAllFarmersParams,
+  UserFinancialDetails,
 } from '../services/farmers';
 import LeafInlineLoader from './Loader';
+
+type StatementSectionKey =
+  | 'personal'
+  | 'wallet'
+  | 'loans'
+  | 'transactions'
+  | 'purchases'
+  | 'sessions'
+  | 'activity';
+
+type StatementSectionFilterState = Record<StatementSectionKey, boolean>;
+
+const createDefaultStatementSectionFilters = (): StatementSectionFilterState => ({
+  personal: true,
+  wallet: true,
+  loans: true,
+  transactions: true,
+  purchases: true,
+  sessions: true,
+  activity: true,
+});
+
+const statementSectionOptions: Array<{
+  key: StatementSectionKey;
+  label: string;
+  description: string;
+}> = [
+  {
+    key: 'personal',
+    label: 'Personal Profile',
+    description: 'Farmer identity and registration profile details',
+  },
+  {
+    key: 'wallet',
+    label: 'Wallet Information',
+    description: 'Wallet balance, account details and management section',
+  },
+  {
+    key: 'loans',
+    label: 'Loan Information',
+    description: 'Outstanding loans and repayment progress',
+  },
+  {
+    key: 'transactions',
+    label: 'Recent Transactions',
+    description: 'Latest wallet and loan related transactions',
+  },
+  {
+    key: 'purchases',
+    label: 'Recent Purchases',
+    description: 'Recent cassava purchase records',
+  },
+  {
+    key: 'sessions',
+    label: 'USSD Sessions',
+    description: 'Recent farmer USSD session activity',
+  },
+  {
+    key: 'activity',
+    label: 'Account Activity',
+    description: 'Member timeline and account status history',
+  },
+];
 
 export const FarmersDirectory: React.FC = () => {
   const farmersPageRef = useRef<HTMLDivElement>(null);
@@ -48,9 +116,13 @@ export const FarmersDirectory: React.FC = () => {
   
   // Modal states
   const [viewingFarmer, setViewingFarmer] = useState<FarmerDetail | null>(null);
+  const [viewingFarmerFinancial, setViewingFarmerFinancial] = useState<UserFinancialDetails | null>(null);
   const [deactivatingFarmer, setDeactivatingFarmer] = useState<Farmer | null>(null);
   const [suspendingFarmer, setSuspendingFarmer] = useState<Farmer | null>(null);
   const [suspensionReason, setSuspensionReason] = useState('');
+  const [loadingFarmerStatement, setLoadingFarmerStatement] = useState(false);
+  const [statementSectionFilters, setStatementSectionFilters] =
+    useState<StatementSectionFilterState>(createDefaultStatementSectionFilters);
   
   // Action loading states
   const [loadingAction, setLoadingAction] = useState(false);
@@ -120,6 +192,13 @@ export const FarmersDirectory: React.FC = () => {
     setKpiEndDate('');
   };
 
+  const closeViewingFarmerModal = () => {
+    setViewingFarmer(null);
+    setViewingFarmerFinancial(null);
+    setStatementSectionFilters(createDefaultStatementSectionFilters());
+    setActionError(null);
+  };
+
   const exportFarmersPagePdf = () => {
     if (!farmersPageRef.current) {
       return;
@@ -168,10 +247,32 @@ export const FarmersDirectory: React.FC = () => {
   const handleViewFarmer = async (farmer: Farmer) => {
     try {
       setActionError(null);
-      const details = await farmersApi.getFarmerById(farmer.id);
-      setViewingFarmer(details);
+      setLoadingFarmerStatement(true);
+      const [detailsResult, financialResult] = await Promise.allSettled([
+        farmersApi.getFarmerById(farmer.id),
+        farmersApi.getFarmerFinancialStatus(farmer.userId),
+      ]);
+
+      if (detailsResult.status === 'rejected') {
+        throw detailsResult.reason;
+      }
+
+      setViewingFarmer(detailsResult.value);
+
+      if (financialResult.status === 'fulfilled') {
+        setViewingFarmerFinancial(financialResult.value);
+      } else {
+        setViewingFarmerFinancial(null);
+        setActionError(
+          'Farmer profile loaded, but some statement data could not be retrieved.',
+        );
+      }
+
+      setStatementSectionFilters(createDefaultStatementSectionFilters());
     } catch (err: any) {
       setActionError(err.message || 'Failed to fetch farmer details');
+    } finally {
+      setLoadingFarmerStatement(false);
     }
   };
 
@@ -223,7 +324,7 @@ export const FarmersDirectory: React.FC = () => {
       
       setSuspendingFarmer(null);
       setSuspensionReason('');
-      setViewingFarmer(null);
+      closeViewingFarmerModal();
       loadFarmersData(); // Refresh list + KPIs
     } catch (err: any) {
       setActionError(err.message || 'Failed to suspend farmer');
@@ -236,11 +337,32 @@ export const FarmersDirectory: React.FC = () => {
     return `₦${(amount / 100).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-NG', {
+  const formatNaira = (amount: number) => {
+    return `₦${Number(amount || 0).toLocaleString('en-NG', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const formatDate = (dateValue: string | Date) => {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString('en-NG', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+    });
+  };
+
+  const formatDateTime = (dateValue: string | Date) => {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleString('en-NG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -287,6 +409,412 @@ export const FarmersDirectory: React.FC = () => {
     if (unit === 'percent') return 'Percentage';
     if (unit === 'minutes') return 'Minutes';
     return 'Count';
+  };
+
+  const statementSectionCount = Object.values(statementSectionFilters).filter(
+    Boolean,
+  ).length;
+
+  const toggleStatementSection = (sectionKey: StatementSectionKey) => {
+    setStatementSectionFilters((prev) => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey],
+    }));
+  };
+
+  const selectAllStatementSections = () => {
+    setStatementSectionFilters({
+      personal: true,
+      wallet: true,
+      loans: true,
+      transactions: true,
+      purchases: true,
+      sessions: true,
+      activity: true,
+    });
+  };
+
+  const clearStatementSections = () => {
+    setStatementSectionFilters({
+      personal: false,
+      wallet: false,
+      loans: false,
+      transactions: false,
+      purchases: false,
+      sessions: false,
+      activity: false,
+    });
+  };
+
+  const toFarmerPayload = (farmerDetail: FarmerDetail): Farmer => ({
+    id: farmerDetail.id,
+    userId: farmerDetail.userId,
+    firstName: farmerDetail.firstName,
+    lastName: farmerDetail.lastName,
+    fullName: farmerDetail.fullName,
+    name: farmerDetail.fullName,
+    phone: farmerDetail.phone,
+    lga: farmerDetail.lga,
+    status: farmerDetail.status,
+    farmSizeHectares: farmerDetail.farmSizeHectares,
+    walletBalance: farmerDetail.walletBalance,
+    totalSales: farmerDetail.totalSales,
+    totalEarnings: farmerDetail.totalEarnings,
+    completedSales: farmerDetail.completedSales,
+    loanDefaults: farmerDetail.loanDefaults,
+    activeLoan: farmerDetail.activeLoan,
+    createdAt: farmerDetail.createdAt,
+    updatedAt: farmerDetail.updatedAt,
+  });
+
+  const triggerWalletActionUiOnly = (actionName: string) => {
+    setActionError(`${actionName} is UI-ready and will be connected to backend actions next.`);
+  };
+
+  const printFarmerStatement = () => {
+    if (!viewingFarmer) {
+      return;
+    }
+
+    if (statementSectionCount === 0) {
+      setActionError('Select at least one statement section to print.');
+      return;
+    }
+
+    const escapeHtml = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    const safe = (value?: string | null) => escapeHtml(value || 'N/A');
+    const selectedSections = statementSectionOptions
+      .filter((option) => statementSectionFilters[option.key])
+      .map((option) => option.label)
+      .join(', ');
+
+    const outstandingLoans = viewingFarmerFinancial?.outstandingLoans || [];
+    const recentTransactions = viewingFarmerFinancial?.recentTransactions || [];
+    const recentPurchases = viewingFarmerFinancial?.recentPurchases || [];
+    const recentUssdSessions = viewingFarmerFinancial?.recentUssdSessions || [];
+
+    const sectionHtml: string[] = [];
+
+    if (statementSectionFilters.personal) {
+      sectionHtml.push(`
+        <section class="section">
+          <h2>Personal Profile</h2>
+          <table class="meta-table">
+            <tr><td>Full Name</td><td>${safe(viewingFarmer.fullName.toUpperCase())}</td></tr>
+            <tr><td>Phone Number</td><td>${safe(viewingFarmer.phone)}</td></tr>
+            <tr><td>LGA</td><td>${safe(viewingFarmer.lga.toUpperCase())}</td></tr>
+            <tr><td>Farm Size</td><td>${viewingFarmer.farmSizeHectares} hectares</td></tr>
+            <tr><td>Status</td><td>${safe(viewingFarmer.status)}</td></tr>
+          </table>
+        </section>
+      `);
+    }
+
+    if (statementSectionFilters.wallet) {
+      sectionHtml.push(`
+        <section class="section">
+          <h2>Wallet Information</h2>
+          <table class="meta-table">
+            <tr><td>Wallet Balance</td><td>${formatNaira(viewingFarmer.walletBalance || 0)}</td></tr>
+            <tr><td>Wallet Status</td><td>${viewingFarmerFinancial?.wallet?.isActive ? 'Active' : 'Inactive'}</td></tr>
+            <tr><td>Bank Name</td><td>${safe(viewingFarmer.walletBankName || 'N/A')}</td></tr>
+            <tr><td>Account Number</td><td>${safe(viewingFarmer.walletAccountNumber || 'N/A')}</td></tr>
+            <tr><td>Account Name</td><td>${safe(viewingFarmer.walletAccountName || 'N/A')}</td></tr>
+            <tr><td>BVN</td><td>${safe(viewingFarmer.walletBvn ? `••••••••${viewingFarmer.walletBvn.slice(-4)}` : 'N/A')}</td></tr>
+          </table>
+        </section>
+      `);
+    }
+
+    if (statementSectionFilters.loans) {
+      sectionHtml.push(`
+        <section class="section">
+          <h2>Outstanding Loans</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Loan ID</th>
+                <th>Principal</th>
+                <th>Total Repayment</th>
+                <th>Amount Paid</th>
+                <th>Outstanding</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                outstandingLoans.length > 0
+                  ? outstandingLoans
+                      .map(
+                        (loan) => `
+                          <tr>
+                            <td>${safe(loan.id.slice(0, 10))}...</td>
+                            <td>${formatCurrency(loan.principalAmount || 0)}</td>
+                            <td>${formatCurrency(loan.totalRepayment || 0)}</td>
+                            <td>${formatCurrency(loan.amountPaid || 0)}</td>
+                            <td>${formatCurrency(loan.amountOutstanding || 0)}</td>
+                            <td>${safe(loan.status)}</td>
+                          </tr>
+                        `,
+                      )
+                      .join('')
+                  : '<tr><td colspan="6" class="empty">No outstanding loans available.</td></tr>'
+              }
+            </tbody>
+          </table>
+        </section>
+      `);
+    }
+
+    if (statementSectionFilters.transactions) {
+      sectionHtml.push(`
+        <section class="section">
+          <h2>Recent Transactions</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                recentTransactions.length > 0
+                  ? recentTransactions
+                      .map(
+                        (transaction) => `
+                          <tr>
+                            <td>${formatDateTime(transaction.createdAt)}</td>
+                            <td>${safe(transaction.type.replace('_', ' '))}</td>
+                            <td>${safe(transaction.description || 'N/A')}</td>
+                            <td>${safe(transaction.status)}</td>
+                            <td>${formatNaira(transaction.amount || 0)}</td>
+                          </tr>
+                        `,
+                      )
+                      .join('')
+                  : '<tr><td colspan="5" class="empty">No transactions in this period.</td></tr>'
+              }
+            </tbody>
+          </table>
+        </section>
+      `);
+    }
+
+    if (statementSectionFilters.purchases) {
+      sectionHtml.push(`
+        <section class="section">
+          <h2>Recent Purchases</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Weight (KG)</th>
+                <th>Status</th>
+                <th>Total Amount</th>
+                <th>Net Credited</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                recentPurchases.length > 0
+                  ? recentPurchases
+                      .map(
+                        (purchase) => `
+                          <tr>
+                            <td>${formatDateTime(purchase.createdAt)}</td>
+                            <td>${Number(purchase.weightKg || 0).toLocaleString()}</td>
+                            <td>${safe(purchase.status)}</td>
+                            <td>${formatCurrency(purchase.totalAmount || 0)}</td>
+                            <td>${formatCurrency(purchase.netAmountCredited || 0)}</td>
+                          </tr>
+                        `,
+                      )
+                      .join('')
+                  : '<tr><td colspan="5" class="empty">No purchases in this period.</td></tr>'
+              }
+            </tbody>
+          </table>
+        </section>
+      `);
+    }
+
+    if (statementSectionFilters.sessions) {
+      sectionHtml.push(`
+        <section class="section">
+          <h2>Recent USSD Sessions</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Start Time</th>
+                <th>Session ID</th>
+                <th>Network</th>
+                <th>Status</th>
+                <th>Action</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                recentUssdSessions.length > 0
+                  ? recentUssdSessions
+                      .map(
+                        (session) => `
+                          <tr>
+                            <td>${formatDateTime(session.startTime)}</td>
+                            <td>${safe(session.sessionId || 'N/A')}</td>
+                            <td>${safe(session.network || 'UNKNOWN')}</td>
+                            <td>${safe(session.status)}</td>
+                            <td>${safe(session.action || 'N/A')}</td>
+                            <td>${Number(session.duration || 0)} sec</td>
+                          </tr>
+                        `,
+                      )
+                      .join('')
+                  : '<tr><td colspan="6" class="empty">No USSD sessions in this period.</td></tr>'
+              }
+            </tbody>
+          </table>
+        </section>
+      `);
+    }
+
+    if (statementSectionFilters.activity) {
+      sectionHtml.push(`
+        <section class="section">
+          <h2>Account Activity</h2>
+          <table class="meta-table">
+            <tr><td>Member Since</td><td>${formatDate(viewingFarmer.createdAt)}</td></tr>
+            <tr><td>Last Updated</td><td>${formatDate(viewingFarmer.updatedAt)}</td></tr>
+            <tr><td>Total Sales</td><td>${Number(viewingFarmer.totalSales || 0).toLocaleString()}</td></tr>
+            <tr><td>Total Earnings</td><td>${formatNaira(viewingFarmer.totalEarnings || 0)}</td></tr>
+            <tr><td>Completed Sales</td><td>${Number(viewingFarmer.completedSales || 0).toLocaleString()}</td></tr>
+          </table>
+        </section>
+      `);
+    }
+
+    const styleTags = Array.from(
+      document.querySelectorAll('style, link[rel="stylesheet"]'),
+    )
+      .map((element) => element.outerHTML)
+      .join('\n');
+
+    const printWindow = window.open('', '_blank', 'width=1100,height=900');
+    if (!printWindow) {
+      setActionError('Unable to open print window. Please allow pop-ups and try again.');
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Farmer Statement - ${safe(viewingFarmer.fullName)}</title>
+          ${styleTags}
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background: #fff;
+              color: #1f2937;
+              margin: 0;
+              padding: 20px;
+            }
+            .header {
+              margin-bottom: 20px;
+              border-bottom: 2px solid #066f48;
+              padding-bottom: 12px;
+            }
+            .title {
+              color: #066f48;
+              margin: 0 0 6px;
+              font-size: 24px;
+              font-weight: 700;
+            }
+            .meta {
+              margin: 2px 0;
+              font-size: 13px;
+              color: #4b5563;
+            }
+            .section {
+              margin-bottom: 16px;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              padding: 12px;
+              page-break-inside: avoid;
+            }
+            .section h2 {
+              margin: 0 0 10px;
+              color: #066f48;
+              font-size: 16px;
+            }
+            .meta-table,
+            .data-table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .meta-table td,
+            .data-table td,
+            .data-table th {
+              border: 1px solid #e5e7eb;
+              padding: 7px 8px;
+              text-align: left;
+              font-size: 12px;
+              vertical-align: top;
+            }
+            .data-table th {
+              background: #f0fdf4;
+              color: #065f46;
+              font-weight: 700;
+            }
+            .meta-table td:first-child {
+              width: 220px;
+              font-weight: 700;
+              background: #f9fafb;
+            }
+            .empty {
+              text-align: center;
+              color: #6b7280;
+              font-style: italic;
+            }
+            @media print {
+              body {
+                padding: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1 class="title">Farmer Statement</h1>
+            <p class="meta"><strong>Farmer:</strong> ${safe(viewingFarmer.fullName.toUpperCase())}</p>
+            <p class="meta"><strong>Phone:</strong> ${safe(viewingFarmer.phone)}</p>
+            <p class="meta"><strong>Generated:</strong> ${formatDateTime(new Date())}</p>
+            <p class="meta"><strong>Included Sections:</strong> ${safe(selectedSections)}</p>
+          </div>
+          ${sectionHtml.join('\n')}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 600);
   };
 
   return (
@@ -655,144 +1183,307 @@ export const FarmersDirectory: React.FC = () => {
       {/* View Farmer Modal */}
       {viewingFarmer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden my-auto border border-gray-200">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl overflow-hidden my-auto border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-[#066f48]">Farmer Details</h3>
-                <button onClick={() => setViewingFarmer(null)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all">
-                  <X className="w-6 h-6" />
-                </button>
+              <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-[#066f48]">Farmer Statement Center</h3>
+                  <p className="text-sm text-gray-600 mt-0.5">
+                    {viewingFarmer.fullName.toUpperCase()} • {viewingFarmer.phone}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={printFarmerStatement}
+                    className="px-4 py-2 bg-[#066f48] hover:bg-[#055a3b] text-white rounded-lg transition-all flex items-center gap-2"
+                  >
+                    <Printer className="w-4 h-4" />
+                    Print Farmer Statement
+                  </button>
+                  <button
+                    onClick={closeViewingFarmerModal}
+                    className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="p-6 space-y-6">
-              {/* Personal Info */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">Personal Information</h4>
-                <div className="grid grid-cols-2 gap-4">
+            <div className="p-6 space-y-6 max-h-[84vh] overflow-y-auto">
+              {actionError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <p className="text-red-800 text-sm">{actionError}</p>
+                </div>
+              )}
+
+              <div className="bg-[#f7fcf9] border border-[#d1f5e1] rounded-xl p-4">
+                <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.fullName.toUpperCase()}</p>
+                    <h4 className="font-semibold text-[#065f46]">Print Farmer Statement</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Select the sections you want on the printable statement for better reporting UX.
+                    </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Phone Number</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.phone}</p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={selectAllStatementSections}
+                      className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      onClick={clearStatementSections}
+                      className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={printFarmerStatement}
+                      className="px-3 py-2 rounded-lg bg-[#066f48] text-white hover:bg-[#055a3b] transition-all text-sm flex items-center gap-2"
+                    >
+                      <Printer className="w-4 h-4" />
+                      Print ({statementSectionCount})
+                    </button>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">LGA</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.lga.toUpperCase()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Farm Size</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.farmSizeHectares} hectares</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Status</p>
-                    {getStatusBadge(viewingFarmer.status)}
-                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
+                  {statementSectionOptions.map((option) => (
+                    <label
+                      key={option.key}
+                      className="flex items-start gap-2 p-2 rounded-lg border border-gray-200 bg-white cursor-pointer hover:border-[#9adfbd] transition-all"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={statementSectionFilters[option.key]}
+                        onChange={() => toggleStatementSection(option.key)}
+                        className="mt-1 accent-[#066f48]"
+                      />
+                      <span className="flex-1">
+                        <span className="block text-sm font-medium text-gray-800">{option.label}</span>
+                        <span className="block text-xs text-gray-500">{option.description}</span>
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              {/* Financial Info */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">Financial Information</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Wallet Balance</p>
-                    <p className="font-medium text-gray-800">{formatCurrency(viewingFarmer.walletBalance || 0)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Total Earnings</p>
-                    <p className="font-medium text-gray-800">{formatCurrency(viewingFarmer.totalEarnings)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Total Sales</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.totalSales}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Completed Sales</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.completedSales}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Active Loan</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.activeLoan ? 'Yes' : 'No'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Loan Defaults</p>
-                    <p className="font-medium text-gray-800">{viewingFarmer.loanDefaults}</p>
-                  </div>
+              {loadingFarmerStatement ? (
+                <div className="py-10 flex flex-col items-center gap-2">
+                  <LeafInlineLoader />
+                  <p className="text-sm text-gray-600">Loading farmer statement data...</p>
                 </div>
-              </div>
-
-              {/* Withdrawal Account Information */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">Withdrawal Account</h4>
-                {viewingFarmer.walletBankName && viewingFarmer.walletAccountNumber ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Bank Name</p>
-                      <p className="font-medium text-gray-800">{viewingFarmer.walletBankName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Account Number</p>
-                      <p className="font-medium text-gray-800">{viewingFarmer.walletAccountNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Account Name</p>
-                      <p className="font-medium text-gray-800">{viewingFarmer.walletAccountName || 'N/A'}</p>
-                    </div>
-                    {viewingFarmer.walletBvn && (
+              ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-3">Personal Information</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p className="text-sm text-gray-500">BVN</p>
-                        <p className="font-medium text-gray-800">••••••••{viewingFarmer.walletBvn?.slice(-4)}</p>
+                        <p className="text-gray-500">Full Name</p>
+                        <p className="font-medium text-gray-800">{viewingFarmer.fullName.toUpperCase()}</p>
                       </div>
+                      <div>
+                        <p className="text-gray-500">Phone Number</p>
+                        <p className="font-medium text-gray-800">{viewingFarmer.phone}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">LGA</p>
+                        <p className="font-medium text-gray-800">{viewingFarmer.lga.toUpperCase()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Farm Size</p>
+                        <p className="font-medium text-gray-800">{viewingFarmer.farmSizeHectares} hectares</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Status</p>
+                        {getStatusBadge(viewingFarmer.status)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-3">Wallet Management (UI)</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                      <button
+                        onClick={() => triggerWalletActionUiOnly('Fund wallet')}
+                        className="px-3 py-2 rounded-lg bg-[#066f48] hover:bg-[#055a3b] text-white transition-all flex items-center justify-center gap-2 text-sm"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                        Fund Wallet
+                      </button>
+                      <button
+                        onClick={() => triggerWalletActionUiOnly('Withdraw funds')}
+                        className="px-3 py-2 rounded-lg bg-[#0b7a56] hover:bg-[#066f48] text-white transition-all flex items-center justify-center gap-2 text-sm"
+                      >
+                        <ArrowUpRight className="w-4 h-4" />
+                        Withdraw
+                      </button>
+                      <button
+                        onClick={() => triggerWalletActionUiOnly('Edit wallet information')}
+                        className="px-3 py-2 rounded-lg border border-[#9adfbd] bg-[#ecfdf5] text-[#065f46] hover:bg-[#dff7eb] transition-all flex items-center justify-center gap-2 text-sm"
+                      >
+                        <PencilLine className="w-4 h-4" />
+                        Edit Wallet Info
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500">Wallet Balance</p>
+                        <p className="font-semibold text-[#066f48]">{formatNaira(viewingFarmer.walletBalance || 0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Wallet Status</p>
+                        <p className="font-medium text-gray-800">
+                          {viewingFarmerFinancial?.wallet?.isActive ? 'Active' : 'Inactive'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Bank Name</p>
+                        <p className="font-medium text-gray-800">{viewingFarmer.walletBankName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Account Number</p>
+                        <p className="font-medium text-gray-800">{viewingFarmer.walletAccountNumber || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Account Name</p>
+                        <p className="font-medium text-gray-800">{viewingFarmer.walletAccountName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">BVN</p>
+                        <p className="font-medium text-gray-800">
+                          {viewingFarmer.walletBvn ? `••••••••${viewingFarmer.walletBvn.slice(-4)}` : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-3">Outstanding Loans</h4>
+                    {viewingFarmerFinancial?.outstandingLoans?.length ? (
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                        {viewingFarmerFinancial.outstandingLoans.map((loan) => (
+                          <div key={loan.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50 text-sm">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="font-semibold text-gray-800">Loan #{loan.id.slice(0, 8)}...</p>
+                              <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold">
+                                {loan.status}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-gray-600">
+                              <p>Principal: <span className="font-medium text-gray-800">{formatCurrency(loan.principalAmount)}</span></p>
+                              <p>Total Repayment: <span className="font-medium text-gray-800">{formatCurrency(loan.totalRepayment)}</span></p>
+                              <p>Paid: <span className="font-medium text-gray-800">{formatCurrency(loan.amountPaid)}</span></p>
+                              <p>Outstanding: <span className="font-semibold text-red-600">{formatCurrency(loan.amountOutstanding)}</span></p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">No outstanding loans found.</p>
                     )}
                   </div>
-                ) : (
-                  <p className="text-sm text-gray-500 italic">No withdrawal account configured</p>
-                )}
-              </div>
 
-              {/* Activity */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">Activity</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Member Since</p>
-                    <p className="font-medium text-gray-800">{formatDate(viewingFarmer.createdAt)}</p>
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-3">Recent Transactions</h4>
+                    {viewingFarmerFinancial?.recentTransactions?.length ? (
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {viewingFarmerFinancial.recentTransactions.map((transaction) => (
+                          <div key={transaction.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50 text-sm">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium text-gray-800 capitalize">
+                                {(transaction.type || 'N/A').replace('_', ' ')}
+                              </p>
+                              <p className="font-semibold text-[#066f48]">{formatNaira(transaction.amount)}</p>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">{transaction.description || 'N/A'}</p>
+                            <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                              <span>{transaction.status}</span>
+                              <span>{formatDateTime(transaction.createdAt)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">No recent transactions found.</p>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Last Updated</p>
-                    <p className="font-medium text-gray-800">{formatDate(viewingFarmer.updatedAt)}</p>
+
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-3">Recent Purchases</h4>
+                    {viewingFarmerFinancial?.recentPurchases?.length ? (
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {viewingFarmerFinancial.recentPurchases.map((purchase) => (
+                          <div key={purchase.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50 text-sm">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium text-gray-800">{purchase.weightKg} KG</p>
+                              <p className="font-semibold text-[#066f48]">{formatCurrency(purchase.totalAmount)}</p>
+                            </div>
+                            <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                              <span>{purchase.status}</span>
+                              <span>{formatDateTime(purchase.createdAt)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">No recent purchases found.</p>
+                    )}
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-3">Recent USSD Sessions</h4>
+                    {viewingFarmerFinancial?.recentUssdSessions?.length ? (
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {viewingFarmerFinancial.recentUssdSessions.map((session) => (
+                          <div key={session.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50 text-sm">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium text-gray-800">{session.network}</p>
+                              <p className="text-xs text-gray-500">{session.duration || 0} sec</p>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">Session ID: {session.sessionId || 'N/A'}</p>
+                            <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                              <span className="capitalize">{session.status}</span>
+                              <span>{formatDateTime(session.startTime)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">No recent USSD sessions found.</p>
+                    )}
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <h4 className="font-semibold text-gray-800 mb-3">Account Activity</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500">Member Since</p>
+                        <p className="font-medium text-gray-800">{formatDate(viewingFarmer.createdAt)}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Last Updated</p>
+                        <p className="font-medium text-gray-800">{formatDate(viewingFarmer.updatedAt)}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Total Earnings</p>
+                        <p className="font-medium text-gray-800">{formatNaira(viewingFarmer.totalEarnings)}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Completed Sales</p>
+                        <p className="font-medium text-gray-800">{viewingFarmer.completedSales}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2 border-t border-gray-200">
                 {viewingFarmer.status === 'active' ? (
                   <>
                     <button
                       onClick={() => {
-                        setSuspendingFarmer({
-                          id: viewingFarmer.id,
-                          userId: viewingFarmer.userId,
-                          firstName: viewingFarmer.firstName,
-                          lastName: viewingFarmer.lastName,
-                          fullName: viewingFarmer.fullName,
-                          name: viewingFarmer.fullName,
-                          phone: viewingFarmer.phone,
-                          lga: viewingFarmer.lga,
-                          status: viewingFarmer.status,
-                          farmSizeHectares: viewingFarmer.farmSizeHectares,
-                          walletBalance: viewingFarmer.walletBalance,
-                          totalSales: viewingFarmer.totalSales,
-                          totalEarnings: viewingFarmer.totalEarnings,
-                          completedSales: viewingFarmer.completedSales,
-                          loanDefaults: 0,
-                          activeLoan: false,
-                          createdAt: viewingFarmer.createdAt,
-                          updatedAt: viewingFarmer.updatedAt,
-                        });
+                        setSuspendingFarmer(toFarmerPayload(viewingFarmer));
                       }}
                       className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all flex items-center gap-2 justify-center"
                     >
@@ -801,27 +1492,8 @@ export const FarmersDirectory: React.FC = () => {
                     </button>
                     <button
                       onClick={() => {
-                        setDeactivatingFarmer({
-                          id: viewingFarmer.id,
-                          userId: viewingFarmer.userId,
-                          firstName: viewingFarmer.firstName,
-                          lastName: viewingFarmer.lastName,
-                          fullName: viewingFarmer.fullName,
-                          name: viewingFarmer.fullName,
-                          phone: viewingFarmer.phone,
-                          lga: viewingFarmer.lga,
-                          status: viewingFarmer.status,
-                          farmSizeHectares: viewingFarmer.farmSizeHectares,
-                          walletBalance: viewingFarmer.walletBalance,
-                          totalSales: viewingFarmer.totalSales,
-                          totalEarnings: viewingFarmer.totalEarnings,
-                          completedSales: viewingFarmer.completedSales,
-                          loanDefaults: 0,
-                          activeLoan: false,
-                          createdAt: viewingFarmer.createdAt,
-                          updatedAt: viewingFarmer.updatedAt,
-                        });
-                        setViewingFarmer(null);
+                        setDeactivatingFarmer(toFarmerPayload(viewingFarmer));
+                        closeViewingFarmerModal();
                       }}
                       className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all flex items-center gap-2 justify-center"
                     >
@@ -832,27 +1504,8 @@ export const FarmersDirectory: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => {
-                      handleActivateFarmer({
-                        id: viewingFarmer.id,
-                        userId: viewingFarmer.userId,
-                        firstName: viewingFarmer.firstName,
-                        lastName: viewingFarmer.lastName,
-                        fullName: viewingFarmer.fullName,
-                        name: viewingFarmer.fullName,
-                        phone: viewingFarmer.phone,
-                        lga: viewingFarmer.lga,
-                        status: viewingFarmer.status,
-                        farmSizeHectares: viewingFarmer.farmSizeHectares,
-                        walletBalance: viewingFarmer.walletBalance,
-                        totalSales: viewingFarmer.totalSales,
-                        totalEarnings: viewingFarmer.totalEarnings,
-                        completedSales: viewingFarmer.completedSales,
-                        loanDefaults: 0,
-                        activeLoan: false,
-                        createdAt: viewingFarmer.createdAt,
-                        updatedAt: viewingFarmer.updatedAt,
-                      });
-                      setViewingFarmer(null);
+                      handleActivateFarmer(toFarmerPayload(viewingFarmer));
+                      closeViewingFarmerModal();
                     }}
                     className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all flex items-center gap-2 justify-center"
                   >

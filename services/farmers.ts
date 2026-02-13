@@ -84,6 +84,19 @@ export interface UserFinancialDetails {
     description: string;
     createdAt: Date;
   }>;
+  recentUssdSessions: Array<{
+    id: string;
+    sessionId: string;
+    phoneNumber: string;
+    network: string;
+    status: string;
+    action: string;
+    duration: number;
+    startTime: Date;
+    endTime?: Date;
+    lastMenu?: string;
+    errorMessage?: string;
+  }>;
 }
 
 export interface FarmerDashboardKpiRow {
