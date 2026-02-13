@@ -10,7 +10,20 @@ import {
   ChevronRight,
   AlertCircle
 } from 'lucide-react';
-import { farmersApi, Farmer, FarmerDetail, GetAllFarmersParams } from '../services/farmers';
+import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Chip from '@mui/material/Chip';
+import Typography from '@mui/material/Typography';
+import {
+  farmersApi,
+  Farmer,
+  FarmerDetail,
+  FarmerDashboardKpiRow,
+  FarmerDashboardKpiTable,
+  GetAllFarmersParams,
+} from '../services/farmers';
 import LeafInlineLoader from './Loader';
 
 export const FarmersDirectory: React.FC = () => {
@@ -22,6 +35,7 @@ export const FarmersDirectory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [kpiTable, setKpiTable] = useState<FarmerDashboardKpiTable | null>(null);
   
   // Modal states
   const [viewingFarmer, setViewingFarmer] = useState<FarmerDetail | null>(null);
@@ -33,8 +47,8 @@ export const FarmersDirectory: React.FC = () => {
   const [loadingAction, setLoadingAction] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // Fetch farmers
-  const fetchFarmers = async () => {
+  // Fetch farmers and KPI summary together
+  const loadFarmersData = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -46,11 +60,25 @@ export const FarmersDirectory: React.FC = () => {
       
       if (lgaFilter) params.lga = lgaFilter;
       if (statusFilter !== 'all') params.status = statusFilter;
-      
-      const response = await farmersApi.getAllFarmers(params);
-      setFarmers(response.farmers);
-      setTotalPages(response.totalPages);
-      setTotal(response.total);
+
+      const [farmersResult, kpiResult] = await Promise.allSettled([
+        farmersApi.getAllFarmers(params),
+        farmersApi.getDashboardKpiTable(),
+      ]);
+
+      if (farmersResult.status === 'rejected') {
+        throw farmersResult.reason;
+      }
+
+      setFarmers(farmersResult.value.farmers);
+      setTotalPages(farmersResult.value.totalPages);
+      setTotal(farmersResult.value.total);
+
+      if (kpiResult.status === 'fulfilled') {
+        setKpiTable(kpiResult.value);
+      } else {
+        setKpiTable(null);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch farmers');
     } finally {
@@ -59,7 +87,7 @@ export const FarmersDirectory: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchFarmers();
+    loadFarmersData();
   }, [currentPage, statusFilter, lgaFilter]);
 
   // View farmer details
@@ -83,7 +111,7 @@ export const FarmersDirectory: React.FC = () => {
       
       await farmersApi.deactivateFarmer(deactivatingFarmer.id);
       setDeactivatingFarmer(null);
-      fetchFarmers(); // Refresh list
+      loadFarmersData(); // Refresh list + KPIs
     } catch (err: any) {
       setActionError(err.message || 'Failed to deactivate farmer');
     } finally {
@@ -98,7 +126,7 @@ export const FarmersDirectory: React.FC = () => {
       setActionError(null);
       
       await farmersApi.activateFarmer(farmer.id);
-      fetchFarmers(); // Refresh list
+      loadFarmersData(); // Refresh list + KPIs
     } catch (err: any) {
       setActionError(err.message || 'Failed to activate farmer');
     } finally {
@@ -122,7 +150,7 @@ export const FarmersDirectory: React.FC = () => {
       setSuspendingFarmer(null);
       setSuspensionReason('');
       setViewingFarmer(null);
-      fetchFarmers(); // Refresh list
+      loadFarmersData(); // Refresh list + KPIs
     } catch (err: any) {
       setActionError(err.message || 'Failed to suspend farmer');
     } finally {
@@ -156,6 +184,37 @@ export const FarmersDirectory: React.FC = () => {
     );
   };
 
+  const desiredKpiOrder = [
+    'Total Registered Farmers',
+    'Total Registered Student Farmers',
+    'Total Registered Staff',
+    'New Registrations (This Period)',
+    'Monthly Active Users (MAU)',
+    'Daily Active Users (DAU)',
+    'Repeat Usage Rate',
+    '% Women Farmers',
+  ];
+
+  const farmerKpiRows: FarmerDashboardKpiRow[] = desiredKpiOrder
+    .map((label) => kpiTable?.rows?.find((row) => row.kpi === label))
+    .filter((row): row is FarmerDashboardKpiRow => Boolean(row));
+
+  const formatKpiValue = (value: number, unit: FarmerDashboardKpiRow['unit']) => {
+    if (unit === 'percent') {
+      return `${value.toFixed(2)}%`;
+    }
+    if (unit === 'minutes') {
+      return `${value.toFixed(2)} mins`;
+    }
+    return Math.round(value).toLocaleString();
+  };
+
+  const getKpiUnitLabel = (unit: FarmerDashboardKpiRow['unit']) => {
+    if (unit === 'percent') return 'Percentage';
+    if (unit === 'minutes') return 'Minutes';
+    return 'Count';
+  };
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -172,6 +231,93 @@ export const FarmersDirectory: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* KPI Snapshot */}
+      {farmerKpiRows.length > 0 && (
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: '0.75rem',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+            p: 2.5,
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}
+          >
+            Farmer KPI Snapshot
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ color: '#6b7280', display: 'block', mt: 0.5, mb: 2 }}
+          >
+            {kpiTable?.period}
+          </Typography>
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                xl: 'repeat(4, minmax(0, 1fr))',
+              },
+            }}
+          >
+            {farmerKpiRows.map((row, index) => (
+              <Card
+                key={`${row.kpi}-${index}`}
+                variant="outlined"
+                sx={{
+                  borderRadius: '0.75rem',
+                  borderColor: '#d1d5db',
+                  background: 'linear-gradient(180deg, #f8faf9 0%, #ffffff 100%)',
+                  borderTop: '4px solid #066f48',
+                }}
+              >
+                <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#4b5563',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.03em',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {row.kpi}
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      mt: 1,
+                      mb: 1.25,
+                      color: '#066f48',
+                      fontWeight: 800,
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {formatKpiValue(row.actual, row.unit)}
+                  </Typography>
+                  <Chip
+                    label={getKpiUnitLabel(row.unit)}
+                    size="small"
+                    sx={{
+                      backgroundColor: '#ecfdf5',
+                      color: '#066f48',
+                      fontWeight: 700,
+                      border: '1px solid #a7f3d0',
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        </Paper>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">

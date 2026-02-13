@@ -428,27 +428,23 @@ const permissions = ROLE_CARD_PERMISSIONS[userRole.toLowerCase() as keyof typeof
               {data.dashboardKPIs?.kpiTable.period}
             </p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border border-gray-200">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left px-3 py-2 border-b border-gray-200 font-semibold text-gray-700">KPI</th>
-                  <th className="text-left px-3 py-2 border-b border-gray-200 font-semibold text-gray-700">Actual</th>
-                </tr>
-              </thead>
-              <tbody>
-                {kpiRows.map((row, index) => (
-                  <tr key={`${row.kpi}-${index}`} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 border-b border-gray-100 text-gray-800">
-                      {formatKpiLabel(row.kpi, row.unit)}
-                    </td>
-                    <td className="px-3 py-2 border-b border-gray-100 text-gray-900 font-medium">
-                      {formatKpiValue(row.actual, row.unit)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            {kpiRows.map((row, index) => (
+              <div
+                key={`${row.kpi}-${index}`}
+                className="rounded-xl border border-gray-200 bg-gradient-to-b from-[#f8faf9] to-white p-4 hover:shadow-sm transition-all"
+              >
+                <p className="text-[11px] font-bold uppercase tracking-wide text-gray-600">
+                  {formatKpiLabel(row.kpi, row.unit)}
+                </p>
+                <p className="mt-2 text-2xl font-extrabold text-[#066f48] leading-tight">
+                  {formatKpiValue(row.actual, row.unit)}
+                </p>
+                <span className="inline-block mt-3 px-2 py-1 text-[11px] font-semibold rounded-md border border-emerald-200 bg-emerald-50 text-[#066f48]">
+                  {getKpiUnitLabel(row.unit)}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       ) : null}
@@ -665,6 +661,12 @@ function formatKpiValue(value: number, unit: DashboardKpiUnit): string {
     return `${value.toFixed(2)} mins`;
   }
   return Math.round(value).toLocaleString();
+}
+
+function getKpiUnitLabel(unit: DashboardKpiUnit): string {
+  if (unit === 'percent') return 'Percentage';
+  if (unit === 'minutes') return 'Minutes';
+  return 'Count';
 }
 
 function formatKpiLabel(label: string, unit: DashboardKpiUnit): string {

@@ -86,6 +86,20 @@ export interface UserFinancialDetails {
   }>;
 }
 
+export interface FarmerDashboardKpiRow {
+  kpi: string;
+  target: number;
+  actual: number;
+  status: 'on_track' | 'at_risk' | 'off_track';
+  unit: 'count' | 'percent' | 'minutes';
+}
+
+export interface FarmerDashboardKpiTable {
+  period: string;
+  rows: FarmerDashboardKpiRow[];
+  generatedAt: string;
+}
+
 export const farmersApi = {
   /**
    * Get all farmers with pagination and filters
@@ -154,5 +168,15 @@ export const farmersApi = {
   async getFarmerFinancialStatus(farmerId: string): Promise<UserFinancialDetails> {
     const response = await apiClient.get<{status: boolean; message: string; data: UserFinancialDetails}>(`/admin/transactions/farmer/${farmerId}/financial-status`);
     return response.data;
+  },
+
+  /**
+   * Get dashboard KPI table used on dashboard/farmers analytics surfaces
+   */
+  async getDashboardKpiTable(): Promise<FarmerDashboardKpiTable> {
+    const response = await apiClient.get<{ kpiTable: FarmerDashboardKpiTable }>(
+      '/admins/dashboard/kpis',
+    );
+    return response.kpiTable;
   },
 };
