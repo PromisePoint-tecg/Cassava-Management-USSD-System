@@ -23,6 +23,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   TextField,
   Typography,
 } from "@mui/material";
@@ -91,6 +92,16 @@ const FinanceView: React.FC = () => {
   const [wallets, setWallets] = useState<OrganizationWalletSnapshot[]>([]);
   const [farmers, setFarmers] = useState<Farmer[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [farmersTotal, setFarmersTotal] = useState(0);
+  const [staffTotal, setStaffTotal] = useState(0);
+  const [farmersLoading, setFarmersLoading] = useState(false);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [farmersError, setFarmersError] = useState<string | null>(null);
+  const [staffError, setStaffError] = useState<string | null>(null);
+  const [farmerPage, setFarmerPage] = useState(0);
+  const [farmerRowsPerPage, setFarmerRowsPerPage] = useState(10);
+  const [staffPage, setStaffPage] = useState(0);
+  const [staffRowsPerPage, setStaffRowsPerPage] = useState(10);
 
   const [txLoading, setTxLoading] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -119,12 +130,10 @@ const FinanceView: React.FC = () => {
         ...(endDate ? { endDate } : {}),
       };
 
-      const [kpiResult, walletResult, farmersResult, staffResult] =
+      const [kpiResult, walletResult] =
         await Promise.allSettled([
           financeApi.getFinanceKPIs(filters),
           financeApi.getOrganizationWallets(),
-          farmersApi.getAllFarmers({ page: 1, limit: 200, sortBy: "createdAt", sortOrder: "desc" }),
-          getAllStaff({ page: 1, limit: 200 }),
         ]);
 
       if (kpiResult.status === "fulfilled") {
@@ -139,23 +148,9 @@ const FinanceView: React.FC = () => {
         setWallets([]);
       }
 
-      if (farmersResult.status === "fulfilled") {
-        setFarmers(farmersResult.value.farmers || []);
-      } else {
-        setFarmers([]);
-      }
-
-      if (staffResult.status === "fulfilled") {
-        setStaff(staffResult.value.staff || []);
-      } else {
-        setStaff([]);
-      }
-
       if (
         kpiResult.status === "rejected" &&
-        walletResult.status === "rejected" &&
-        farmersResult.status === "rejected" &&
-        staffResult.status === "rejected"
+        walletResult.status === "rejected"
       ) {
         throw new Error("Failed to load finance dashboard data");
       }
@@ -163,6 +158,46 @@ const FinanceView: React.FC = () => {
       setError(err?.message || "Failed to load finance data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFarmersPage = async () => {
+    setFarmersLoading(true);
+    setFarmersError(null);
+    try {
+      const result = await farmersApi.getAllFarmers({
+        page: farmerPage + 1,
+        limit: farmerRowsPerPage,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      });
+      setFarmers(result.farmers || []);
+      setFarmersTotal(result.total || 0);
+    } catch (err: any) {
+      setFarmers([]);
+      setFarmersTotal(0);
+      setFarmersError(err?.message || "Failed to load farmers");
+    } finally {
+      setFarmersLoading(false);
+    }
+  };
+
+  const loadStaffPage = async () => {
+    setStaffLoading(true);
+    setStaffError(null);
+    try {
+      const result = await getAllStaff({
+        page: staffPage + 1,
+        limit: staffRowsPerPage,
+      });
+      setStaff(result.staff || []);
+      setStaffTotal(result.total || 0);
+    } catch (err: any) {
+      setStaff([]);
+      setStaffTotal(0);
+      setStaffError(err?.message || "Failed to load staff");
+    } finally {
+      setStaffLoading(false);
     }
   };
 
@@ -196,15 +231,27 @@ const FinanceView: React.FC = () => {
     }
   }, [tabIndex, walletTxTab, startDate, endDate]);
 
+  useEffect(() => {
+    if (tabIndex === 2) {
+      loadFarmersPage();
+    }
+  }, [tabIndex, farmerPage, farmerRowsPerPage]);
+
+  useEffect(() => {
+    if (tabIndex === 3) {
+      loadStaffPage();
+    }
+  }, [tabIndex, staffPage, staffRowsPerPage]);
+
   const summaryCards = useMemo(
     () => [
       {
         label: "Total Farmers",
-        value: financeKpis?.summary.totalFarmers ?? farmers.length,
+        value: financeKpis?.summary.totalFarmers ?? farmersTotal,
       },
       {
         label: "Total Staff",
-        value: financeKpis?.summary.totalStaff ?? staff.length,
+        value: financeKpis?.summary.totalStaff ?? staffTotal,
       },
       {
         label: "Active Farmers",
@@ -215,7 +262,7 @@ const FinanceView: React.FC = () => {
         value: formatCurrency(financeKpis?.summary.totalOrganizationWalletBalance ?? 0),
       },
     ],
-    [financeKpis, farmers.length, staff.length]
+    [financeKpis, farmersTotal, staffTotal]
   );
 
   const activeWalletLabel =
@@ -337,7 +384,7 @@ const FinanceView: React.FC = () => {
       }
 
       closeFarmerWalletModal();
-      await loadFinanceData();
+      await Promise.all([loadFinanceData(), loadFarmersPage()]);
     } catch (err: any) {
       setWalletActionError(
         err?.message ||
@@ -436,8 +483,7 @@ const FinanceView: React.FC = () => {
               sx={{
                 border: "1px solid #dbe4ee",
                 borderRadius: 2,
-                background:
-                  "linear-gradient(160deg, rgba(6,111,72,0.08) 0%, rgba(255,255,255,1) 45%)",
+                backgroundColor: "#ffffff",
               }}
             >
               <CardContent>
@@ -487,8 +533,16 @@ const FinanceView: React.FC = () => {
                 {walletTypeOptions.map((option) => {
                   const wallet = wallets.find((item) => item.walletType === option.value);
                   return (
-                    <Grid item xs={12} md={6} key={option.value}>
-                      <Card elevation={0} sx={{ border: "1px solid #dbe4ee", borderRadius: 2 }}>
+                    <Grid item xs={12} sm={6} lg={3} key={option.value}>
+                      <Card
+                        elevation={0}
+                        sx={{
+                          border: "1px solid #dbe4ee",
+                          borderRadius: 2,
+                          borderTop: "4px solid #066f48",
+                          height: "100%",
+                        }}
+                      >
                         <CardContent>
                           <Stack
                             direction="row"
@@ -528,6 +582,7 @@ const FinanceView: React.FC = () => {
                             className="no-print"
                             sx={{
                               mt: 1.5,
+                              width: "100%",
                               textTransform: "none",
                               bgcolor: "#066f48",
                               "&:hover": { bgcolor: "#055a3a" },
@@ -545,63 +600,77 @@ const FinanceView: React.FC = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12} lg={6}>
                   <Paper elevation={0} sx={{ border: "1px solid #dbe4ee", borderRadius: 2 }}>
-                    <Box sx={{ px: 2, py: 1.4, borderBottom: "1px solid #e2e8f0" }}>
+                    <Box sx={{ px: 2, py: 1.4, borderBottom: "1px solid #e2e8f0", bgcolor: "#f8fafc" }}>
                       <Typography sx={{ fontWeight: 700 }}>Operational Finance KPIs</Typography>
                       <Typography variant="caption" sx={{ color: "#64748b" }}>
                         {financeKpis?.period}
                       </Typography>
                     </Box>
-                    <TableContainer>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell sx={{ fontWeight: 700 }}>Metric</TableCell>
-                            <TableCell sx={{ fontWeight: 700 }}>Value</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {(financeKpis?.operationalMetrics || []).map((metric) => (
-                            <TableRow key={metric.metric}>
-                              <TableCell>{metric.metric}</TableCell>
-                              <TableCell sx={{ fontWeight: 700, color: "#066f48" }}>
-                                {formatKpiValue(metric)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
+                    <Grid container spacing={1.5} sx={{ p: 2 }}>
+                      {(financeKpis?.operationalMetrics || []).map((metric) => (
+                        <Grid item xs={12} sm={6} key={metric.metric}>
+                          <Box
+                            sx={{
+                              border: "1px solid #dbe4ee",
+                              borderRadius: 1.5,
+                              p: 1.5,
+                              minHeight: 90,
+                              display: "flex",
+                              flexDirection: "column",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}
+                            >
+                              {metric.metric}
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: "#066f48", mt: 0.8 }}>
+                              {formatKpiValue(metric)}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
                   </Paper>
                 </Grid>
 
                 <Grid item xs={12} lg={6}>
                   <Paper elevation={0} sx={{ border: "1px solid #dbe4ee", borderRadius: 2 }}>
-                    <Box sx={{ px: 2, py: 1.4, borderBottom: "1px solid #e2e8f0" }}>
+                    <Box sx={{ px: 2, py: 1.4, borderBottom: "1px solid #e2e8f0", bgcolor: "#f8fafc" }}>
                       <Typography sx={{ fontWeight: 700 }}>Engagement & Performance KPIs</Typography>
                       <Typography variant="caption" sx={{ color: "#64748b" }}>
                         Updated {financeKpis ? new Date(financeKpis.generatedAt).toLocaleString() : "N/A"}
                       </Typography>
                     </Box>
-                    <TableContainer>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell sx={{ fontWeight: 700 }}>Metric</TableCell>
-                            <TableCell sx={{ fontWeight: 700 }}>Value</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {(financeKpis?.engagementMetrics || []).map((metric) => (
-                            <TableRow key={metric.metric}>
-                              <TableCell>{metric.metric}</TableCell>
-                              <TableCell sx={{ fontWeight: 700, color: "#066f48" }}>
-                                {formatKpiValue(metric)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
+                    <Grid container spacing={1.5} sx={{ p: 2 }}>
+                      {(financeKpis?.engagementMetrics || []).map((metric) => (
+                        <Grid item xs={12} sm={6} key={metric.metric}>
+                          <Box
+                            sx={{
+                              border: "1px solid #dbe4ee",
+                              borderRadius: 1.5,
+                              p: 1.5,
+                              minHeight: 90,
+                              display: "flex",
+                              flexDirection: "column",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}
+                            >
+                              {metric.metric}
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: "#066f48", mt: 0.8 }}>
+                              {formatKpiValue(metric)}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
                   </Paper>
                 </Grid>
               </Grid>
@@ -709,6 +778,7 @@ const FinanceView: React.FC = () => {
               <Typography variant="h6" sx={sectionTitleSx}>
                 Farmers Wallet Management
               </Typography>
+              {farmersError && <Alert severity="error">{farmersError}</Alert>}
               <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #dbe4ee" }}>
                 <Table size="small">
                   <TableHead>
@@ -721,38 +791,68 @@ const FinanceView: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {farmers.map((farmer) => (
-                      <TableRow key={farmer.id}>
-                        <TableCell>{farmer.fullName || farmer.name}</TableCell>
-                        <TableCell>{farmer.phone}</TableCell>
-                        <TableCell>{farmer.lga}</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: "#066f48" }}>
-                          {formatCurrency(farmer.walletBalance)}
-                        </TableCell>
-                        <TableCell>
-                          <Stack direction="row" spacing={1}>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => openFarmerWalletModal(farmer, "fund")}
-                              sx={{ textTransform: "none", borderColor: "#066f48", color: "#066f48" }}
-                            >
-                              Fund
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => openFarmerWalletModal(farmer, "withdraw")}
-                              sx={{ textTransform: "none", borderColor: "#b45309", color: "#b45309" }}
-                            >
-                              Withdraw
-                            </Button>
-                          </Stack>
+                    {farmersLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5}>
+                          <Box sx={{ py: 4, textAlign: "center" }}>
+                            <CircularProgress size={24} sx={{ color: "#066f48" }} />
+                          </Box>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : farmers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5}>
+                          <Typography sx={{ py: 2, textAlign: "center", color: "#64748b" }}>
+                            No farmers found.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      farmers.map((farmer) => (
+                        <TableRow key={farmer.id}>
+                          <TableCell>{(farmer.fullName || farmer.name || "").toUpperCase()}</TableCell>
+                          <TableCell>{farmer.phone}</TableCell>
+                          <TableCell>{(farmer.lga || "N/A").toUpperCase()}</TableCell>
+                          <TableCell sx={{ fontWeight: 700, color: "#066f48" }}>
+                            {formatCurrency(farmer.walletBalance)}
+                          </TableCell>
+                          <TableCell>
+                            <Stack direction="row" spacing={1}>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => openFarmerWalletModal(farmer, "fund")}
+                                sx={{ textTransform: "none", borderColor: "#066f48", color: "#066f48" }}
+                              >
+                                Fund
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => openFarmerWalletModal(farmer, "withdraw")}
+                                sx={{ textTransform: "none", borderColor: "#b45309", color: "#b45309" }}
+                              >
+                                Withdraw
+                              </Button>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  component="div"
+                  count={farmersTotal}
+                  page={farmerPage}
+                  onPageChange={(_, nextPage) => setFarmerPage(nextPage)}
+                  rowsPerPage={farmerRowsPerPage}
+                  onRowsPerPageChange={(event) => {
+                    setFarmerRowsPerPage(parseInt(event.target.value, 10));
+                    setFarmerPage(0);
+                  }}
+                  rowsPerPageOptions={[10, 20, 50]}
+                />
               </TableContainer>
             </Stack>
           )}
@@ -762,6 +862,7 @@ const FinanceView: React.FC = () => {
               <Typography variant="h6" sx={sectionTitleSx}>
                 Staff Directory
               </Typography>
+              {staffError && <Alert severity="error">{staffError}</Alert>}
               <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #dbe4ee" }}>
                 <Table size="small">
                   <TableHead>
@@ -774,34 +875,66 @@ const FinanceView: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {staff.map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell>{member.fullName || `${member.firstName} ${member.lastName}`}</TableCell>
-                        <TableCell>{member.phone}</TableCell>
-                        <TableCell>{member.role || "N/A"}</TableCell>
-                        <TableCell>{member.department || "N/A"}</TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            label={member.status || "active"}
-                            sx={{
-                              textTransform: "capitalize",
-                              bgcolor:
-                                (member.status || "active") === "active"
-                                  ? "#dcfce7"
-                                  : "#e2e8f0",
-                              color:
-                                (member.status || "active") === "active"
-                                  ? "#166534"
-                                  : "#1e293b",
-                              fontWeight: 700,
-                            }}
-                          />
+                    {staffLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5}>
+                          <Box sx={{ py: 4, textAlign: "center" }}>
+                            <CircularProgress size={24} sx={{ color: "#066f48" }} />
+                          </Box>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : staff.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5}>
+                          <Typography sx={{ py: 2, textAlign: "center", color: "#64748b" }}>
+                            No staff found.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      staff.map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell>
+                            {(member.fullName || `${member.firstName} ${member.lastName}` || "").toUpperCase()}
+                          </TableCell>
+                          <TableCell>{member.phone}</TableCell>
+                          <TableCell>{(member.role || "N/A").toUpperCase()}</TableCell>
+                          <TableCell>{(member.department || "N/A").toUpperCase()}</TableCell>
+                          <TableCell>
+                            <Chip
+                              size="small"
+                              label={member.status || "active"}
+                              sx={{
+                                textTransform: "capitalize",
+                                bgcolor:
+                                  (member.status || "active") === "active"
+                                    ? "#dcfce7"
+                                    : "#e2e8f0",
+                                color:
+                                  (member.status || "active") === "active"
+                                    ? "#166534"
+                                    : "#1e293b",
+                                fontWeight: 700,
+                              }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  component="div"
+                  count={staffTotal}
+                  page={staffPage}
+                  onPageChange={(_, nextPage) => setStaffPage(nextPage)}
+                  rowsPerPage={staffRowsPerPage}
+                  onRowsPerPageChange={(event) => {
+                    setStaffRowsPerPage(parseInt(event.target.value, 10));
+                    setStaffPage(0);
+                  }}
+                  rowsPerPageOptions={[10, 20, 50]}
+                />
               </TableContainer>
             </Stack>
           )}
@@ -860,7 +993,7 @@ const FinanceView: React.FC = () => {
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 0.6 }}>
             <Typography variant="body2" sx={{ color: "#334155" }}>
-              Farmer: <strong>{selectedFarmer?.fullName || selectedFarmer?.name}</strong>
+              Farmer: <strong>{(selectedFarmer?.fullName || selectedFarmer?.name || "").toUpperCase()}</strong>
             </Typography>
             <Typography variant="body2" sx={{ color: "#334155" }}>
               Current Balance:{" "}
