@@ -3,8 +3,9 @@ import { apiClient } from "./client";
 export interface Transaction {
   id: string;
   userId: string;
-  userType: "farmer" | "buyer";
+  userType: "farmer" | "buyer" | "staff" | "organization";
   type: string;
+  walletType?: "payroll" | "bonus" | "withdrawer" | "purchase";
   amount: number;
   balanceBefore: number;
   balanceAfter: number;
@@ -52,6 +53,7 @@ export interface TransactionQueryParams {
   page?: number;
   limit?: number;
   type?: string;
+  walletType?: string;
   status?: string;
   userType?: string;
   search?: string;

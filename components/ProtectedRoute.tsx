@@ -16,6 +16,7 @@ const ROLE_PERMISSIONS = {
     "purchases",
     "loans",
     "transactions",
+    "finance",
     "admins",
     "staff-management",
     "payroll",
@@ -27,6 +28,7 @@ const ROLE_PERMISSIONS = {
   finance: [
     "dashboard",
     "transactions",
+    "finance",
     "payroll",
     "bonus",
     "pension",
