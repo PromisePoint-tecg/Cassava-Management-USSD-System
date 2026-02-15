@@ -73,8 +73,8 @@ export interface UserFinancialDetails {
   recentPurchases: Array<{
     id: string;
     weightKg: number;
-    totalAmount: number;
-    netAmountCredited: number;
+    totalAmount: number; // in naira
+    netAmountCredited: number; // in naira
     status: string;
     createdAt: Date;
   }>;

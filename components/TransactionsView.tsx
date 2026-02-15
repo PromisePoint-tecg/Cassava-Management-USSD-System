@@ -6,9 +6,17 @@ import { getAllPayrollTransactions, PayrollTransaction } from "@/services/payrol
 import LeafInlineLoader from "./Loader";
 
 // Small helpers
-const formatCurrency = (value: number | undefined) => {
+const formatCurrencyNaira = (value: number | undefined) => {
   if (value == null) return "₦0";
-  return `₦${(value / 100).toLocaleString()}`;
+  return `₦${Number(value).toLocaleString("en-NG", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const formatCurrencyKobo = (value: number | undefined) => {
+  if (value == null) return "₦0";
+  return formatCurrencyNaira(Number(value) / 100);
 };
 
 const getPageWindow = (current: number, total: number, maxButtons = 5) => {
@@ -119,7 +127,7 @@ const UserModal: React.FC<UserModalProps> = ({
                       Current Balance
                     </span>
                     <span className="text-lg font-bold text-green-600">
-                      {formatCurrency(userFinancialDetails.wallet.balance)}
+                      {formatCurrencyKobo(userFinancialDetails.wallet.balance)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-1">
@@ -183,7 +191,7 @@ const UserModal: React.FC<UserModalProps> = ({
                           </div>
                           <div className="text-right">
                             <p className="font-medium text-gray-800">
-                              {formatCurrency(transaction.amount)}
+                              {formatCurrencyNaira(transaction.amount)}
                             </p>
                             <span
                               className={`text-xs px-2 py-1 rounded-full ${
@@ -290,7 +298,7 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
 
         <td className="px-4 py-3 align-top">
           <div className="text-sm font-medium text-gray-800">
-            {formatCurrency(transaction.amount)}
+            {formatCurrencyNaira(transaction.amount)}
           </div>
         </td>
 
@@ -375,7 +383,7 @@ const MobileTxCard: React.FC<{
         </div>
         <div className="text-right ml-4">
           <div className="text-sm font-semibold">
-            {formatCurrency(tx.amount)}
+            {formatCurrencyNaira(tx.amount)}
           </div>
           <div className="text-xs mt-1">
             <span
@@ -461,10 +469,10 @@ const PayrollTransactionRow: React.FC<{ transaction: PayrollTransaction }> = ({
 
         <td className="px-4 py-3 align-top">
           <div className="text-sm font-medium text-gray-800">
-            {formatCurrency(transaction.netSalary)}
+            {formatCurrencyKobo(transaction.netSalary)}
           </div>
           <div className="text-xs text-gray-500">
-            Gross: {formatCurrency(transaction.grossSalary)}
+            Gross: {formatCurrencyKobo(transaction.grossSalary)}
           </div>
         </td>
 
@@ -502,31 +510,31 @@ const PayrollTransactionRow: React.FC<{ transaction: PayrollTransaction }> = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <strong>Gross Salary:</strong>{" "}
-                {formatCurrency(transaction.grossSalary)}
+                {formatCurrencyKobo(transaction.grossSalary)}
               </div>
               <div>
                 <strong>Net Salary:</strong>{" "}
-                {formatCurrency(transaction.netSalary)}
+                {formatCurrencyKobo(transaction.netSalary)}
               </div>
               <div>
                 <strong>Pension (Employee):</strong>{" "}
-                {formatCurrency(transaction.pensionEmployeeContribution)}
+                {formatCurrencyKobo(transaction.pensionEmployeeContribution)}
               </div>
               <div>
                 <strong>Pension (Employer):</strong>{" "}
-                {formatCurrency(transaction.pensionEmployerContribution)}
+                {formatCurrencyKobo(transaction.pensionEmployerContribution)}
               </div>
               <div>
                 <strong>Tax Deduction:</strong>{" "}
-                {formatCurrency(transaction.taxDeduction)}
+                {formatCurrencyKobo(transaction.taxDeduction)}
               </div>
               <div>
                 <strong>Other Deductions:</strong>{" "}
-                {formatCurrency(transaction.otherDeductions)}
+                {formatCurrencyKobo(transaction.otherDeductions)}
               </div>
               <div>
                 <strong>Savings Deduction:</strong>{" "}
-                {formatCurrency(transaction.savingsDeduction)}
+                {formatCurrencyKobo(transaction.savingsDeduction)}
               </div>
               <div>
                 <strong>Payment Reference:</strong>{" "}
@@ -586,10 +594,10 @@ const PayrollMobileTxCard: React.FC<{ tx: PayrollTransaction }> = ({ tx }) => {
         </div>
         <div className="text-right ml-4">
           <div className="text-sm font-semibold">
-            {formatCurrency(tx.netSalary)}
+            {formatCurrencyKobo(tx.netSalary)}
           </div>
           <div className="text-xs text-gray-500">
-            Gross: {formatCurrency(tx.grossSalary)}
+            Gross: {formatCurrencyKobo(tx.grossSalary)}
           </div>
           <div className="text-xs mt-1">
             <span
@@ -612,20 +620,20 @@ const PayrollMobileTxCard: React.FC<{ tx: PayrollTransaction }> = ({ tx }) => {
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
               <strong>Pension (Emp):</strong>{" "}
-              {formatCurrency(tx.pensionEmployeeContribution)}
+              {formatCurrencyKobo(tx.pensionEmployeeContribution)}
             </div>
             <div>
               <strong>Pension (Empr):</strong>{" "}
-              {formatCurrency(tx.pensionEmployerContribution)}
+              {formatCurrencyKobo(tx.pensionEmployerContribution)}
             </div>
             <div>
-              <strong>Tax:</strong> {formatCurrency(tx.taxDeduction)}
+              <strong>Tax:</strong> {formatCurrencyKobo(tx.taxDeduction)}
             </div>
             <div>
-              <strong>Other Ded:</strong> {formatCurrency(tx.otherDeductions)}
+              <strong>Other Ded:</strong> {formatCurrencyKobo(tx.otherDeductions)}
             </div>
             <div>
-              <strong>Savings:</strong> {formatCurrency(tx.savingsDeduction)}
+              <strong>Savings:</strong> {formatCurrencyKobo(tx.savingsDeduction)}
             </div>
             <div>
               <strong>Employee ID:</strong> {tx.employeeId}
@@ -880,7 +888,7 @@ export const TransactionsView: React.FC = () => {
             <div>
               <div className="text-sm text-gray-600">Total Amount</div>
               <div className="text-2xl font-bold text-gray-800">
-                {formatCurrency(stats.totalAmount)}
+                {formatCurrencyNaira(stats.totalAmount)}
               </div>
             </div>
           </div>

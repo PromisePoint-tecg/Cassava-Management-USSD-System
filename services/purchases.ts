@@ -173,8 +173,14 @@ export class PurchasesApi {
    */
   async createPurchase(data: CreatePurchaseData): Promise<PurchaseItem> {
     const payload = {
-      ...data,
-      pricePerKg: Math.round(data.pricePerKg * 100), // kobo
+      farmerId: data.farmerId,
+      farmerPhone: data.farmerPhone,
+      weightKg: data.weightKg,
+      pricePerKg: data.pricePerKg, // naira
+      unit: data.unit,
+      paymentMethod: data.paymentMethod,
+      location: data.location,
+      notes: data.notes,
     };
     const response = await this.client.post<any>("/purchases", payload);
     return this.normalizePurchase(response);

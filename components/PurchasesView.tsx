@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Plus,Search,CheckCircle2,Eye,DollarSign,TrendingUp,RefreshCw,Scale,Users,ChevronLeft,ChevronRight,X,ShoppingCart,FileDown,CheckCircle,
 } from "lucide-react";
 import {purchasesApi,PurchaseItem,PurchaseKPIs,CreatePurchaseData,GetPurchasesQuery,CassavaPricing,
@@ -9,8 +9,14 @@ import { LeafButtonLoader } from "./Loader";
 
 interface PurchasesViewProps {}
 
+type ExportWindowPreset =
+  | "current_filters"
+  | "last_7_days"
+  | "last_30_days"
+  | "last_90_days"
+  | "all_time";
+
 export const PurchasesView: React.FC<PurchasesViewProps> = () => {
-  const purchasesPageRef = useRef<HTMLDivElement>(null);
   // State management
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [kpis, setKpis] = useState<PurchaseKPIs | null>(null);
@@ -21,6 +27,10 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const [createLoading, setCreateLoading] = useState(false);
   const [pricingLoading, setPricingLoading] = useState(true);
   const [retryingPurchase, setRetryingPurchase] = useState<string | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportWindowPreset, setExportWindowPreset] =
+    useState<ExportWindowPreset>("current_filters");
+  const [exportRecordLimit, setExportRecordLimit] = useState("200");
   const [tableLoading, setTableLoading] = useState(false);
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -216,7 +226,13 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
       setSuccessModal({
         isOpen: true,
         title: "Purchase Created Successfully!",
-        message: `Purchase for ${selectedFarmer.name} has been recorded. Total amount: ${formatCurrency(purchase.totalAmount)}`,
+        message: `Purchase for ${formatFarmerName(
+          selectedFarmer.name ||
+            selectedFarmer.fullName ||
+            `${selectedFarmer.firstName} ${selectedFarmer.lastName}`,
+        )} has been recorded. Total amount: ${formatCurrency(
+          purchase.totalAmount,
+        )}`,
       });
 
       loadPurchases();
@@ -283,47 +299,244 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     setCurrentPage(1);
   };
 
-  const exportPurchasesDashboardPdf = () => {
-    if (!purchasesPageRef.current) {
+  const formatDateForInput = (date: Date) => {
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  };
+
+  const resolveExportWindow = (): {
+    startDate?: string;
+    endDate?: string;
+    label: string;
+  } => {
+    const today = new Date();
+    const end = formatDateForInput(today);
+
+    if (exportWindowPreset === "current_filters") {
+      return {
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        label: "Current page filters",
+      };
+    }
+
+    if (exportWindowPreset === "all_time") {
+      return { label: "All time" };
+    }
+
+    const daysMap: Record<Exclude<ExportWindowPreset, "current_filters" | "all_time">, number> = {
+      last_7_days: 7,
+      last_30_days: 30,
+      last_90_days: 90,
+    };
+
+    const days = daysMap[exportWindowPreset];
+    const start = new Date(today);
+    start.setDate(start.getDate() - days);
+
+    return {
+      startDate: formatDateForInput(start),
+      endDate: end,
+      label: `Last ${days} days`,
+    };
+  };
+
+  const getExportRecordCap = (): number => {
+    if (exportRecordLimit === "all") {
+      return Number.POSITIVE_INFINITY;
+    }
+
+    const parsed = Number(exportRecordLimit);
+    if (!Number.isFinite(parsed) || parsed < 1) {
+      return 200;
+    }
+    return Math.floor(parsed);
+  };
+
+  const exportFilteredPurchasesPdf = async () => {
+    const exportWindow = resolveExportWindow();
+
+    if (
+      exportWindow.startDate &&
+      exportWindow.endDate &&
+      new Date(exportWindow.startDate) > new Date(exportWindow.endDate)
+    ) {
+      setError("Export start date cannot be after export end date.");
       return;
     }
 
-    const html = purchasesPageRef.current.outerHTML;
-    const styleTags = Array.from(
-      document.querySelectorAll("style, link[rel='stylesheet']")
-    )
-      .map((el) => el.outerHTML)
-      .join("\n");
+    try {
+      setExportingPdf(true);
+      setError(null);
 
-    const printWindow = window.open("", "_blank", "width=1400,height=900");
-    if (!printWindow) {
-      setError("Unable to open print window for export.");
-      return;
+      const maxRecordsToExport = getExportRecordCap();
+      const exportPageSize = Number.isFinite(maxRecordsToExport)
+        ? Math.min(200, maxRecordsToExport)
+        : 200;
+      const baseQuery: GetPurchasesQuery = {
+        search: searchTerm || undefined,
+        status: statusFilter || undefined,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+        startDate: exportWindow.startDate,
+        endDate: exportWindow.endDate,
+      };
+
+      const firstPage = await purchasesApi.getAllPurchases({
+        ...baseQuery,
+        page: 1,
+        limit: exportPageSize,
+      });
+      const allPurchases: PurchaseItem[] = [...firstPage.purchases];
+
+      for (
+        let page = 2;
+        page <= firstPage.totalPages && allPurchases.length < maxRecordsToExport;
+        page += 1
+      ) {
+        const nextPage = await purchasesApi.getAllPurchases({
+          ...baseQuery,
+          page,
+          limit: exportPageSize,
+        });
+        allPurchases.push(...nextPage.purchases);
+      }
+
+      const exportedPurchases = Number.isFinite(maxRecordsToExport)
+        ? allPurchases.slice(0, maxRecordsToExport)
+        : allPurchases;
+
+      const logoUrl = `${window.location.origin}/logo.png`;
+      const generatedAt = new Date().toLocaleString("en-NG", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      const rowsHtml = exportedPurchases
+        .map(
+              (purchase, index) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${escapeHtml(formatFarmerName(purchase.farmerName))}</td>
+              <td>${escapeHtml(purchase.farmerPhone || "N/A")}</td>
+              <td>${purchase.weightKg.toLocaleString()} kg</td>
+              <td>${formatCurrency(getPricePerKgForDisplay(purchase))}</td>
+              <td>${formatCurrency(purchase.totalAmount)}</td>
+              <td>${formatCurrency(purchase.loanDeductionAmount || 0)}</td>
+              <td>${formatCurrency(purchase.savingsDeductionAmount || 0)}</td>
+              <td>${formatCurrency(
+                purchase.netAmountCredited ?? purchase.totalAmount
+              )}</td>
+              <td>${escapeHtml(purchase.status.toUpperCase())}</td>
+              <td>${new Date(purchase.createdAt).toLocaleDateString("en-NG")}</td>
+            </tr>
+          `,
+        )
+        .join("");
+
+      const printWindow = window.open("", "_blank", "width=1400,height=900");
+      if (!printWindow) {
+        setError("Unable to open print window for export.");
+        return;
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(`
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>Promise Point Purchases Report</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }
+              .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #066f48; padding-bottom: 12px; margin-bottom: 20px; }
+              .brand { display: flex; align-items: center; gap: 12px; }
+              .brand img { width: 52px; height: 52px; object-fit: contain; }
+              .brand h1 { margin: 0; color: #066f48; font-size: 20px; }
+              .meta { font-size: 12px; color: #4b5563; text-align: right; }
+              .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0 20px; }
+              .card { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; background: #f9fafb; }
+              .card .label { font-size: 11px; color: #6b7280; margin-bottom: 2px; }
+              .card .value { font-size: 15px; font-weight: 700; color: #111827; }
+              table { width: 100%; border-collapse: collapse; font-size: 11px; }
+              th, td { border: 1px solid #d1d5db; padding: 6px; text-align: left; vertical-align: top; }
+              th { background: #ecfdf5; color: #065f46; }
+              .filters { margin-top: 6px; font-size: 12px; color: #4b5563; }
+              @media print { body { margin: 12px; } }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="brand">
+                <img src="${logoUrl}" alt="Promise Point Logo" />
+                <div>
+                  <h1>Promise Point Agrictech</h1>
+                  <div>Purchases Report</div>
+                </div>
+              </div>
+              <div class="meta">
+                <div><strong>Generated:</strong> ${generatedAt}</div>
+                <div><strong>Total Records:</strong> ${exportedPurchases.length}</div>
+              </div>
+            </div>
+            <div class="filters">
+              <strong>Filters:</strong>
+              Search = ${escapeHtml(searchTerm || "All")} |
+              Status = ${escapeHtml(statusFilter || "All")} |
+              Export Window = ${escapeHtml(exportWindow.label)} |
+              Start Date = ${escapeHtml(exportWindow.startDate || "N/A")} |
+              End Date = ${escapeHtml(exportWindow.endDate || "N/A")} |
+              Records Cap = ${escapeHtml(
+                exportRecordLimit === "all" ? "All" : exportRecordLimit,
+              )}
+            </div>
+            <div class="summary">
+              <div class="card"><div class="label">Total Purchases</div><div class="value">${(kpis?.totalPurchases || 0).toLocaleString()}</div></div>
+              <div class="card"><div class="label">Total Amount Spent</div><div class="value">${formatCurrency(kpis?.totalAmountSpent || 0)}</div></div>
+              <div class="card"><div class="label">Purchase Wallet Balance</div><div class="value">${formatCurrency(kpis?.purchaseWalletBalance || 0)}</div></div>
+              <div class="card"><div class="label">Loan Deductions</div><div class="value">${formatCurrency(kpis?.totalLoanDeductions || 0)}</div></div>
+              <div class="card"><div class="label">Savings Deductions</div><div class="value">${formatCurrency(kpis?.totalSavingsDeductions || 0)}</div></div>
+              <div class="card"><div class="label">Net Amount Paid</div><div class="value">${formatCurrency(kpis?.netAmountPaidToFarmers || 0)}</div></div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Farmer</th>
+                  <th>Phone</th>
+                  <th>Weight</th>
+                  <th>Price/Kg</th>
+                  <th>Total Amount</th>
+                  <th>Loan Deduction</th>
+                  <th>Savings Deduction</th>
+                  <th>Net Credited</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml || '<tr><td colspan="11">No purchase records found for the selected filters.</td></tr>'}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 700);
+    } catch (err) {
+      console.error("Failed to export purchases report:", err);
+      setError((err as Error)?.message || "Failed to export purchases report.");
+    } finally {
+      setExportingPdf(false);
     }
-
-    printWindow.document.open();
-    printWindow.document.write(`
-      <!doctype html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>Purchases Dashboard Export</title>
-          ${styleTags}
-          <style>
-            body { background: white; margin: 0; padding: 16px; }
-            .no-print { display: none !important; }
-          </style>
-        </head>
-        <body>${html}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 700);
   };
 
   const formatCurrency = (amount: number) => {
@@ -332,6 +545,15 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
       currency: "NGN",
     }).format(amount);
   };
+
+  const formatFarmerName = (name?: string) => (name || "N/A").toUpperCase();
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString("en-NG", {
@@ -370,7 +592,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   }
 
   return (
-    <div ref={purchasesPageRef} className="space-y-5">
+    <div className="space-y-5">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
@@ -385,11 +607,12 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
           </div>
           <div className="mt-3 sm:mt-0 flex w-full sm:w-auto gap-2 no-print">
             <button
-              onClick={exportPurchasesDashboardPdf}
-              className="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-all"
+              onClick={exportFilteredPurchasesPdf}
+              disabled={exportingPdf}
+              className="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-60 flex items-center justify-center gap-2 transition-all"
             >
               <FileDown className="w-4 h-4" />
-              <span>Export PDF</span>
+              <span>{exportingPdf ? "Exporting..." : "Export PDF"}</span>
             </button>
             <button
               onClick={handleOpenCreateModal}
@@ -530,6 +753,43 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
             Clear Dates
           </button>
         </div>
+        <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+              Export Window
+            </label>
+            <select
+              value={exportWindowPreset}
+              onChange={(e) =>
+                setExportWindowPreset(e.target.value as ExportWindowPreset)
+              }
+              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
+            >
+              <option value="current_filters">Use Current Filters</option>
+              <option value="last_7_days">Last 7 Days</option>
+              <option value="last_30_days">Last 30 Days</option>
+              <option value="last_90_days">Last 90 Days</option>
+              <option value="all_time">All Time</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+              Records To Export
+            </label>
+            <select
+              value={exportRecordLimit}
+              onChange={(e) => setExportRecordLimit(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
+            >
+              <option value="50">50 Records</option>
+              <option value="100">100 Records</option>
+              <option value="200">200 Records</option>
+              <option value="500">500 Records</option>
+              <option value="1000">1000 Records</option>
+              <option value="all">All Matching Records</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Purchases Table */}
@@ -551,7 +811,9 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                 <div key={purchase._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="text-sm font-medium text-gray-800">{purchase.farmerName}</div>
+                      <div className="text-sm font-medium text-gray-800">
+                        {formatFarmerName(purchase.farmerName)}
+                      </div>
                       <div className="text-xs text-gray-500">{purchase.farmerPhone}</div>
                     </div>
                     <div className="text-sm font-semibold text-gray-800">{formatCurrency(purchase.totalAmount)}</div>
@@ -610,7 +872,9 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                   <tr key={purchase._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-gray-800">{purchase.farmerName}</div>
+                        <div className="text-sm font-medium text-gray-800">
+                          {formatFarmerName(purchase.farmerName)}
+                        </div>
                         <div className="text-sm text-gray-500">{purchase.farmerPhone}</div>
                       </div>
                     </td>
@@ -732,7 +996,12 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         {filteredFarmers.length > 0 ? (
           <ul className="py-1">
             {filteredFarmers.map((farmer) => {
-              const farmerName = farmer.name || farmer.fullName || `${farmer.firstName} ${farmer.lastName}` || farmer.phone;
+              const farmerName = formatFarmerName(
+                farmer.name ||
+                  farmer.fullName ||
+                  `${farmer.firstName} ${farmer.lastName}` ||
+                  farmer.phone,
+              );
               const isSelected = createForm.farmerId === farmer.id;
               
               return (
@@ -973,7 +1242,9 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                   <div className="space-y-3">
                     <div>
                       <p className="text-xs text-gray-500">Farmer Name</p>
-                      <p className="text-sm font-medium text-gray-900">{viewingPurchase.farmerName}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatFarmerName(viewingPurchase.farmerName)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Phone Number</p>

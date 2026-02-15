@@ -721,8 +721,8 @@ export const FarmersDirectory: React.FC = () => {
                             <td>${formatDateTime(purchase.createdAt)}</td>
                             <td>${Number(purchase.weightKg || 0).toLocaleString()}</td>
                             <td>${safe(purchase.status)}</td>
-                            <td>${formatCurrency(purchase.totalAmount || 0)}</td>
-                            <td>${formatCurrency(purchase.netAmountCredited || 0)}</td>
+                            <td>${formatNaira(purchase.totalAmount || 0)}</td>
+                            <td>${formatNaira(purchase.netAmountCredited || 0)}</td>
                           </tr>
                         `,
                       )
@@ -1171,7 +1171,7 @@ export const FarmersDirectory: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-gray-500">Wallet Balance:</span>
-                    <p className="font-medium text-gray-800">{formatCurrency(farmer.walletBalance || 0)}</p>
+                    <p className="font-medium text-gray-800">{formatNaira(farmer.walletBalance || 0)}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Total Sales:</span>
@@ -1179,7 +1179,7 @@ export const FarmersDirectory: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-gray-500">Earnings:</span>
-                    <p className="font-medium text-gray-800">{formatCurrency(farmer.totalEarnings)}</p>
+                    <p className="font-medium text-gray-800">{formatNaira(farmer.totalEarnings)}</p>
                   </div>
                 </div>
               </div>
@@ -1215,9 +1215,9 @@ export const FarmersDirectory: React.FC = () => {
                       <td className="px-6 py-4 text-gray-700 uppercase">{farmer.phone}</td>
                       <td className="px-6 py-4 text-gray-700">{farmer.lga.toUpperCase()}</td>
                       <td className="px-6 py-4 text-gray-700">{farmer.farmSizeHectares} ha</td>
-                      <td className="px-6 py-4 text-gray-700">{formatCurrency(farmer.walletBalance || 0)}</td>
+                      <td className="px-6 py-4 text-gray-700">{formatNaira(farmer.walletBalance || 0)}</td>
                       <td className="px-6 py-4 text-gray-700">{farmer.totalSales}</td>
-                      <td className="px-6 py-4 text-gray-700">{formatCurrency(farmer.totalEarnings)}</td>
+                      <td className="px-6 py-4 text-gray-700">{formatNaira(farmer.totalEarnings)}</td>
                       <td className="px-6 py-4">{getStatusBadge(farmer.status)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
@@ -1605,7 +1605,7 @@ export const FarmersDirectory: React.FC = () => {
                           <div key={purchase.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50 text-sm">
                             <div className="flex items-center justify-between gap-2">
                               <p className="font-medium text-gray-800">{purchase.weightKg} KG</p>
-                              <p className="font-semibold text-[#066f48]">{formatCurrency(purchase.totalAmount)}</p>
+                              <p className="font-semibold text-[#066f48]">{formatNaira(purchase.totalAmount)}</p>
                             </div>
                             <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
                               <span>{purchase.status}</span>
