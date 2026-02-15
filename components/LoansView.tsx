@@ -60,6 +60,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
     useState<CreateLoanTypeData>({
       name: "",
       description: "",
+      user_type: "farmer",
       category: "",
       interest_rate: 0,
       duration_months: 0,
@@ -207,6 +208,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       setCreateLoanTypeForm({
         name: "",
         description: "",
+        user_type: "farmer",
         category: "",
         interest_rate: 0,
         duration_months: 0,
@@ -1357,6 +1359,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   setCreateLoanTypeForm({
                     name: "",
                     description: "",
+                    user_type: "farmer",
                     category: "",
                     interest_rate: 0,
                     duration_months: 0,
@@ -1385,10 +1388,32 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                       })
                     }
                     placeholder="e.g., Equipment Loan"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    User Type *
+                  </label>
+                  <select
+                    value={createLoanTypeForm.user_type}
+                    onChange={(e) =>
+                      setCreateLoanTypeForm({
+                        ...createLoanTypeForm,
+                        user_type: e.target.value as any,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required
+                  >
+                    <option value="farmer">Farmer</option>
+                    <option value="staff">Staff</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category *
@@ -1401,13 +1426,15 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                         category: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                   >
                     <option value="">Select category...</option>
                     <option value="input_credit">Input Credit</option>
                     <option value="farm_tools">Farm Tools</option>
                     <option value="equipment">Equipment</option>
+                    <option value="personal_loan">Personal Loan</option>
+                    <option value="emergency_loan">Emergency Loan</option>
                   </select>
                 </div>
               </div>
@@ -1426,7 +1453,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   }
                   placeholder="Describe the loan type and its purpose..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
 
@@ -1439,7 +1466,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     type="number"
                     required
                     min="0"
-                    max="100"
+                    max="30"
                     step="0.1"
                     value={createLoanTypeForm.interest_rate}
                     onChange={(e) =>
@@ -1448,7 +1475,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                         interest_rate: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
 
@@ -1467,10 +1494,53 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                         duration_months: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
               </div>
+
+              {createLoanTypeForm.user_type === "staff" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Min Amount (₦)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={createLoanTypeForm.min_amount ? createLoanTypeForm.min_amount / 100 : ""}
+                      onChange={(e) => {
+                        const naira = parseFloat(e.target.value);
+                        setCreateLoanTypeForm({
+                          ...createLoanTypeForm,
+                          min_amount: Number.isFinite(naira) ? Math.round(naira * 100) : undefined,
+                        });
+                      }}
+                      placeholder="e.g., 50,000"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Max Amount (₦)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={createLoanTypeForm.max_amount ? createLoanTypeForm.max_amount / 100 : ""}
+                      onChange={(e) => {
+                        const naira = parseFloat(e.target.value);
+                        setCreateLoanTypeForm({
+                          ...createLoanTypeForm,
+                          max_amount: Number.isFinite(naira) ? Math.round(naira * 100) : undefined,
+                        });
+                      }}
+                      placeholder="e.g., 500,000"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="flex space-x-3 pt-4">
                 <button
@@ -1480,6 +1550,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                     setCreateLoanTypeForm({
                       name: "",
                       description: "",
+                      user_type: "farmer",
                       category: "",
                       interest_rate: 0,
                       duration_months: 0,

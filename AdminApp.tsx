@@ -16,6 +16,7 @@ import { USSDAnalyticsView } from "./components/USSDAnalyticsView";
 import PayrollManagementView from "./components/PayrollManagementView";
 import PensionManagementView from "./components/PensionManagementView";
 import BonusManagementView from "./components/BonusManagementView";
+import FinanceView from "./components/FinanceView";
 import { AdminProfilePage } from "./components/AdminProfilePage";
 import AdminForgotPassword from "./components/AdminForgotPassword";
 import { settingsApi } from "./services/settings";
@@ -280,6 +281,16 @@ const AdminApp: React.FC = () => {
                   <TransactionsView />
                 </ProtectedRoute>
               } 
+            />
+
+            {/* Finance Ops - Finance, Super Admin */}
+            <Route
+              path="/finance"
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["finance"]}>
+                  <FinanceView />
+                </ProtectedRoute>
+              }
             />
             
             {/* Admins - Super Admin only */}

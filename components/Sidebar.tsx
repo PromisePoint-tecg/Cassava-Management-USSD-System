@@ -40,6 +40,7 @@ const ROLE_PERMISSIONS = {
     "purchases",
     "loans",
     "transactions",
+    "finance",
     "admins",
     "staff-management",
     "payroll",
@@ -51,6 +52,7 @@ const ROLE_PERMISSIONS = {
   finance: [
     "dashboard",
     "transactions",
+    "finance",
     "payroll",
     "bonus",
     "pension",
@@ -92,6 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: "purchases", label: "Purchases", icon: ShoppingCart },
     { id: "loans", label: "Credit Control", icon: CreditCard },
     { id: "transactions", label: "Ledger", icon: Receipt },
+    { id: "finance", label: "Finance Ops", icon: Briefcase },
     { id: "admins", label: "Admin Management", icon: Shield },
     { id: "staff-management", label: "Staff Hub", icon: UserCog },
     { id: "payroll", label: "Payroll", icon: DollarSign },

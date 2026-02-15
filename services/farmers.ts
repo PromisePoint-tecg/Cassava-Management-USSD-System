@@ -23,6 +23,11 @@ export interface Farmer {
 
 export interface FarmerDetail extends Farmer {
   walletBalance: number;
+  walletBankName?: string;
+  walletBankCode?: string;
+  walletAccountNumber?: string;
+  walletAccountName?: string;
+  walletBvn?: string;
 }
 
 export interface PaginatedFarmersResponse {
@@ -53,6 +58,8 @@ export interface UpdateFarmerData {
 export interface UserFinancialDetails {
   wallet: {
     balance: number;
+    savingsBalance: number;
+    savingsPercentage: number | null;
     isActive: boolean;
   };
   outstandingLoans: Array<{
@@ -66,8 +73,8 @@ export interface UserFinancialDetails {
   recentPurchases: Array<{
     id: string;
     weightKg: number;
-    totalAmount: number;
-    netAmountCredited: number;
+    totalAmount: number; // in naira
+    netAmountCredited: number; // in naira
     status: string;
     createdAt: Date;
   }>;
@@ -79,6 +86,57 @@ export interface UserFinancialDetails {
     description: string;
     createdAt: Date;
   }>;
+  recentUssdSessions: Array<{
+    id: string;
+    sessionId: string;
+    phoneNumber: string;
+    network: string;
+    status: string;
+    action: string;
+    duration: number;
+    startTime: Date;
+    endTime?: Date;
+    lastMenu?: string;
+    errorMessage?: string;
+  }>;
+}
+
+export interface FarmerDashboardKpiRow {
+  kpi: string;
+  target: number;
+  actual: number;
+  status: 'on_track' | 'at_risk' | 'off_track';
+  unit: 'count' | 'percent' | 'minutes';
+}
+
+export interface FarmerDashboardKpiTable {
+  period: string;
+  rows: FarmerDashboardKpiRow[];
+  generatedAt: string;
+}
+
+export interface DashboardKpiDateFilterParams {
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface SetFarmerWithdrawalAccountData {
+  userId: string;
+  bankName: string;
+  bankCode: string;
+  accountNumber: string;
+  accountName: string;
+  bvn?: string;
+}
+
+export interface SetFarmerWithdrawalAccountResponse {
+  message: string;
+  wallet: {
+    bankName: string;
+    bankCode?: string;
+    accountNumber: string;
+    accountName: string;
+  };
 }
 
 export const farmersApi = {
@@ -149,5 +207,36 @@ export const farmersApi = {
   async getFarmerFinancialStatus(farmerId: string): Promise<UserFinancialDetails> {
     const response = await apiClient.get<{status: boolean; message: string; data: UserFinancialDetails}>(`/admin/transactions/farmer/${farmerId}/financial-status`);
     return response.data;
+  },
+
+  /**
+   * Get dashboard KPI table used on dashboard/farmers analytics surfaces
+   */
+  async getDashboardKpiTable(
+    params?: DashboardKpiDateFilterParams,
+  ): Promise<FarmerDashboardKpiTable> {
+    const queryParams = new URLSearchParams();
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    const queryString = queryParams.toString();
+    const url = `/admins/dashboard/kpis${queryString ? `?${queryString}` : ''}`;
+
+    const response = await apiClient.get<{ kpiTable: FarmerDashboardKpiTable }>(
+      url,
+    );
+    return response.kpiTable;
+  },
+
+  /**
+   * Set farmer withdrawal account (admin)
+   */
+  async setFarmerWithdrawalAccount(
+    data: SetFarmerWithdrawalAccountData,
+  ): Promise<SetFarmerWithdrawalAccountResponse> {
+    const response = await apiClient.post<SetFarmerWithdrawalAccountResponse>(
+      `/admins/wallet/set-account`,
+      data,
+    );
+    return response;
   },
 };
