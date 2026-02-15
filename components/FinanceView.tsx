@@ -6,7 +6,6 @@ import {
   Card,
   CardContent,
   Chip,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -38,6 +37,7 @@ import {
 import { Farmer, farmersApi } from "../services/farmers";
 import { Staff, getAllStaff } from "../services/staff";
 import { Transaction } from "../services/transactions";
+import LeafInlineLoader from "./Loader";
 
 type WalletActionMode = "fund" | "withdraw";
 
@@ -405,7 +405,7 @@ const FinanceView: React.FC = () => {
           justifyContent: "center",
         }}
       >
-        <CircularProgress sx={{ color: "#066f48" }} />
+        <LeafInlineLoader />
       </Box>
     );
   }
@@ -715,9 +715,7 @@ const FinanceView: React.FC = () => {
                     {txLoading ? (
                       <TableRow>
                         <TableCell colSpan={6}>
-                          <Box sx={{ py: 4, textAlign: "center" }}>
-                            <CircularProgress size={24} sx={{ color: "#066f48" }} />
-                          </Box>
+                          <LeafInlineLoader />
                         </TableCell>
                       </TableRow>
                     ) : transactions.length === 0 ? (
@@ -794,9 +792,7 @@ const FinanceView: React.FC = () => {
                     {farmersLoading ? (
                       <TableRow>
                         <TableCell colSpan={5}>
-                          <Box sx={{ py: 4, textAlign: "center" }}>
-                            <CircularProgress size={24} sx={{ color: "#066f48" }} />
-                          </Box>
+                          <LeafInlineLoader />
                         </TableCell>
                       </TableRow>
                     ) : farmers.length === 0 ? (
@@ -878,9 +874,7 @@ const FinanceView: React.FC = () => {
                     {staffLoading ? (
                       <TableRow>
                         <TableCell colSpan={5}>
-                          <Box sx={{ py: 4, textAlign: "center" }}>
-                            <CircularProgress size={24} sx={{ color: "#066f48" }} />
-                          </Box>
+                          <LeafInlineLoader />
                         </TableCell>
                       </TableRow>
                     ) : staff.length === 0 ? (

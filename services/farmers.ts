@@ -58,6 +58,8 @@ export interface UpdateFarmerData {
 export interface UserFinancialDetails {
   wallet: {
     balance: number;
+    savingsBalance: number;
+    savingsPercentage: number | null;
     isActive: boolean;
   };
   outstandingLoans: Array<{
@@ -116,6 +118,25 @@ export interface FarmerDashboardKpiTable {
 export interface DashboardKpiDateFilterParams {
   startDate?: string;
   endDate?: string;
+}
+
+export interface SetFarmerWithdrawalAccountData {
+  userId: string;
+  bankName: string;
+  bankCode: string;
+  accountNumber: string;
+  accountName: string;
+  bvn?: string;
+}
+
+export interface SetFarmerWithdrawalAccountResponse {
+  message: string;
+  wallet: {
+    bankName: string;
+    bankCode?: string;
+    accountNumber: string;
+    accountName: string;
+  };
 }
 
 export const farmersApi = {
@@ -204,5 +225,18 @@ export const farmersApi = {
       url,
     );
     return response.kpiTable;
+  },
+
+  /**
+   * Set farmer withdrawal account (admin)
+   */
+  async setFarmerWithdrawalAccount(
+    data: SetFarmerWithdrawalAccountData,
+  ): Promise<SetFarmerWithdrawalAccountResponse> {
+    const response = await apiClient.post<SetFarmerWithdrawalAccountResponse>(
+      `/admins/wallet/set-account`,
+      data,
+    );
+    return response;
   },
 };

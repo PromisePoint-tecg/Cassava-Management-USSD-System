@@ -3,6 +3,7 @@ import { Search, Filter, Download, Eye, X, User, Wallet } from "lucide-react";
 import { farmersApi, UserFinancialDetails } from "@/services/farmers";
 import { Transaction, TransactionQueryParams, transactionsApi, TransactionStats } from "@/services/transactions";
 import { getAllPayrollTransactions, PayrollTransaction } from "@/services/payroll";
+import LeafInlineLoader from "./Loader";
 
 // Small helpers
 const formatCurrency = (value: number | undefined) => {
@@ -717,11 +718,13 @@ export const TransactionsView: React.FC = () => {
 
   // When user switches tab, load that tab if not cached
   useEffect(() => {
+    if (initialLoading) return;
+
     if (!transactionsCache[activeTab]) {
       loadCurrentTabTransactions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, initialLoading]);
 
   const loadAllTransactionsAndStats = async () => {
     try {
@@ -1017,7 +1020,7 @@ export const TransactionsView: React.FC = () => {
 
           {initialLoading || tabLoading ? (
             <div className="p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-4"></div>
+              <LeafInlineLoader />
               <p className="text-gray-600">
                 {initialLoading ? "Loading transactions..." : "Updating..."}
               </p>

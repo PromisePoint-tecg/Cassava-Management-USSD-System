@@ -13,8 +13,6 @@ import {
   RotateCcw,
   Printer,
   PlusCircle,
-  ArrowUpRight,
-  PencilLine,
 } from 'lucide-react';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
@@ -127,6 +125,16 @@ export const FarmersDirectory: React.FC = () => {
   // Action loading states
   const [loadingAction, setLoadingAction] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [showAddAccountForm, setShowAddAccountForm] = useState(false);
+  const [settingAccount, setSettingAccount] = useState(false);
+  const [addAccountForm, setAddAccountForm] = useState({
+    bankName: '',
+    bankCode: '',
+    accountNumber: '',
+    accountName: '',
+    bvn: '',
+  });
 
   // Fetch farmers and KPI summary together
   const loadFarmersData = async () => {
@@ -197,6 +205,15 @@ export const FarmersDirectory: React.FC = () => {
     setViewingFarmerFinancial(null);
     setStatementSectionFilters(createDefaultStatementSectionFilters());
     setActionError(null);
+    setActionSuccess(null);
+    setShowAddAccountForm(false);
+    setAddAccountForm({
+      bankName: '',
+      bankCode: '',
+      accountNumber: '',
+      accountName: '',
+      bvn: '',
+    });
   };
 
   const exportFarmersPagePdf = () => {
@@ -247,6 +264,7 @@ export const FarmersDirectory: React.FC = () => {
   const handleViewFarmer = async (farmer: Farmer) => {
     try {
       setActionError(null);
+      setActionSuccess(null);
       setLoadingFarmerStatement(true);
       const [detailsResult, financialResult] = await Promise.allSettled([
         farmersApi.getFarmerById(farmer.id),
@@ -258,6 +276,14 @@ export const FarmersDirectory: React.FC = () => {
       }
 
       setViewingFarmer(detailsResult.value);
+      setAddAccountForm({
+        bankName: detailsResult.value.walletBankName || '',
+        bankCode: detailsResult.value.walletBankCode || '',
+        accountNumber: detailsResult.value.walletAccountNumber || '',
+        accountName: detailsResult.value.walletAccountName || detailsResult.value.fullName || '',
+        bvn: detailsResult.value.walletBvn || '',
+      });
+      setShowAddAccountForm(false);
 
       if (financialResult.status === 'fulfilled') {
         setViewingFarmerFinancial(financialResult.value);
@@ -467,8 +493,66 @@ export const FarmersDirectory: React.FC = () => {
     updatedAt: farmerDetail.updatedAt,
   });
 
-  const triggerWalletActionUiOnly = (actionName: string) => {
-    setActionError(`${actionName} is UI-ready and will be connected to backend actions next.`);
+  const handleSetFarmerWithdrawalAccount = async () => {
+    if (!viewingFarmer) return;
+
+    const bankName = addAccountForm.bankName.trim();
+    const bankCode = addAccountForm.bankCode.trim();
+    const accountNumber = addAccountForm.accountNumber.trim();
+    const accountName = addAccountForm.accountName.trim();
+    const bvn = addAccountForm.bvn.trim();
+
+    if (!bankName || !bankCode || !accountNumber || !accountName) {
+      setActionError('Bank name, bank code, account number and account name are required.');
+      return;
+    }
+
+    if (!/^\d{10}$/.test(accountNumber)) {
+      setActionError('Account number must be exactly 10 digits.');
+      return;
+    }
+
+    if (bvn && !/^\d{11}$/.test(bvn)) {
+      setActionError('BVN must be exactly 11 digits.');
+      return;
+    }
+
+    try {
+      setSettingAccount(true);
+      setActionError(null);
+      setActionSuccess(null);
+
+      const response = await farmersApi.setFarmerWithdrawalAccount({
+        userId: viewingFarmer.userId,
+        bankName,
+        bankCode,
+        accountNumber,
+        accountName,
+        ...(bvn ? { bvn } : {}),
+      });
+
+      const updatedWallet = response.wallet;
+      setViewingFarmer((prev) =>
+        prev
+          ? {
+              ...prev,
+              walletBankName: updatedWallet.bankName,
+              walletBankCode: updatedWallet.bankCode || bankCode,
+              walletAccountNumber: updatedWallet.accountNumber,
+              walletAccountName: updatedWallet.accountName,
+              walletBvn: bvn || prev.walletBvn,
+            }
+          : prev,
+      );
+
+      setActionSuccess('Withdrawal account saved successfully.');
+      setShowAddAccountForm(false);
+      await loadFarmersData();
+    } catch (err: any) {
+      setActionError(err?.message || 'Failed to set withdrawal account.');
+    } finally {
+      setSettingAccount(false);
+    }
   };
 
   const printFarmerStatement = () => {
@@ -523,6 +607,8 @@ export const FarmersDirectory: React.FC = () => {
           <h2>Wallet Information</h2>
           <table class="meta-table">
             <tr><td>Wallet Balance</td><td>${formatNaira(viewingFarmer.walletBalance || 0)}</td></tr>
+            <tr><td>Savings Wallet Balance</td><td>${formatCurrency(viewingFarmerFinancial?.wallet?.savingsBalance || 0)}</td></tr>
+            <tr><td>Savings Percentage</td><td>${viewingFarmerFinancial?.wallet?.savingsPercentage !== null && viewingFarmerFinancial?.wallet?.savingsPercentage !== undefined ? `${viewingFarmerFinancial.wallet.savingsPercentage}%` : 'N/A'}</td></tr>
             <tr><td>Wallet Status</td><td>${viewingFarmerFinancial?.wallet?.isActive ? 'Active' : 'Inactive'}</td></tr>
             <tr><td>Bank Name</td><td>${safe(viewingFarmer.walletBankName || 'N/A')}</td></tr>
             <tr><td>Account Number</td><td>${safe(viewingFarmer.walletAccountNumber || 'N/A')}</td></tr>
@@ -1216,6 +1302,12 @@ export const FarmersDirectory: React.FC = () => {
                   <p className="text-red-800 text-sm">{actionError}</p>
                 </div>
               )}
+              {actionSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <p className="text-green-800 text-sm">{actionSuccess}</p>
+                </div>
+              )}
 
               <div className="bg-[#f7fcf9] border border-[#d1f5e1] rounded-xl p-4">
                 <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
@@ -1302,28 +1394,18 @@ export const FarmersDirectory: React.FC = () => {
                   </div>
 
                   <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <h4 className="font-semibold text-gray-800 mb-3">Wallet Management (UI)</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                      <h4 className="font-semibold text-gray-800">Wallet Account Setup</h4>
                       <button
-                        onClick={() => triggerWalletActionUiOnly('Fund wallet')}
-                        className="px-3 py-2 rounded-lg bg-[#066f48] hover:bg-[#055a3b] text-white transition-all flex items-center justify-center gap-2 text-sm"
-                      >
-                        <PlusCircle className="w-4 h-4" />
-                        Fund Wallet
-                      </button>
-                      <button
-                        onClick={() => triggerWalletActionUiOnly('Withdraw funds')}
-                        className="px-3 py-2 rounded-lg bg-[#0b7a56] hover:bg-[#066f48] text-white transition-all flex items-center justify-center gap-2 text-sm"
-                      >
-                        <ArrowUpRight className="w-4 h-4" />
-                        Withdraw
-                      </button>
-                      <button
-                        onClick={() => triggerWalletActionUiOnly('Edit wallet information')}
+                        onClick={() => {
+                          setActionError(null);
+                          setActionSuccess(null);
+                          setShowAddAccountForm((prev) => !prev);
+                        }}
                         className="px-3 py-2 rounded-lg border border-[#9adfbd] bg-[#ecfdf5] text-[#065f46] hover:bg-[#dff7eb] transition-all flex items-center justify-center gap-2 text-sm"
                       >
-                        <PencilLine className="w-4 h-4" />
-                        Edit Wallet Info
+                        <PlusCircle className="w-4 h-4" />
+                        {showAddAccountForm ? 'Close Form' : 'Add Account'}
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
@@ -1332,9 +1414,24 @@ export const FarmersDirectory: React.FC = () => {
                         <p className="font-semibold text-[#066f48]">{formatNaira(viewingFarmer.walletBalance || 0)}</p>
                       </div>
                       <div>
+                        <p className="text-gray-500">Savings Wallet Balance</p>
+                        <p className="font-semibold text-[#066f48]">
+                          {formatCurrency(viewingFarmerFinancial?.wallet?.savingsBalance || 0)}
+                        </p>
+                      </div>
+                      <div>
                         <p className="text-gray-500">Wallet Status</p>
                         <p className="font-medium text-gray-800">
                           {viewingFarmerFinancial?.wallet?.isActive ? 'Active' : 'Inactive'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Savings Rate</p>
+                        <p className="font-medium text-gray-800">
+                          {viewingFarmerFinancial?.wallet?.savingsPercentage !== null &&
+                          viewingFarmerFinancial?.wallet?.savingsPercentage !== undefined
+                            ? `${viewingFarmerFinancial.wallet.savingsPercentage}%`
+                            : 'N/A'}
                         </p>
                       </div>
                       <div>
@@ -1356,6 +1453,97 @@ export const FarmersDirectory: React.FC = () => {
                         </p>
                       </div>
                     </div>
+                    {showAddAccountForm && (
+                      <div className="mt-4 border-t border-gray-200 pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <label className="block text-gray-600 mb-1">Bank Name</label>
+                            <input
+                              type="text"
+                              value={addAccountForm.bankName}
+                              onChange={(event) =>
+                                setAddAccountForm((prev) => ({
+                                  ...prev,
+                                  bankName: event.target.value,
+                                }))
+                              }
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
+                              placeholder="e.g Access Bank"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-600 mb-1">Bank Code</label>
+                            <input
+                              type="text"
+                              value={addAccountForm.bankCode}
+                              onChange={(event) =>
+                                setAddAccountForm((prev) => ({
+                                  ...prev,
+                                  bankCode: event.target.value,
+                                }))
+                              }
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
+                              placeholder="e.g 044"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-600 mb-1">Account Number</label>
+                            <input
+                              type="text"
+                              value={addAccountForm.accountNumber}
+                              onChange={(event) =>
+                                setAddAccountForm((prev) => ({
+                                  ...prev,
+                                  accountNumber: event.target.value.replace(/\D/g, '').slice(0, 10),
+                                }))
+                              }
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
+                              placeholder="10-digit account number"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-600 mb-1">Account Name</label>
+                            <input
+                              type="text"
+                              value={addAccountForm.accountName}
+                              onChange={(event) =>
+                                setAddAccountForm((prev) => ({
+                                  ...prev,
+                                  accountName: event.target.value,
+                                }))
+                              }
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
+                              placeholder="Account holder name"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-gray-600 mb-1">BVN (optional)</label>
+                            <input
+                              type="text"
+                              value={addAccountForm.bvn}
+                              onChange={(event) =>
+                                setAddAccountForm((prev) => ({
+                                  ...prev,
+                                  bvn: event.target.value.replace(/\D/g, '').slice(0, 11),
+                                }))
+                              }
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
+                              placeholder="11-digit BVN"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-3 flex justify-end">
+                          <button
+                            onClick={handleSetFarmerWithdrawalAccount}
+                            disabled={settingAccount}
+                            className="px-4 py-2 rounded-lg bg-[#066f48] hover:bg-[#055a3b] disabled:opacity-60 text-white transition-all flex items-center gap-2 text-sm"
+                          >
+                            {settingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                            Save Account
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">

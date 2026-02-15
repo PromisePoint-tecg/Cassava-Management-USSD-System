@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Plus,Search,CheckCircle2,AlertCircle,Eye,Clock,DollarSign,TrendingUp,RefreshCw,Scale,Users,ChevronLeft,ChevronRight,X,ShoppingCart,
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { Plus,Search,CheckCircle2,Eye,DollarSign,TrendingUp,RefreshCw,Scale,Users,ChevronLeft,ChevronRight,X,ShoppingCart,FileDown,CheckCircle,
 } from "lucide-react";
 import {purchasesApi,PurchaseItem,PurchaseKPIs,CreatePurchaseData,GetPurchasesQuery,CassavaPricing,
 } from "../services/purchases";
@@ -10,6 +10,7 @@ import { LeafButtonLoader } from "./Loader";
 interface PurchasesViewProps {}
 
 export const PurchasesView: React.FC<PurchasesViewProps> = () => {
+  const purchasesPageRef = useRef<HTMLDivElement>(null);
   // State management
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [kpis, setKpis] = useState<PurchaseKPIs | null>(null);
@@ -20,11 +21,12 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const [createLoading, setCreateLoading] = useState(false);
   const [pricingLoading, setPricingLoading] = useState(true);
   const [retryingPurchase, setRetryingPurchase] = useState<string | null>(null);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [farmerSearchTerm, setFarmerSearchTerm] = useState("");
   const [showFarmerDropdown, setShowFarmerDropdown] = useState(false);
   const [selectedFarmerName, setSelectedFarmerName] = useState("");
@@ -47,10 +49,11 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   // Filters and pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const itemsPerPage = 10;
 
   const filteredFarmers = useMemo(() => {
   if (!farmerSearchTerm.trim()) return farmers;
@@ -66,14 +69,12 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
+      setError(null);
       try {
-        await Promise.all([
-          loadKPIs(),
-          loadPurchases(),
-          loadCassavaPricing()
-        ]);
+        await Promise.all([loadDashboardData(), loadCassavaPricing()]);
+        setInitialLoaded(true);
       } catch (err) {
-        console.error('Failed to load initial data:', err);
+        console.error("Failed to load initial data:", err);
       } finally {
         setLoading(false);
       }
@@ -81,14 +82,39 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     loadInitialData();
   }, []);
 
-  // Load data when filters change
   useEffect(() => {
-    loadPurchases();
-  }, [searchTerm, statusFilter, currentPage]);
+    if (!initialLoaded) return;
+    loadDashboardData(true);
+  }, [searchTerm, statusFilter, currentPage, startDate, endDate]);
+
+  const loadDashboardData = async (showTableLoader = false) => {
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      setError("Start date cannot be after end date.");
+      return;
+    }
+
+    if (showTableLoader) {
+      setTableLoading(true);
+    }
+
+    setError(null);
+    try {
+      await Promise.all([loadKPIs(), loadPurchases()]);
+    } catch (err) {
+      console.error("Failed to load purchase dashboard:", err);
+    } finally {
+      if (showTableLoader) {
+        setTableLoading(false);
+      }
+    }
+  };
 
   const loadKPIs = async () => {
     try {
-      const data = await purchasesApi.getPurchaseKPIs();
+      const data = await purchasesApi.getPurchaseKPIs({
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      });
       setKpis(data);
     } catch (err) {
       console.error("Failed to load purchase KPIs:", err);
@@ -105,11 +131,13 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         status: statusFilter || undefined,
         sortBy: "createdAt",
         sortOrder: "desc",
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       };
 
       const data = await purchasesApi.getAllPurchases(query);
       setPurchases(data.purchases);
-      setTotalPages(data.totalPages);
+      setTotalPages(Math.max(1, data.totalPages || 1));
       setTotal(data.total);
     } catch (err) {
       console.error("Failed to load purchases:", err);
@@ -162,13 +190,17 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     if (!createForm.farmerId || !weightKg || weightKg <= 0) return;
 
     try {
+      setError(null);
       setCreateLoading(true);
       const selectedFarmer = farmers.find((f) => f.id === createForm.farmerId);
       if (!selectedFarmer || !cassavaPricing) return;
 
       const purchaseData: CreatePurchaseData = {
         farmerId: createForm.farmerId,
-        farmerName: selectedFarmer.name,
+        farmerName:
+          selectedFarmer.name ||
+          selectedFarmer.fullName ||
+          `${selectedFarmer.firstName} ${selectedFarmer.lastName}`,
         farmerPhone: selectedFarmer.phone,
         weightKg: weightKg,
         pricePerKg: weightKg >= 1000 ? cassavaPricing.pricePerTon / 1000 : cassavaPricing.pricePerKg,
@@ -191,7 +223,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
       loadKPIs();
     } catch (err) {
       console.error("Failed to create purchase:", err);
-      setError("Failed to create purchase");
+      setError((err as Error)?.message || "Failed to create purchase");
     } finally {
       setCreateLoading(false);
     }
@@ -200,6 +232,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   // Retry purchase handler
   const handleRetryPurchase = async (purchaseId: string) => {
     try {
+      setError(null);
       setRetryingPurchase(purchaseId);
       await purchasesApi.retryPurchase(purchaseId);
 
@@ -213,28 +246,11 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
       loadKPIs();
     } catch (err) {
       console.error("Failed to retry purchase:", err);
-      setError("Failed to retry purchase. Please try again.");
+      setError((err as Error)?.message || "Failed to retry purchase. Please try again.");
     } finally {
       setRetryingPurchase(null);
     }
   };
-
-  const filteredPurchases = purchases.filter((purchase) => {
-    const matchesSearch = searchTerm === "" || purchase.farmerName.toLowerCase().includes(searchTerm.toLowerCase()) || purchase.farmerPhone.includes(searchTerm);
-    const matchesStatus = statusFilter === "" || purchase.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const paginatedPurchases = filteredPurchases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  const totalPagesCalculated = Math.ceil(filteredPurchases.length / itemsPerPage);
-
-  useEffect(() => {
-    setTotalPages(totalPagesCalculated);
-    if (currentPage > totalPagesCalculated && totalPagesCalculated > 0) {
-      setCurrentPage(1);
-    }
-  }, [filteredPurchases.length, totalPagesCalculated, currentPage]);
 
   const calculatePrice = (weightKg: number, unit: "kg" | "ton") => {
     if (!cassavaPricing) return 0;
@@ -261,6 +277,55 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     }
   };
 
+  const clearDateFilters = () => {
+    setStartDate("");
+    setEndDate("");
+    setCurrentPage(1);
+  };
+
+  const exportPurchasesDashboardPdf = () => {
+    if (!purchasesPageRef.current) {
+      return;
+    }
+
+    const html = purchasesPageRef.current.outerHTML;
+    const styleTags = Array.from(
+      document.querySelectorAll("style, link[rel='stylesheet']")
+    )
+      .map((el) => el.outerHTML)
+      .join("\n");
+
+    const printWindow = window.open("", "_blank", "width=1400,height=900");
+    if (!printWindow) {
+      setError("Unable to open print window for export.");
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Purchases Dashboard Export</title>
+          ${styleTags}
+          <style>
+            body { background: white; margin: 0; padding: 16px; }
+            .no-print { display: none !important; }
+          </style>
+        </head>
+        <body>${html}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 700);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
@@ -281,6 +346,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Pending" },
+      processing: { bg: "bg-blue-100", text: "text-blue-700", label: "Processing" },
       completed: { bg: "bg-green-100", text: "text-green-700", label: "Completed" },
       failed: { bg: "bg-red-100", text: "text-red-700", label: "Failed" },
       cancelled: { bg: "bg-gray-100", text: "text-gray-700", label: "Cancelled" },
@@ -304,7 +370,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   }
 
   return (
-    <div className="space-y-5">
+    <div ref={purchasesPageRef} className="space-y-5">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
@@ -317,24 +383,83 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
               <p className="text-sm text-gray-600">{total} total purchases</p>
             </div>
           </div>
-          <button
-            onClick={handleOpenCreateModal}
-            className="mt-3 sm:mt-0 w-full sm:w-auto px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] flex items-center justify-center gap-2 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Purchase</span>
-          </button>
+          <div className="mt-3 sm:mt-0 flex w-full sm:w-auto gap-2 no-print">
+            <button
+              onClick={exportPurchasesDashboardPdf}
+              className="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-all"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>Export PDF</span>
+            </button>
+            <button
+              onClick={handleOpenCreateModal}
+              className="w-full sm:w-auto px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] flex items-center justify-center gap-2 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Purchase</span>
+            </button>
+          </div>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 no-print">
+          {error}
+        </div>
+      )}
 
       {/* KPI Cards */}
       {kpis && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Scale, label: "Total Weight", value: `${(kpis.totalWeight || 0).toLocaleString()}kg`, color: "blue" },
-            { icon: DollarSign, label: "Total Amount Spent", value: formatCurrency(kpis.totalAmountSpent || 0), color: "emerald" },
-            { icon: TrendingUp, label: "Average Price/kg", value: formatCurrency(kpis.averagePrice || 0), color: "purple" },
-            { icon: Users, label: "Total Purchases", value: (kpis.totalPurchases || 0).toLocaleString(), color: "orange" },
+            {
+              icon: Scale,
+              label: "Total Weight",
+              value: `${(kpis.totalWeight || 0).toLocaleString()}kg`,
+              iconClass: "text-blue-600",
+            },
+            {
+              icon: DollarSign,
+              label: "Total Amount Spent",
+              value: formatCurrency(kpis.totalAmountSpent || 0),
+              iconClass: "text-emerald-600",
+            },
+            {
+              icon: TrendingUp,
+              label: "Average Price/kg",
+              value: formatCurrency(kpis.averagePrice || 0),
+              iconClass: "text-indigo-600",
+            },
+            {
+              icon: Users,
+              label: "Purchase Wallet",
+              value: formatCurrency(kpis.purchaseWalletBalance || 0),
+              iconClass: "text-orange-600",
+            },
+            {
+              icon: CheckCircle,
+              label: "Completed Purchases",
+              value: (kpis.completedPurchases || 0).toLocaleString(),
+              iconClass: "text-green-600",
+            },
+            {
+              icon: RefreshCw,
+              label: "Pending Purchases",
+              value: (kpis.pendingPurchases || 0).toLocaleString(),
+              iconClass: "text-amber-600",
+            },
+            {
+              icon: DollarSign,
+              label: "Loan Deductions",
+              value: formatCurrency(kpis.totalLoanDeductions || 0),
+              iconClass: "text-rose-600",
+            },
+            {
+              icon: DollarSign,
+              label: "Savings Deductions",
+              value: formatCurrency(kpis.totalSavingsDeductions || 0),
+              iconClass: "text-cyan-600",
+            },
           ].map((kpi, idx) => (
             <div key={idx} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-all">
               <div className="flex items-center justify-between">
@@ -342,7 +467,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                   <h3 className="text-gray-500 text-sm font-medium mb-1">{kpi.label}</h3>
                   <p className="text-2xl font-bold text-gray-800">{kpi.value}</p>
                 </div>
-                <kpi.icon className={`w-8 h-8 text-${kpi.color}-600`} />
+                <kpi.icon className={`w-8 h-8 ${kpi.iconClass}`} />
               </div>
             </div>
           ))}
@@ -350,35 +475,70 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 no-print">
+        <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search purchases..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500"
             />
           </div>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
           >
             <option value="">All Statuses</option>
+            <option value="processing">Processing</option>
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
             <option value="failed">Failed</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => {
+              setStartDate(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => {
+              setEndDate(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
+          />
+          <button
+            onClick={clearDateFilters}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-gray-700"
+          >
+            Clear Dates
+          </button>
         </div>
       </div>
 
       {/* Purchases Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        {filteredPurchases.length === 0 ? (
+        {tableLoading ? (
+          <div className="py-12 flex justify-center">
+            <LeafButtonLoader />
+          </div>
+        ) : purchases.length === 0 ? (
           <div className="text-center py-12">
             <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">No purchases found</p>
@@ -387,7 +547,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
           <>
             {/* Mobile: card list */}
             <div className="md:hidden p-4 space-y-3">
-              {paginatedPurchases.map((purchase) => (
+              {purchases.map((purchase) => (
                 <div key={purchase._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                   <div className="flex items-start justify-between">
                     <div>
@@ -398,7 +558,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-gray-700">
                     <div>Weight: <span className="font-medium text-gray-800">{purchase.weightKg}kg</span></div>
-                    <div className="text-right">Unit Price: <span className="font-medium text-gray-800">{getPricePerKgForDisplay(purchase)}/kg</span></div>
+                    <div className="text-right">Unit Price: <span className="font-medium text-gray-800">{formatCurrency(getPricePerKgForDisplay(purchase))}/kg</span></div>
                     <div>Status: <span className="inline-block ml-1">{getStatusBadge(purchase.status)}</span></div>
                     <div className="text-right">{formatDate(purchase.createdAt)}</div>
                   </div>
@@ -446,7 +606,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {paginatedPurchases.map((purchase) => (
+                {purchases.map((purchase) => (
                   <tr key={purchase._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div>
@@ -456,7 +616,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                     </td>
                     <td className="px-6 py-4 text-gray-700">{purchase.weightKg}kg</td>
                     <td className="px-6 py-4 text-gray-700">
-                      {getPricePerKgForDisplay(purchase)}/kg
+                      {formatCurrency(getPricePerKgForDisplay(purchase))}/kg
                       {purchase.unit === "ton" && <span className="text-xs text-gray-500 ml-1">(bulk)</span>}
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-800">{formatCurrency(purchase.totalAmount)}</td>
@@ -497,8 +657,8 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
       </div>
 
       {/* Pagination */}
-      {!loading && filteredPurchases.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+      {!loading && purchases.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 no-print">
           <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-3">
             <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
             <div className="flex w-full sm:w-auto gap-2">
@@ -766,19 +926,44 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Price per {viewingPurchase.unit === "ton" ? "Ton" : "Kg"}</p>
+                      <p className="text-xs text-gray-500">Price per Kg</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(viewingPurchase.pricePerUnit)}/{viewingPurchase.unit}
-                        {viewingPurchase.unit === "ton" && (
-                          <span className="text-gray-500 ml-2 text-xs">
-                            ({formatCurrency(getPricePerKgForDisplay(viewingPurchase))}/kg)
-                          </span>
-                        )}
+                        {formatCurrency(getPricePerKgForDisplay(viewingPurchase))}/kg
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Total Amount</p>
                       <p className="text-lg font-bold text-emerald-600">{formatCurrency(viewingPurchase.totalAmount)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Org Wallet Debit</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatCurrency(
+                          viewingPurchase.organizationPurchaseWalletDebitedAmount ??
+                            viewingPurchase.totalAmount
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Loan Deduction</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatCurrency(viewingPurchase.loanDeductionAmount || 0)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Savings Deduction</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatCurrency(viewingPurchase.savingsDeductionAmount || 0)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Net Credited to Farmer</p>
+                      <p className="text-sm font-semibold text-[#066f48]">
+                        {formatCurrency(
+                          viewingPurchase.netAmountCredited ??
+                            viewingPurchase.totalAmount
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -802,6 +987,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
                       <p className="text-xs text-gray-500">Payment Status</p>
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                         viewingPurchase.paymentStatus === "paid" ? "bg-green-100 text-green-800" :
+                        viewingPurchase.paymentStatus === "processing" ? "bg-blue-100 text-blue-800" :
                         viewingPurchase.paymentStatus === "failed" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
                       }`}>
                         {viewingPurchase.paymentStatus.charAt(0).toUpperCase() + viewingPurchase.paymentStatus.slice(1)}
