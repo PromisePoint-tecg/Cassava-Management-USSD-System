@@ -27,7 +27,6 @@ export interface FarmerDetail extends Farmer {
   walletBankCode?: string;
   walletAccountNumber?: string;
   walletAccountName?: string;
-  walletBvn?: string;
 }
 
 export interface PaginatedFarmersResponse {
@@ -126,7 +125,6 @@ export interface SetFarmerWithdrawalAccountData {
   bankCode: string;
   accountNumber: string;
   accountName: string;
-  bvn?: string;
 }
 
 export interface SetFarmerWithdrawalAccountResponse {

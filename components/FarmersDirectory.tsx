@@ -133,7 +133,6 @@ export const FarmersDirectory: React.FC = () => {
     bankCode: '',
     accountNumber: '',
     accountName: '',
-    bvn: '',
   });
 
   // Fetch farmers and KPI summary together
@@ -212,7 +211,6 @@ export const FarmersDirectory: React.FC = () => {
       bankCode: '',
       accountNumber: '',
       accountName: '',
-      bvn: '',
     });
   };
 
@@ -281,7 +279,6 @@ export const FarmersDirectory: React.FC = () => {
         bankCode: detailsResult.value.walletBankCode || '',
         accountNumber: detailsResult.value.walletAccountNumber || '',
         accountName: detailsResult.value.walletAccountName || detailsResult.value.fullName || '',
-        bvn: detailsResult.value.walletBvn || '',
       });
       setShowAddAccountForm(false);
 
@@ -500,7 +497,6 @@ export const FarmersDirectory: React.FC = () => {
     const bankCode = addAccountForm.bankCode.trim();
     const accountNumber = addAccountForm.accountNumber.trim();
     const accountName = addAccountForm.accountName.trim();
-    const bvn = addAccountForm.bvn.trim();
 
     if (!bankName || !bankCode || !accountNumber || !accountName) {
       setActionError('Bank name, bank code, account number and account name are required.');
@@ -509,11 +505,6 @@ export const FarmersDirectory: React.FC = () => {
 
     if (!/^\d{10}$/.test(accountNumber)) {
       setActionError('Account number must be exactly 10 digits.');
-      return;
-    }
-
-    if (bvn && !/^\d{11}$/.test(bvn)) {
-      setActionError('BVN must be exactly 11 digits.');
       return;
     }
 
@@ -528,7 +519,6 @@ export const FarmersDirectory: React.FC = () => {
         bankCode,
         accountNumber,
         accountName,
-        ...(bvn ? { bvn } : {}),
       });
 
       const updatedWallet = response.wallet;
@@ -540,7 +530,6 @@ export const FarmersDirectory: React.FC = () => {
               walletBankCode: updatedWallet.bankCode || bankCode,
               walletAccountNumber: updatedWallet.accountNumber,
               walletAccountName: updatedWallet.accountName,
-              walletBvn: bvn || prev.walletBvn,
             }
           : prev,
       );
@@ -613,7 +602,6 @@ export const FarmersDirectory: React.FC = () => {
             <tr><td>Bank Name</td><td>${safe(viewingFarmer.walletBankName || 'N/A')}</td></tr>
             <tr><td>Account Number</td><td>${safe(viewingFarmer.walletAccountNumber || 'N/A')}</td></tr>
             <tr><td>Account Name</td><td>${safe(viewingFarmer.walletAccountName || 'N/A')}</td></tr>
-            <tr><td>BVN</td><td>${safe(viewingFarmer.walletBvn ? `••••••••${viewingFarmer.walletBvn.slice(-4)}` : 'N/A')}</td></tr>
           </table>
         </section>
       `);
@@ -1446,12 +1434,6 @@ export const FarmersDirectory: React.FC = () => {
                         <p className="text-gray-500">Account Name</p>
                         <p className="font-medium text-gray-800">{viewingFarmer.walletAccountName || 'N/A'}</p>
                       </div>
-                      <div>
-                        <p className="text-gray-500">BVN</p>
-                        <p className="font-medium text-gray-800">
-                          {viewingFarmer.walletBvn ? `••••••••${viewingFarmer.walletBvn.slice(-4)}` : 'N/A'}
-                        </p>
-                      </div>
                     </div>
                     {showAddAccountForm && (
                       <div className="mt-4 border-t border-gray-200 pt-4">
@@ -1514,21 +1496,6 @@ export const FarmersDirectory: React.FC = () => {
                               }
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
                               placeholder="Account holder name"
-                            />
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="block text-gray-600 mb-1">BVN (optional)</label>
-                            <input
-                              type="text"
-                              value={addAccountForm.bvn}
-                              onChange={(event) =>
-                                setAddAccountForm((prev) => ({
-                                  ...prev,
-                                  bvn: event.target.value.replace(/\D/g, '').slice(0, 11),
-                                }))
-                              }
-                              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
-                              placeholder="11-digit BVN"
                             />
                           </div>
                         </div>

@@ -539,6 +539,120 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     }
   };
 
+  const exportPurchaseDetailsPdf = (purchase: PurchaseItem) => {
+    try {
+      const logoUrl = `${window.location.origin}/logo.png`;
+      const generatedAt = new Date().toLocaleString("en-NG", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      const printWindow = window.open("", "_blank", "width=1200,height=900");
+      if (!printWindow) {
+        setError("Unable to open print window for export.");
+        return;
+      }
+
+      const recordedByName =
+        purchase.recordedByAdmin?.fullName || purchase.recordedBy || "N/A";
+
+      printWindow.document.open();
+      printWindow.document.write(`
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>Purchase Statement - ${escapeHtml(purchase._id)}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }
+              .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #066f48; padding-bottom: 12px; margin-bottom: 20px; }
+              .brand { display: flex; align-items: center; gap: 12px; }
+              .brand img { width: 52px; height: 52px; object-fit: contain; }
+              .brand h1 { margin: 0; color: #066f48; font-size: 20px; }
+              .meta { font-size: 12px; color: #4b5563; text-align: right; }
+              .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+              .card { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; background: #fff; }
+              .card h3 { margin: 0 0 10px; color: #065f46; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; }
+              .row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 13px; }
+              .label { color: #6b7280; }
+              .value { color: #111827; font-weight: 600; text-align: right; }
+              @media print { body { margin: 12px; } }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="brand">
+                <img src="${logoUrl}" alt="Promise Point Logo" />
+                <div>
+                  <h1>Promise Point Agrictech</h1>
+                  <div>Purchase Statement</div>
+                </div>
+              </div>
+              <div class="meta">
+                <div><strong>Generated:</strong> ${generatedAt}</div>
+                <div><strong>Purchase ID:</strong> ${escapeHtml(purchase._id)}</div>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="card">
+                <h3>Purchase Info</h3>
+                <div class="row"><span class="label">Farmer</span><span class="value">${escapeHtml(formatFarmerName(purchase.farmerName))}</span></div>
+                <div class="row"><span class="label">Phone</span><span class="value">${escapeHtml(purchase.farmerPhone || "N/A")}</span></div>
+                <div class="row"><span class="label">Weight</span><span class="value">${purchase.weightKg.toLocaleString()} kg</span></div>
+                <div class="row"><span class="label">Price / Kg</span><span class="value">${formatCurrency(getPricePerKgForDisplay(purchase))}</span></div>
+                <div class="row"><span class="label">Total Amount</span><span class="value">${formatCurrency(purchase.totalAmount)}</span></div>
+                <div class="row"><span class="label">Net Credited</span><span class="value">${formatCurrency(purchase.netAmountCredited ?? purchase.totalAmount)}</span></div>
+              </div>
+
+              <div class="card">
+                <h3>Recording Admin</h3>
+                <div class="row"><span class="label">Name</span><span class="value">${escapeHtml(recordedByName)}</span></div>
+                <div class="row"><span class="label">Email</span><span class="value">${escapeHtml(purchase.recordedByAdmin?.email || "N/A")}</span></div>
+                <div class="row"><span class="label">Role</span><span class="value">${escapeHtml(purchase.recordedByAdmin?.role || "N/A")}</span></div>
+                <div class="row"><span class="label">Recorded By ID</span><span class="value">${escapeHtml(purchase.recordedById || "N/A")}</span></div>
+                <div class="row"><span class="label">Created At</span><span class="value">${escapeHtml(formatDate(purchase.createdAt))}</span></div>
+                <div class="row"><span class="label">Last Updated</span><span class="value">${escapeHtml(formatDate(purchase.updatedAt))}</span></div>
+              </div>
+
+              <div class="card">
+                <h3>Wallet Trail</h3>
+                <div class="row"><span class="label">Org Wallet Debited</span><span class="value">${formatCurrency(purchase.organizationPurchaseWalletDebitedAmount ?? purchase.totalAmount)}</span></div>
+                <div class="row"><span class="label">Farmer Wallet Before</span><span class="value">${formatCurrency(purchase.walletBalanceBeforeCredit ?? 0)}</span></div>
+                <div class="row"><span class="label">Farmer Wallet After</span><span class="value">${formatCurrency(purchase.walletBalanceAfterCredit ?? 0)}</span></div>
+                <div class="row"><span class="label">Wallet Txn ID</span><span class="value">${escapeHtml(purchase.walletTransactionId || "N/A")}</span></div>
+                <div class="row"><span class="label">Org Debit Txn ID</span><span class="value">${escapeHtml(purchase.organizationPurchaseWalletTransactionId || "N/A")}</span></div>
+              </div>
+
+              <div class="card">
+                <h3>Deductions</h3>
+                <div class="row"><span class="label">Loan Deduction</span><span class="value">${formatCurrency(purchase.loanDeductionAmount || 0)}</span></div>
+                <div class="row"><span class="label">Savings Deduction</span><span class="value">${formatCurrency(purchase.savingsDeductionAmount || 0)}</span></div>
+                <div class="row"><span class="label">Savings Balance Before</span><span class="value">${formatCurrency(purchase.savingsBalanceBeforeDeduction || 0)}</span></div>
+                <div class="row"><span class="label">Savings Balance After</span><span class="value">${formatCurrency(purchase.savingsBalanceAfterDeduction || 0)}</span></div>
+                <div class="row"><span class="label">Status</span><span class="value">${escapeHtml((purchase.status || "N/A").toUpperCase())}</span></div>
+                <div class="row"><span class="label">Payment Status</span><span class="value">${escapeHtml((purchase.paymentStatus || "N/A").toUpperCase())}</span></div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 700);
+    } catch (err) {
+      console.error("Failed to export purchase details:", err);
+      setError((err as Error)?.message || "Failed to export purchase details.");
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
@@ -1165,142 +1279,124 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
       {/* View Purchase Modal - Enhanced Glass */}
       {isViewModalOpen && viewingPurchase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden my-auto border border-gray-200">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden my-auto border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-[#066f48]">Purchase Details</h3>
-                <button onClick={() => { setIsViewModalOpen(false); setViewingPurchase(null); }} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all">
-                  <X className="w-6 h-6" />
-                </button>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-[#066f48]">Purchase Details</h3>
+                  <p className="text-xs text-gray-500 mt-1 break-all">ID: {viewingPurchase._id}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(viewingPurchase.status)}
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    viewingPurchase.paymentStatus === "paid" ? "bg-green-100 text-green-800" :
+                    viewingPurchase.paymentStatus === "processing" ? "bg-blue-100 text-blue-800" :
+                    viewingPurchase.paymentStatus === "failed" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
+                  }`}>
+                    {viewingPurchase.paymentStatus.charAt(0).toUpperCase() + viewingPurchase.paymentStatus.slice(1)}
+                  </span>
+                  <button
+                    onClick={() => { setIsViewModalOpen(false); setViewingPurchase(null); }}
+                    className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
-              {/* Purchase Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-4">Purchase Information</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-500">Purchase ID</p>
-                      <p className="text-sm font-medium text-gray-900 break-all">{viewingPurchase._id}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Weight</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {viewingPurchase.weightKg.toLocaleString()}kg
-                        {viewingPurchase.unit === "ton" && (
-                          <span className="text-gray-500 ml-1">({(viewingPurchase.weightKg / 1000).toFixed(3)} tons)</span>
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Price per Kg</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(getPricePerKgForDisplay(viewingPurchase))}/kg
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Total Amount</p>
-                      <p className="text-lg font-bold text-emerald-600">{formatCurrency(viewingPurchase.totalAmount)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Org Wallet Debit</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(
-                          viewingPurchase.organizationPurchaseWalletDebitedAmount ??
-                            viewingPurchase.totalAmount
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Loan Deduction</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(viewingPurchase.loanDeductionAmount || 0)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Savings Deduction</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(viewingPurchase.savingsDeductionAmount || 0)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Net Credited to Farmer</p>
-                      <p className="text-sm font-semibold text-[#066f48]">
-                        {formatCurrency(
-                          viewingPurchase.netAmountCredited ??
-                            viewingPurchase.totalAmount
-                        )}
-                      </p>
-                    </div>
+            <div className="p-6 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-[#ecfdf5] border border-[#b7efcf] rounded-lg p-3">
+                  <p className="text-xs text-gray-500">Gross Amount</p>
+                  <p className="text-base font-bold text-[#066f48]">{formatCurrency(viewingPurchase.totalAmount)}</p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <p className="text-xs text-gray-500">Net Credited</p>
+                  <p className="text-base font-semibold text-gray-800">
+                    {formatCurrency(viewingPurchase.netAmountCredited ?? viewingPurchase.totalAmount)}
+                  </p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <p className="text-xs text-gray-500">Loan Deduction</p>
+                  <p className="text-base font-semibold text-gray-800">{formatCurrency(viewingPurchase.loanDeductionAmount || 0)}</p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <p className="text-xs text-gray-500">Savings Deduction</p>
+                  <p className="text-base font-semibold text-gray-800">{formatCurrency(viewingPurchase.savingsDeductionAmount || 0)}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Purchase Snapshot</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Weight</span><span className="font-medium text-gray-900">{viewingPurchase.weightKg.toLocaleString()}kg</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Price per Kg</span><span className="font-medium text-gray-900">{formatCurrency(getPricePerKgForDisplay(viewingPurchase))}/kg</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Payment Method</span><span className="font-medium text-gray-900 capitalize">{viewingPurchase.paymentMethod.replace("_", " ")}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Org Wallet Debit</span><span className="font-medium text-gray-900">{formatCurrency(viewingPurchase.organizationPurchaseWalletDebitedAmount ?? viewingPurchase.totalAmount)}</span></div>
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-4">Farmer Information</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-500">Farmer Name</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatFarmerName(viewingPurchase.farmerName)}
-                      </p>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Farmer & Recorder</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Farmer</span><span className="font-medium text-gray-900">{formatFarmerName(viewingPurchase.farmerName)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Phone</span><span className="font-medium text-gray-900">{viewingPurchase.farmerPhone}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Recorded By</span><span className="font-medium text-gray-900">{viewingPurchase.recordedByAdmin?.fullName || viewingPurchase.recordedBy || "N/A"}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Admin Email</span><span className="font-medium text-gray-900">{viewingPurchase.recordedByAdmin?.email || "N/A"}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Admin Role</span><span className="font-medium text-gray-900">{viewingPurchase.recordedByAdmin?.role || "N/A"}</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Wallet Trail</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Wallet Before Credit</span><span className="font-medium text-gray-900">{formatCurrency(viewingPurchase.walletBalanceBeforeCredit || 0)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Wallet After Credit</span><span className="font-medium text-gray-900">{formatCurrency(viewingPurchase.walletBalanceAfterCredit || 0)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Savings Before</span><span className="font-medium text-gray-900">{formatCurrency(viewingPurchase.savingsBalanceBeforeDeduction || 0)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Savings After</span><span className="font-medium text-gray-900">{formatCurrency(viewingPurchase.savingsBalanceAfterDeduction || 0)}</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Audit Trail</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Created At</span><span className="font-medium text-gray-900">{formatDate(viewingPurchase.createdAt)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">Last Updated</span><span className="font-medium text-gray-900">{formatDate(viewingPurchase.updatedAt)}</span></div>
+                    <div className="space-y-1 pt-1">
+                      <p className="text-gray-500 text-xs">Wallet Txn ID</p>
+                      <p className="font-medium text-gray-900 text-xs break-all">{viewingPurchase.walletTransactionId || "N/A"}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Phone Number</p>
-                      <p className="text-sm font-medium text-gray-900">{viewingPurchase.farmerPhone}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Payment Method</p>
-                      <p className="text-sm font-medium text-gray-900 capitalize">{viewingPurchase.paymentMethod.replace("_", " ")}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Payment Status</p>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        viewingPurchase.paymentStatus === "paid" ? "bg-green-100 text-green-800" :
-                        viewingPurchase.paymentStatus === "processing" ? "bg-blue-100 text-blue-800" :
-                        viewingPurchase.paymentStatus === "failed" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
-                      }`}>
-                        {viewingPurchase.paymentStatus.charAt(0).toUpperCase() + viewingPurchase.paymentStatus.slice(1)}
-                      </span>
+                    <div className="space-y-1 pt-1">
+                      <p className="text-gray-500 text-xs">Org Wallet Debit Txn ID</p>
+                      <p className="font-medium text-gray-900 text-xs break-all">{viewingPurchase.organizationPurchaseWalletTransactionId || "N/A"}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Status and Dates */}
-              <div className="border-t border-gray-200 pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Status</p>
-                    {getStatusBadge(viewingPurchase.status)}
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Created At</p>
-                    <p className="text-sm text-gray-900">{formatDate(viewingPurchase.createdAt)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Last Updated</p>
-                    <p className="text-sm text-gray-900">{formatDate(viewingPurchase.updatedAt)}</p>
-                  </div>
-                  {viewingPurchase.location && (
-                    <div>
-                      <p className="text-xs text-gray-500">Location</p>
-                      <p className="text-sm text-gray-900">{viewingPurchase.location}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {viewingPurchase.notes && (
-                <div className="border-t border-gray-200 pt-4">
-                  <p className="text-xs text-gray-500 mb-2">Notes</p>
-                  <p className="text-sm text-gray-900">{viewingPurchase.notes}</p>
+              {(viewingPurchase.location || viewingPurchase.notes) && (
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Additional Information</h4>
+                  {viewingPurchase.location ? (
+                    <p className="text-sm text-gray-700"><span className="text-gray-500">Location:</span> {viewingPurchase.location}</p>
+                  ) : null}
+                  {viewingPurchase.notes ? (
+                    <p className="text-sm text-gray-700 mt-2"><span className="text-gray-500">Notes:</span> {viewingPurchase.notes}</p>
+                  ) : null}
                 </div>
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end">
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+              <button
+                onClick={() => exportPurchaseDetailsPdf(viewingPurchase)}
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2"
+              >
+                <FileDown className="w-4 h-4" />
+                Export PDF
+              </button>
               <button
                 onClick={() => { setIsViewModalOpen(false); setViewingPurchase(null); }}
                 className="px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055539] transition-all"

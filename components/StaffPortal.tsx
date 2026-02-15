@@ -10,12 +10,17 @@ import {
   CheckCircle2,
   XCircle,
   X,
+  Truck,
+  PackageCheck,
+  Save,
 } from "lucide-react";
 import {
   staffApi,
   StaffProfile,
   LoanType,
   StaffLoanRequest,
+  StaffTaskPickup,
+  StaffTaskLoanDelivery,
 } from "../services/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
@@ -40,6 +45,22 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
   const [submittingLoanRequest, setSubmittingLoanRequest] = useState(false);
   const [showLoanSuccessModal, setShowLoanSuccessModal] = useState(false);
   const [loanSuccessData, setLoanSuccessData] = useState<any>(null);
+  const [pickupTasks, setPickupTasks] = useState<StaffTaskPickup[]>([]);
+  const [loanDeliveryTasks, setLoanDeliveryTasks] = useState<
+    StaffTaskLoanDelivery[]
+  >([]);
+  const [loadingTasks, setLoadingTasks] = useState(false);
+  const [taskError, setTaskError] = useState<string | null>(null);
+  const [selectedPickupTask, setSelectedPickupTask] =
+    useState<StaffTaskPickup | null>(null);
+  const [showPickupUpdateModal, setShowPickupUpdateModal] = useState(false);
+  const [pickupUpdateLoading, setPickupUpdateLoading] = useState(false);
+  const [pickupUpdateForm, setPickupUpdateForm] = useState({
+    proposed_weight_kg: 0,
+    proposed_price_per_kg: 0,
+    staff_notes: "",
+    pickup_items_text: "",
+  });
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-NG", {
@@ -61,6 +82,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
   useEffect(() => {
     loadProfile();
+    loadOperationalTasks();
   }, []);
 
   const loadProfile = async () => {
@@ -80,6 +102,20 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       setError(err?.message || "Failed to load profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOperationalTasks = async () => {
+    try {
+      setLoadingTasks(true);
+      setTaskError(null);
+      const data = await staffApi.getPickupDeliveryTasks();
+      setPickupTasks(data.pickups || []);
+      setLoanDeliveryTasks(data.loanDeliveries || []);
+    } catch (err: any) {
+      setTaskError(err?.message || "Failed to load operational tasks");
+    } finally {
+      setLoadingTasks(false);
     }
   };
 
@@ -160,6 +196,50 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
   const handleOpenLoanRequest = () => {
     setShowLoanRequestModal(true);
     loadLoanTypes();
+  };
+
+  const openPickupUpdateModal = (pickup: StaffTaskPickup) => {
+    setSelectedPickupTask(pickup);
+    const itemText = (pickup.pickup_items || [])
+      .map((item) => {
+        const qty = item.quantity ? ` x${item.quantity}` : "";
+        return `${item.name}${qty}`;
+      })
+      .join(", ");
+    setPickupUpdateForm({
+      proposed_weight_kg: pickup.proposed_weight_kg || 0,
+      proposed_price_per_kg: pickup.proposed_price_per_kg || 0,
+      staff_notes: pickup.staff_notes || "",
+      pickup_items_text: itemText,
+    });
+    setShowPickupUpdateModal(true);
+  };
+
+  const handleSubmitPickupUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPickupTask) return;
+
+    try {
+      setPickupUpdateLoading(true);
+      const itemNames = pickupUpdateForm.pickup_items_text
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const payload = {
+        proposed_weight_kg: pickupUpdateForm.proposed_weight_kg,
+        proposed_price_per_kg: pickupUpdateForm.proposed_price_per_kg,
+        staff_notes: pickupUpdateForm.staff_notes,
+        pickup_items: itemNames.map((name) => ({ name })),
+      };
+      await staffApi.updatePickupTask(selectedPickupTask.id, payload);
+      setShowPickupUpdateModal(false);
+      setSelectedPickupTask(null);
+      await loadOperationalTasks();
+    } catch (err: any) {
+      setTaskError(err?.message || "Failed to update pickup task");
+    } finally {
+      setPickupUpdateLoading(false);
+    }
   };
 
   return (
@@ -312,6 +392,205 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Pickup & Delivery Tasks */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800">
+                  Pickup & Delivery Tasks
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Update pickup outcomes and review pending loan deliveries.
+                </p>
+              </div>
+              <button
+                onClick={loadOperationalTasks}
+                className="px-3 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {taskError && (
+              <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {taskError}
+              </div>
+            )}
+
+            {loadingTasks ? (
+              <LeafInlineLoader />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="rounded-lg border border-gray-200">
+                  <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-[#066f48]" />
+                    <p className="font-medium text-gray-800">Pickup Requests</p>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                    {pickupTasks.length === 0 ? (
+                      <p className="p-4 text-sm text-gray-500">No pickup tasks assigned.</p>
+                    ) : (
+                      pickupTasks.map((task) => (
+                        <div key={task.id} className="p-4">
+                          <p className="font-medium text-gray-900">{task.farmer_name}</p>
+                          <p className="text-xs text-gray-600">{task.farmer_phone}</p>
+                          <p className="text-xs text-gray-500 mt-1 capitalize">
+                            Status: {task.status.replace("_", " ")}
+                          </p>
+                          <button
+                            onClick={() => openPickupUpdateModal(task)}
+                            className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#066f48]/30 text-[#066f48] hover:bg-emerald-50"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                            Update Pickup
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-gray-200">
+                  <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+                    <PackageCheck className="w-4 h-4 text-[#066f48]" />
+                    <p className="font-medium text-gray-800">Loan Deliveries</p>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                    {loanDeliveryTasks.length === 0 ? (
+                      <p className="p-4 text-sm text-gray-500">
+                        No pending loan delivery tasks.
+                      </p>
+                    ) : (
+                      loanDeliveryTasks.map((task) => (
+                        <div key={task.id} className="p-4">
+                          <p className="font-medium text-gray-900">{task.farmer_name}</p>
+                          <p className="text-xs text-gray-600">{task.farmer_phone}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Ref: {task.reference}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Pickup Date:{" "}
+                            {task.pickup_date
+                              ? new Date(task.pickup_date).toLocaleString("en-NG")
+                              : "Not set"}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Update Pickup Modal */}
+      {showPickupUpdateModal && selectedPickupTask && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-xl w-full border border-gray-200">
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Update Pickup Task
+              </h3>
+              <button
+                onClick={() => setShowPickupUpdateModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmitPickupUpdate} className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Items (comma-separated)
+                </label>
+                <textarea
+                  value={pickupUpdateForm.pickup_items_text}
+                  onChange={(e) =>
+                    setPickupUpdateForm({
+                      ...pickupUpdateForm,
+                      pickup_items_text: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  placeholder="Cassava tubers, stems, fertilizer"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Proposed Weight (kg)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={pickupUpdateForm.proposed_weight_kg || ""}
+                    onChange={(e) =>
+                      setPickupUpdateForm({
+                        ...pickupUpdateForm,
+                        proposed_weight_kg: Number(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Proposed Price / Kg (₦)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={pickupUpdateForm.proposed_price_per_kg || ""}
+                    onChange={(e) =>
+                      setPickupUpdateForm({
+                        ...pickupUpdateForm,
+                        proposed_price_per_kg: Number(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Staff Notes
+                </label>
+                <textarea
+                  value={pickupUpdateForm.staff_notes}
+                  onChange={(e) =>
+                    setPickupUpdateForm({
+                      ...pickupUpdateForm,
+                      staff_notes: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPickupUpdateModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={pickupUpdateLoading}
+                  className="flex-1 px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055b3d] disabled:opacity-60"
+                >
+                  {pickupUpdateLoading ? "Saving..." : "Save Update"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

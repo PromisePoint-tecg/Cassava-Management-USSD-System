@@ -64,6 +64,11 @@ export interface AdminLoanResponse {
     pickup_location?: string;
     approved_at?: Date;
     disbursed_at?: Date;
+    delivery_status?: "pending" | "delivered";
+    delivery_confirmed_at?: Date;
+    delivered_by_staff_id?: string;
+    delivered_by_staff_name?: string;
+    delivery_notes?: string;
     due_date: Date;
     completed_at?: Date;
     defaulted_at?: Date;
@@ -77,7 +82,10 @@ export interface GetLoansQuery {
     limit?: number;
     search?: string;
     status?: "requested" | "approved" | "active" | "completed" | "defaulted";
-    sortBy?: "createdAt" | "due_date" | "principal_amount" | "farmer_name";
+    user_type?: "farmer" | "staff";
+    startDate?: string;
+    endDate?: string;
+    sortBy?: "createdAt" | "due_date" | "principal_amount" | "farmer_name" | "staff_name";
     sortOrder?: "asc" | "desc";
 }
 
@@ -98,10 +106,12 @@ export interface LoanRequestsResponse {
 }
 
 export interface CreateLoanData {
-    farmer_id: string;
+    user_type: "farmer" | "staff";
+    farmer_id?: string;
+    staff_id?: string;
     loan_type_id: string;
     principal_amount: number; // in kobo
-    items: LoanItem[];
+    items?: LoanItem[];
     purpose?: string;
     due_date: string;
     monthly_payment?: number; // in kobo
@@ -125,6 +135,88 @@ export interface ApproveLoanData {
     admin_notes?: string;
 }
 
+export interface DeliveryLoanItemData {
+    name: string;
+    quantity: number;
+    unit_price: number; // in kobo
+    total_price: number; // in kobo
+    description?: string;
+}
+
+export interface RecordLoanDeliveryData {
+    items: DeliveryLoanItemData[];
+    delivered_by_staff_id?: string;
+    delivery_notes?: string;
+}
+
+export interface LoanDeliveriesResponse {
+    loans: AdminLoanResponse[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface PickupItem {
+    name: string;
+    quantity?: number;
+    unit_price?: number;
+    total_price?: number;
+    note?: string;
+}
+
+export interface PickupRequest {
+    id: string;
+    farmer_id: string;
+    farmer_name: string;
+    farmer_phone: string;
+    status: "requested" | "approved" | "staff_updated" | "processed" | "cancelled";
+    channel: "ussd" | "admin";
+    request_notes?: string;
+    approved_notes?: string;
+    scheduled_date?: string;
+    assigned_staff_id?: string;
+    assigned_staff_name?: string;
+    staff_notes?: string;
+    pickup_items?: PickupItem[];
+    proposed_weight_kg?: number;
+    proposed_price_per_kg?: number;
+    linked_purchase_id?: string;
+    processed_at?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PickupRequestsResponse {
+    pickups: PickupRequest[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface GetPickupRequestsQuery {
+    page?: number;
+    limit?: number;
+    status?: PickupRequest["status"];
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+}
+
+export interface ApprovePickupRequestData {
+    scheduled_date?: string;
+    approved_notes?: string;
+    assigned_staff_id?: string;
+}
+
+export interface ProcessPickupToPurchaseData {
+    weightKg?: number;
+    pricePerKg?: number; // in naira
+    location?: string;
+    notes?: string;
+}
+
 export class LoansApi {
     private client: ApiClient;
 
@@ -143,12 +235,13 @@ export class LoansApi {
      * Get all loan types
      */
     async getLoanTypes(
-        filters: { category?: string; is_active?: boolean } = {}
+        filters: { category?: string; is_active?: boolean; user_type?: "farmer" | "staff" } = {}
     ): Promise<LoanType[]> {
         const params = new URLSearchParams();
         if (filters.category) params.append("category", filters.category);
         if (filters.is_active !== undefined)
             params.append("is_active", filters.is_active.toString());
+        if (filters.user_type) params.append("user_type", filters.user_type);
 
         return this.client.get<LoanType[]>(`/loans/types?${params.toString()}`);
     }
@@ -194,6 +287,9 @@ export class LoansApi {
         if (query.limit) params.append("limit", query.limit.toString());
         if (query.search) params.append("search", query.search);
         if (query.status) params.append("status", query.status);
+        if (query.user_type) params.append("user_type", query.user_type);
+        if (query.startDate) params.append("startDate", query.startDate);
+        if (query.endDate) params.append("endDate", query.endDate);
         if (query.sortBy) params.append("sortBy", query.sortBy);
         if (query.sortOrder) params.append("sortOrder", query.sortOrder);
 
@@ -214,6 +310,10 @@ export class LoansApi {
         if (query.page) params.append("page", query.page.toString());
         if (query.limit) params.append("limit", query.limit.toString());
         if (query.search) params.append("search", query.search);
+        if (query.status) params.append("status", query.status);
+        if (query.user_type) params.append("user_type", query.user_type);
+        if (query.startDate) params.append("startDate", query.startDate);
+        if (query.endDate) params.append("endDate", query.endDate);
         if (query.sortBy) params.append("sortBy", query.sortBy);
         if (query.sortOrder) params.append("sortOrder", query.sortOrder);
 
@@ -258,6 +358,71 @@ export class LoansApi {
         return this.client.patch<AdminLoanResponse>(
             `/admins/loans/${id}/activate`,
             {}
+        );
+    }
+
+    async getLoanDeliveries(
+        query: GetLoansQuery = {}
+    ): Promise<LoanDeliveriesResponse> {
+        const params = new URLSearchParams();
+        if (query.page) params.append("page", query.page.toString());
+        if (query.limit) params.append("limit", query.limit.toString());
+        if (query.search) params.append("search", query.search);
+        if (query.startDate) params.append("startDate", query.startDate);
+        if (query.endDate) params.append("endDate", query.endDate);
+        if (query.status && (query.status === "approved" || query.status === "active")) {
+            params.append(
+                "delivery_status",
+                query.status === "active" ? "delivered" : "pending"
+            );
+        }
+        const queryString = params.toString();
+        return this.client.get<LoanDeliveriesResponse>(
+            `/ops/loan-deliveries${queryString ? `?${queryString}` : ""}`
+        );
+    }
+
+    async recordLoanDelivery(
+        id: string,
+        data: RecordLoanDeliveryData
+    ): Promise<AdminLoanResponse> {
+        return this.client.patch<AdminLoanResponse>(
+            `/ops/loan-deliveries/${id}/record`,
+            data
+        );
+    }
+
+    async getPickupRequests(
+        query: GetPickupRequestsQuery = {}
+    ): Promise<PickupRequestsResponse> {
+        const params = new URLSearchParams();
+        if (query.page) params.append("page", query.page.toString());
+        if (query.limit) params.append("limit", query.limit.toString());
+        if (query.search) params.append("search", query.search);
+        if (query.status) params.append("status", query.status);
+        if (query.startDate) params.append("startDate", query.startDate);
+        if (query.endDate) params.append("endDate", query.endDate);
+
+        const queryString = params.toString();
+        return this.client.get<PickupRequestsResponse>(
+            `/ops/pickups${queryString ? `?${queryString}` : ""}`
+        );
+    }
+
+    async approvePickupRequest(
+        id: string,
+        data: ApprovePickupRequestData
+    ): Promise<PickupRequest> {
+        return this.client.patch<PickupRequest>(`/ops/pickups/${id}/approve`, data);
+    }
+
+    async processPickupToPurchase(
+        id: string,
+        data: ProcessPickupToPurchaseData
+    ): Promise<{ pickup: PickupRequest; purchase: any }> {
+        return this.client.patch<{ pickup: PickupRequest; purchase: any }>(
+            `/ops/pickups/${id}/process`,
+            data
         );
     }
 }
