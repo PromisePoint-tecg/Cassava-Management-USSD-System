@@ -118,6 +118,12 @@ export const LoansView: React.FC<LoansViewProps> = ({
   const [isPickupProcessModalOpen, setIsPickupProcessModalOpen] =
     useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isActivateConfirmModalOpen, setIsActivateConfirmModalOpen] =
+    useState(false);
+  const [activationLoading, setActivationLoading] = useState(false);
+  const [loanToActivate, setLoanToActivate] = useState<AdminLoanResponse | null>(
+    null
+  );
   const [successMessage, setSuccessMessage] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreateLoanTypeModalOpen, setIsCreateLoanTypeModalOpen] =
@@ -205,6 +211,12 @@ export const LoansView: React.FC<LoansViewProps> = ({
     isInitialLoad,
   ]);
 
+  useEffect(() => {
+    if (activeTab === "requests" && statusFilter !== "requested") {
+      setStatusFilter("requested");
+    }
+  }, [activeTab, statusFilter]);
+
   const loadActiveTabData = async (tab: TabType) => {
     if (tab === "loans") {
       await loadLoans();
@@ -276,7 +288,8 @@ export const LoansView: React.FC<LoansViewProps> = ({
         page: currentPage,
         limit: 10,
         search: searchTerm || undefined,
-        status: (statusFilter as any) || undefined,
+        // Loan requests are strictly pending/unattended loans.
+        status: "requested",
         user_type:
           borrowerTypeFilter === "all" ? undefined : borrowerTypeFilter,
         startDate: startDateFilter || undefined,
@@ -484,6 +497,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
   const handleApprovalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedLoan || !approvalData.pickup_date) return;
+    const borrowerType = getBorrowerType(selectedLoan);
 
     try {
       await loansApi.approveLoanRequest(selectedLoan.id, approvalData);
@@ -494,7 +508,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
       setSuccessMessage(
         `Loan request approved successfully!\nActive loan created and SMS notification sent to ${getRequesterName(
           selectedLoan
-        )}.\nThe loan will be activated when the ${selectedLoan.user_type} picks up the inputs.`
+        )}.\nThe loan will be activated when the ${borrowerType} picks up the inputs.`
       );
       setIsSuccessModalOpen(true);
 
@@ -506,7 +520,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
       }
     } catch (err) {
       console.error("Failed to approve loan:", err);
-      alert("Failed to approve loan request. Please try again.");
+      setError("Failed to approve loan request. Please try again.");
     }
   };
 
@@ -736,56 +750,64 @@ export const LoansView: React.FC<LoansViewProps> = ({
     }
   };
 
-  const handleActivateLoan = async (loan: AdminLoanResponse) => {
+  const handleActivateLoan = (loan: AdminLoanResponse) => {
     if (loan.status !== "approved") {
-      alert("Only approved loans can be activated.");
+      setError("Only approved loans can be activated.");
       return;
     }
 
     // Check if pickup date has passed
     if (loan.pickup_date && new Date() < new Date(loan.pickup_date)) {
       const pickupDate = new Date(loan.pickup_date).toLocaleDateString("en-NG");
-      alert(`Cannot activate loan before pickup date: ${pickupDate}`);
+      setError(`Cannot activate loan before pickup date: ${pickupDate}`);
       return;
     }
 
     if (
-      loan.user_type === "farmer" &&
+      getBorrowerType(loan) === "farmer" &&
       (loan.delivery_status || "pending") !== "delivered"
     ) {
-      alert(
+      setError(
         "Cannot activate this farmer loan yet. Record delivery details first."
       );
       return;
     }
 
-    const requesterName = getRequesterName(loan);
-    const confirmMessage = `Are you sure you want to activate loan ${loan.reference} for ${requesterName}?\n\nThis will change the status to 'Active' and the ${loan.user_type} will start making monthly payments.`;
+    setError(null);
+    setLoanToActivate(loan);
+    setIsActivateConfirmModalOpen(true);
+  };
 
-    if (!window.confirm(confirmMessage)) {
+  const confirmActivateLoan = async () => {
+    if (!loanToActivate) {
       return;
     }
+    const requesterName = getRequesterName(loanToActivate);
+    const borrowerType = getBorrowerType(loanToActivate);
 
     try {
-      await loansApi.activateLoan(loan.id);
+      setActivationLoading(true);
+      await loansApi.activateLoan(loanToActivate.id);
+      setIsActivateConfirmModalOpen(false);
+      setLoanToActivate(null);
 
       // Show success message
       setSuccessMessage(
-        `Loan ${loan.reference} activated successfully!\nThe ${loan.user_type} ${requesterName} has been notified via SMS.\nMonthly payments will now commence.`
+        `Loan ${loanToActivate.reference} activated successfully!\nThe ${borrowerType} ${requesterName} has been notified via SMS.\nMonthly payments will now commence.`
       );
       setIsSuccessModalOpen(true);
 
       // Refresh data
-      loadKPIs();
-      loadLoans();
-      loadLoanRequests();
+      await Promise.all([loadKPIs(), loadLoans(), loadLoanRequests()]);
     } catch (err: any) {
       console.error("Failed to activate loan:", err);
       const errorMessage =
         err?.response?.data?.message ||
         err?.message ||
         "Failed to activate loan";
-      alert(`Failed to activate loan: ${errorMessage}`);
+      setError(`Failed to activate loan: ${errorMessage}`);
+    } finally {
+      setActivationLoading(false);
     }
   };
 
@@ -893,11 +915,25 @@ export const LoansView: React.FC<LoansViewProps> = ({
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
-  const getRequesterName = (loan: AdminLoanResponse | any) =>
-    loan?.name || loan?.farmer_name || loan?.staff_name || "N/A";
+  const getRequesterName = (loan: AdminLoanResponse | any) => {
+    const directName = loan?.name || loan?.farmer_name || loan?.staff_name;
+    if (directName) return directName;
+
+    const firstName = loan?.first_name || loan?.firstName;
+    const lastName = loan?.last_name || loan?.lastName;
+    const combinedName = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+    return combinedName || "N/A";
+  };
 
   const getRequesterPhone = (loan: AdminLoanResponse | any) =>
     loan?.phone || loan?.farmer_phone || loan?.staff_phone || "N/A";
+
+  const getBorrowerType = (loan: AdminLoanResponse | any): BorrowerType =>
+    loan?.user_type ||
+    (loan?.staff_id || loan?.staff_name || loan?.staff_phone
+      ? "staff"
+      : "farmer");
 
   const getLogoDataUrl = async (): Promise<string> => {
     try {
@@ -1003,7 +1039,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
               <tr>
                 <td>${escapeHtml(loan.reference)}</td>
                 <td>${escapeHtml(getRequesterName(loan))}</td>
-                <td>${loan.user_type.toUpperCase()}</td>
+                <td>${getBorrowerType(loan).toUpperCase()}</td>
                 <td>${formatCurrency(loan.principal_amount)}</td>
                 <td>${formatCurrency(loan.amount_outstanding)}</td>
                 <td>${escapeHtml(
@@ -1158,7 +1194,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
           </div>
           <div class="grid">
             <div class="card"><div class="label">Reference</div><div class="value">${escapeHtml(loan.reference)}</div></div>
-            <div class="card"><div class="label">Borrower</div><div class="value">${escapeHtml(getRequesterName(loan))} (${loan.user_type.toUpperCase()})</div></div>
+            <div class="card"><div class="label">Borrower</div><div class="value">${escapeHtml(getRequesterName(loan))} (${getBorrowerType(loan).toUpperCase()})</div></div>
             <div class="card"><div class="label">Phone</div><div class="value">${escapeHtml(getRequesterPhone(loan))}</div></div>
             <div class="card"><div class="label">Loan Type</div><div class="value">${escapeHtml(loan.loan_type_name)}</div></div>
             <div class="card"><div class="label">Principal</div><div class="value">${formatCurrency(loan.principal_amount)}</div></div>
@@ -1223,6 +1259,8 @@ export const LoansView: React.FC<LoansViewProps> = ({
           { value: "approved", label: "Pending Delivery" },
           { value: "active", label: "Delivered" },
         ]
+      : activeTab === "requests"
+      ? [{ value: "requested", label: "Pending Requests" }]
       : [
           { value: "", label: "All Statuses" },
           { value: "requested", label: "Requested" },
@@ -1243,12 +1281,12 @@ export const LoansView: React.FC<LoansViewProps> = ({
             </div>
             {opsOnly ? "Pickup & Delivery Operations" : "Loan Management"}
           </h2>
-          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 sm:gap-3">
+          <div className="flex flex-wrap w-full sm:w-auto gap-2">
             <button
               onClick={exportLoanListToPdf}
-              className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm sm:text-base"
+              className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium"
             >
-              <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              <Download className="w-4 h-4 mr-2" />
               Export PDF
             </button>
             {isLoanTab && (
@@ -1258,18 +1296,18 @@ export const LoansView: React.FC<LoansViewProps> = ({
                   setCreateLoanTypeForm(getDefaultCreateLoanTypeForm());
                   setIsCreateLoanTypeModalOpen(true);
                 }}
-                className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-[#066f48] text-white rounded-lg hover:bg-[#055b3d] transition-all text-sm sm:text-base"
+                className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055b3d] transition-all text-sm font-medium"
               >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <Plus className="w-4 h-4 mr-2" />
                 Create Loan Type
               </button>
             )}
             {isLoanTab && (
               <button
                 onClick={() => handleCreateNewLoan()}
-                className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all text-sm sm:text-base"
+                className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all text-sm font-medium"
               >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <Plus className="w-4 h-4 mr-2" />
                 Issue New Loan
               </button>
             )}
@@ -1342,6 +1380,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
             <button
               onClick={() => {
                 setActiveTab("loans");
+                setStatusFilter("");
                 setCurrentPage(1);
               }}
               className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
@@ -1357,6 +1396,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
             <button
               onClick={() => {
                 setActiveTab("requests");
+                setStatusFilter("requested");
                 setCurrentPage(1);
               }}
               className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
@@ -1371,6 +1411,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
           <button
             onClick={() => {
               setActiveTab("deliveries");
+              setStatusFilter("");
               setCurrentPage(1);
             }}
             className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
@@ -1384,6 +1425,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
           <button
             onClick={() => {
               setActiveTab("pickups");
+              setStatusFilter("");
               setCurrentPage(1);
             }}
             className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
@@ -1467,11 +1509,12 @@ export const LoansView: React.FC<LoansViewProps> = ({
 
           <div className="lg:col-span-2">
             <select
-              value={statusFilter}
+              value={activeTab === "requests" ? "requested" : statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
+              disabled={activeTab === "requests"}
               className="w-full px-4 sm:px-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 text-sm sm:text-base"
             >
               {statusOptions.map((option) => (
@@ -1486,7 +1529,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
           <button
             onClick={() => {
               setSearchTerm("");
-              setStatusFilter("");
+              setStatusFilter(activeTab === "requests" ? "requested" : "");
               setBorrowerTypeFilter("all");
               setStartDateFilter("");
               setEndDateFilter("");
@@ -1620,7 +1663,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
                               {getRequesterPhone(loan)}
                             </div>
                             <div className="text-xs text-gray-500 capitalize mt-0.5">
-                              {loan.user_type}
+                              {getBorrowerType(loan)}
                             </div>
                           </div>
                         </td>
@@ -1746,7 +1789,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Loan Details</h3>
                   <p className="text-sm text-gray-500">
-                    {selectedLoan.reference} • {selectedLoan.user_type.toUpperCase()}
+                    {selectedLoan.reference} • {getBorrowerType(selectedLoan).toUpperCase()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1806,7 +1849,9 @@ export const LoansView: React.FC<LoansViewProps> = ({
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Borrower Type</p>
-                    <p className="font-medium text-gray-900 capitalize">{selectedLoan.user_type}</p>
+                    <p className="font-medium text-gray-900 capitalize">
+                      {getBorrowerType(selectedLoan)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Status</p>
@@ -1863,7 +1908,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
                 </div>
               )}
 
-              {(selectedLoan.user_type === "farmer" || selectedLoan.delivery_status) && (
+              {(getBorrowerType(selectedLoan) === "farmer" || selectedLoan.delivery_status) && (
                 <div className="rounded-xl border border-gray-200 p-4">
                   <h4 className="text-sm font-semibold text-gray-800 mb-3">
                     Delivery Information
@@ -3002,6 +3047,69 @@ export const LoansView: React.FC<LoansViewProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Activate Loan Confirmation Modal */}
+      {isActivateConfirmModalOpen && loanToActivate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Activate Loan
+                </h3>
+                <button
+                  onClick={() => {
+                    setIsActivateConfirmModalOpen(false);
+                    setLoanToActivate(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-3">
+              <p className="text-sm text-gray-700">
+                You are about to activate loan{" "}
+                <span className="font-semibold text-gray-900">
+                  {loanToActivate.reference}
+                </span>{" "}
+                for{" "}
+                <span className="font-semibold text-gray-900">
+                  {getRequesterName(loanToActivate)}
+                </span>
+                .
+              </p>
+              <p className="text-sm text-gray-600">
+                This will move the loan to <span className="font-medium">Active</span>{" "}
+                and repayment tracking will start immediately.
+              </p>
+            </div>
+
+            <div className="p-6 pt-0 flex space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsActivateConfirmModalOpen(false);
+                  setLoanToActivate(null);
+                }}
+                className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmActivateLoan}
+                disabled={activationLoading}
+                className="flex-1 px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055b3d] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {activationLoading ? "Activating..." : "Confirm Activation"}
+              </button>
+            </div>
           </div>
         </div>
       )}
