@@ -6,6 +6,7 @@ import { Dashboard } from "./components/Dashboard";
 import { FarmersDirectory } from "./components/FarmersDirectory";
 import { PurchasesView } from "./components/PurchasesView";
 import { LoansView } from "./components/LoansView";
+import { PickupDeliveryView } from "./components/PickupDeliveryView";
 import { SettingsView } from "./components/SettingsView";
 import ProductsView from "./components/ProductsView";
 import LoginPage from "./components/LoginPage";
@@ -271,6 +272,19 @@ const AdminApp: React.FC = () => {
                   <LoansView />
                 </ProtectedRoute>
               } 
+            />
+
+            {/* Pickup & Delivery - Verifier, Support, Super Admin */}
+            <Route
+              path="/pickup-delivery"
+              element={
+                <ProtectedRoute
+                  userRole={adminInfo?.role}
+                  requiredPermissions={["pickup-delivery"]}
+                >
+                  <PickupDeliveryView />
+                </ProtectedRoute>
+              }
             />
             
             {/* Transactions - Finance, Super Admin */}

@@ -14,6 +14,15 @@ export interface PurchaseItem {
   paymentStatus: "pending" | "processing" | "paid" | "failed";
   recordedBy: string;
   recordedById: string;
+  recordedByAdmin?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    fullName: string;
+    email: string;
+    phone?: string;
+    role: string;
+  };
   location?: string;
   notes?: string;
   walletTransactionId?: string;
@@ -22,6 +31,10 @@ export interface PurchaseItem {
   loanDeductionAmount?: number; // in naira
   savingsDeductionAmount?: number; // in naira
   netAmountCredited?: number; // in naira
+  walletBalanceBeforeCredit?: number; // in naira
+  walletBalanceAfterCredit?: number; // in naira
+  savingsBalanceBeforeDeduction?: number; // in naira
+  savingsBalanceAfterDeduction?: number; // in naira
   createdAt: string;
   updatedAt: string;
 }
@@ -111,6 +124,22 @@ export class PurchasesApi {
     netAmountCredited:
       purchase?.netAmountCredited !== undefined
         ? this.fromKobo(purchase.netAmountCredited)
+        : undefined,
+    walletBalanceBeforeCredit:
+      purchase?.walletBalanceBeforeCredit !== undefined
+        ? this.fromKobo(purchase.walletBalanceBeforeCredit)
+        : undefined,
+    walletBalanceAfterCredit:
+      purchase?.walletBalanceAfterCredit !== undefined
+        ? this.fromKobo(purchase.walletBalanceAfterCredit)
+        : undefined,
+    savingsBalanceBeforeDeduction:
+      purchase?.savingsBalanceBeforeDeduction !== undefined
+        ? this.fromKobo(purchase.savingsBalanceBeforeDeduction)
+        : undefined,
+    savingsBalanceAfterDeduction:
+      purchase?.savingsBalanceAfterDeduction !== undefined
+        ? this.fromKobo(purchase.savingsBalanceAfterDeduction)
         : undefined,
     createdAt: purchase?.createdAt || new Date().toISOString(),
     updatedAt: purchase?.updatedAt || new Date().toISOString(),

@@ -126,6 +126,47 @@ export interface StaffLoanRequest {
   pickupDate?: string;
 }
 
+export interface StaffTaskPickupItem {
+  name: string;
+  quantity?: number;
+  unit_price?: number;
+  total_price?: number;
+  note?: string;
+}
+
+export interface StaffTaskPickup {
+  id: string;
+  farmer_name: string;
+  farmer_phone: string;
+  status: "requested" | "approved" | "staff_updated" | "processed" | "cancelled";
+  scheduled_date?: string;
+  request_notes?: string;
+  approved_notes?: string;
+  assigned_staff_name?: string;
+  staff_notes?: string;
+  pickup_items?: StaffTaskPickupItem[];
+  proposed_weight_kg?: number;
+  proposed_price_per_kg?: number;
+  createdAt: string;
+}
+
+export interface StaffTaskLoanDelivery {
+  id: string;
+  reference: string;
+  farmer_name: string;
+  farmer_phone: string;
+  pickup_date?: string;
+  pickup_location?: string;
+  delivery_status?: "pending" | "delivered";
+  principal_amount: number;
+  items?: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }>;
+}
+
 // Admin management interfaces
 export interface StaffFilters {
   page?: number;
@@ -847,6 +888,86 @@ class StaffApi {
 
     const result = await response.json();
     return result && result.data ? result.data : result;
+  }
+
+  /**
+   * Get pickup and delivery tasks assigned to logged-in staff
+   */
+  async getPickupDeliveryTasks(params?: {
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    pickups: StaffTaskPickup[];
+    loanDeliveries: StaffTaskLoanDelivery[];
+  }> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+    const query = new URLSearchParams();
+    if (params?.status) query.set("status", params.status);
+    if (params?.search) query.set("search", params.search);
+    if (params?.startDate) query.set("startDate", params.startDate);
+    if (params?.endDate) query.set("endDate", params.endDate);
+
+    const response = await fetch(
+      `${API_BASE_URL}/ops/staff/tasks${query.toString() ? `?${query.toString()}` : ""}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to load staff tasks" }));
+      throw new Error(error.message || "Failed to load staff tasks");
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Staff updates pickup details after field operation
+   */
+  async updatePickupTask(
+    pickupId: string,
+    data: {
+      pickup_items?: StaffTaskPickupItem[];
+      proposed_weight_kg?: number;
+      proposed_price_per_kg?: number;
+      staff_notes?: string;
+    }
+  ): Promise<StaffTaskPickup> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(
+      `${API_BASE_URL}/ops/staff/pickups/${pickupId}/update`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to update pickup task" }));
+      throw new Error(error.message || "Failed to update pickup task");
+    }
+
+    return response.json();
   }
 
   /**
