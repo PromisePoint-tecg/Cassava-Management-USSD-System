@@ -26,7 +26,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { FileDown, RefreshCw, Wallet } from "lucide-react";
+import { Briefcase, FileDown, RefreshCw, Wallet } from "lucide-react";
 import {
   financeApi,
   FinanceKpiMetric,
@@ -411,7 +411,17 @@ const FinanceView: React.FC = () => {
   }
 
   return (
-    <Box ref={financePageRef} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+    <Box
+      ref={financePageRef}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2.5,
+        width: "100%",
+        maxWidth: "100%",
+        overflowX: "hidden",
+      }}
+    >
       <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 2, p: 2.5 }}>
         <Stack
           direction={{ xs: "column", md: "row" }}
@@ -420,7 +430,24 @@ const FinanceView: React.FC = () => {
           alignItems={{ xs: "flex-start", md: "center" }}
         >
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a" }}>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 800, color: "#0f172a", display: "flex", alignItems: "center", gap: 1 }}
+            >
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 1.5,
+                  backgroundColor: "#066f48",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#ffffff",
+                }}
+              >
+                <Briefcase size={16} />
+              </Box>
               Finance Operations
             </Typography>
             <Typography variant="body2" sx={{ color: "#64748b" }}>
@@ -428,7 +455,12 @@ const FinanceView: React.FC = () => {
             </Typography>
           </Box>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} className="no-print">
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.2}
+            className="no-print"
+            sx={{ width: { xs: "100%", md: "auto" } }}
+          >
             <TextField
               label="Start date"
               type="date"
@@ -505,6 +537,8 @@ const FinanceView: React.FC = () => {
         <Tabs
           value={tabIndex}
           onChange={(_, nextTab) => setTabIndex(nextTab)}
+          variant="scrollable"
+          allowScrollButtonsMobile
           sx={{
             borderBottom: "1px solid #e2e8f0",
             px: 1,
@@ -699,7 +733,11 @@ const FinanceView: React.FC = () => {
 
               {txError && <Alert severity="error">{txError}</Alert>}
 
-              <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #dbe4ee" }}>
+              <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{ border: "1px solid #dbe4ee", overflowX: "auto" }}
+              >
                 <Table size="small">
                   <TableHead>
                     <TableRow>
@@ -777,7 +815,11 @@ const FinanceView: React.FC = () => {
                 Farmers Wallet Management
               </Typography>
               {farmersError && <Alert severity="error">{farmersError}</Alert>}
-              <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #dbe4ee" }}>
+              <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{ border: "1px solid #dbe4ee", overflowX: "auto" }}
+              >
                 <Table size="small">
                   <TableHead>
                     <TableRow>
@@ -859,7 +901,11 @@ const FinanceView: React.FC = () => {
                 Staff Directory
               </Typography>
               {staffError && <Alert severity="error">{staffError}</Alert>}
-              <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #dbe4ee" }}>
+              <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{ border: "1px solid #dbe4ee", overflowX: "auto" }}
+              >
                 <Table size="small">
                   <TableHead>
                     <TableRow>

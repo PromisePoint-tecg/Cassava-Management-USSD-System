@@ -8,6 +8,7 @@ import {
   Clock,
   AlertTriangle,
   DollarSign,
+  CreditCard,
   X,
   Play,
   CalendarDays,
@@ -34,7 +35,10 @@ import { staffApi, Staff } from "../services/staff";
 import { SuccessModal } from "./SuccessModal";
 import { LeafInlineLoader } from "./Loader";
 
-interface LoansViewProps {}
+interface LoansViewProps {
+  defaultTab?: "loans" | "requests" | "deliveries" | "pickups";
+  opsOnly?: boolean;
+}
 
 type TabType = "loans" | "requests" | "deliveries" | "pickups";
 type BorrowerType = "farmer" | "staff";
@@ -78,9 +82,14 @@ const getDefaultCreateLoanTypeForm = (): CreateLoanTypeData => ({
   duration_months: 6,
 });
 
-export const LoansView: React.FC<LoansViewProps> = () => {
+export const LoansView: React.FC<LoansViewProps> = ({
+  defaultTab = "loans",
+  opsOnly = false,
+}) => {
   // State management
-  const [activeTab, setActiveTab] = useState<TabType>("loans");
+  const [activeTab, setActiveTab] = useState<TabType>(
+    (opsOnly ? (defaultTab === "pickups" ? "pickups" : "deliveries") : defaultTab) as TabType
+  );
   const [kpis, setKpis] = useState<LoanKPIs | null>(null);
   const [loans, setLoans] = useState<AdminLoanResponse[]>([]);
   const [loanRequests, setLoanRequests] = useState<AdminLoanResponse[]>([]);
@@ -172,9 +181,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
   useEffect(() => {
     const initialLoad = async () => {
       await Promise.all([
-        loadKPIs(),
+        ...(opsOnly ? [] : [loadKPIs(), loadLoanTypes()]),
         loadActiveTabData(activeTab),
-        loadLoanTypes(),
       ]);
       setIsInitialLoad(false);
     };
@@ -484,7 +492,9 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
       // Show success message
       setSuccessMessage(
-        `Loan request approved successfully!\nActive loan created and SMS notification sent to ${selectedLoan.name}.\nThe loan will be activated when the ${selectedLoan.user_type} picks up the inputs.`
+        `Loan request approved successfully!\nActive loan created and SMS notification sent to ${getRequesterName(
+          selectedLoan
+        )}.\nThe loan will be activated when the ${selectedLoan.user_type} picks up the inputs.`
       );
       setIsSuccessModalOpen(true);
 
@@ -749,7 +759,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       return;
     }
 
-    const confirmMessage = `Are you sure you want to activate loan ${loan.reference} for ${loan.name}?\n\nThis will change the status to 'Active' and the ${loan.user_type} will start making monthly payments.`;
+    const requesterName = getRequesterName(loan);
+    const confirmMessage = `Are you sure you want to activate loan ${loan.reference} for ${requesterName}?\n\nThis will change the status to 'Active' and the ${loan.user_type} will start making monthly payments.`;
 
     if (!window.confirm(confirmMessage)) {
       return;
@@ -760,7 +771,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
 
       // Show success message
       setSuccessMessage(
-        `Loan ${loan.reference} activated successfully!\nThe ${loan.user_type} ${loan.name} has been notified via SMS.\nMonthly payments will now commence.`
+        `Loan ${loan.reference} activated successfully!\nThe ${loan.user_type} ${requesterName} has been notified via SMS.\nMonthly payments will now commence.`
       );
       setIsSuccessModalOpen(true);
 
@@ -882,6 +893,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+  const getRequesterName = (loan: AdminLoanResponse | any) =>
+    loan?.name || loan?.farmer_name || loan?.staff_name || "N/A";
+
+  const getRequesterPhone = (loan: AdminLoanResponse | any) =>
+    loan?.phone || loan?.farmer_phone || loan?.staff_phone || "N/A";
+
   const getLogoDataUrl = async (): Promise<string> => {
     try {
       const response = await fetch("/logo.png");
@@ -985,7 +1002,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             (loan: AdminLoanResponse) => `
               <tr>
                 <td>${escapeHtml(loan.reference)}</td>
-                <td>${escapeHtml(loan.name)}</td>
+                <td>${escapeHtml(getRequesterName(loan))}</td>
                 <td>${loan.user_type.toUpperCase()}</td>
                 <td>${formatCurrency(loan.principal_amount)}</td>
                 <td>${formatCurrency(loan.amount_outstanding)}</td>
@@ -1141,8 +1158,8 @@ export const LoansView: React.FC<LoansViewProps> = () => {
           </div>
           <div class="grid">
             <div class="card"><div class="label">Reference</div><div class="value">${escapeHtml(loan.reference)}</div></div>
-            <div class="card"><div class="label">Borrower</div><div class="value">${escapeHtml(loan.name)} (${loan.user_type.toUpperCase()})</div></div>
-            <div class="card"><div class="label">Phone</div><div class="value">${escapeHtml(loan.phone)}</div></div>
+            <div class="card"><div class="label">Borrower</div><div class="value">${escapeHtml(getRequesterName(loan))} (${loan.user_type.toUpperCase()})</div></div>
+            <div class="card"><div class="label">Phone</div><div class="value">${escapeHtml(getRequesterPhone(loan))}</div></div>
             <div class="card"><div class="label">Loan Type</div><div class="value">${escapeHtml(loan.loan_type_name)}</div></div>
             <div class="card"><div class="label">Principal</div><div class="value">${formatCurrency(loan.principal_amount)}</div></div>
             <div class="card"><div class="label">Outstanding</div><div class="value">${formatCurrency(loan.amount_outstanding)}</div></div>
@@ -1220,8 +1237,11 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-            Loan Management
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center">
+            <div className="p-2 rounded-lg bg-[#066f48] mr-3">
+              <CreditCard className="w-5 h-5 text-white" />
+            </div>
+            {opsOnly ? "Pickup & Delivery Operations" : "Loan Management"}
           </h2>
           <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 sm:gap-3">
             <button
@@ -1258,7 +1278,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       </div>
 
       {/* KPI Cards */}
-      {kpis && (
+      {!opsOnly && kpis && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {[
             {
@@ -1318,32 +1338,36 @@ export const LoansView: React.FC<LoansViewProps> = () => {
       {/* Tabs */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-2">
         <nav className="-mb-px flex space-x-2 sm:space-x-8 px-2 sm:px-6 py-3 sm:py-4 overflow-x-auto">
-          <button
-            onClick={() => {
-              setActiveTab("loans");
-              setCurrentPage(1);
-            }}
-            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
-              activeTab === "loans"
-                ? "bg-emerald-50 text-emerald-700"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            All Loans
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("requests");
-              setCurrentPage(1);
-            }}
-            className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
-              activeTab === "requests"
-                ? "bg-emerald-50 text-emerald-700"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Loan Requests
-          </button>
+          {!opsOnly && (
+            <button
+              onClick={() => {
+                setActiveTab("loans");
+                setCurrentPage(1);
+              }}
+              className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
+                activeTab === "loans"
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              All Loans
+            </button>
+          )}
+          {!opsOnly && (
+            <button
+              onClick={() => {
+                setActiveTab("requests");
+                setCurrentPage(1);
+              }}
+              className={`py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all whitespace-nowrap text-sm sm:text-base ${
+                activeTab === "requests"
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              Loan Requests
+            </button>
+          )}
           <button
             onClick={() => {
               setActiveTab("deliveries");
@@ -1589,8 +1613,12 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                       <tr key={loan.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-8 py-5 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{loan.name}</div>
-                            <div className="text-sm text-gray-600">{loan.phone}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {getRequesterName(loan)}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {getRequesterPhone(loan)}
+                            </div>
                             <div className="text-xs text-gray-500 capitalize mt-0.5">
                               {loan.user_type}
                             </div>
@@ -1766,11 +1794,15 @@ export const LoansView: React.FC<LoansViewProps> = () => {
                   <h4 className="text-sm font-semibold text-gray-800">Borrower Information</h4>
                   <div>
                     <p className="text-xs text-gray-500">Name</p>
-                    <p className="font-medium text-gray-900">{selectedLoan.name}</p>
+                    <p className="font-medium text-gray-900">
+                      {getRequesterName(selectedLoan)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Phone</p>
-                    <p className="font-medium text-gray-900">{selectedLoan.phone}</p>
+                    <p className="font-medium text-gray-900">
+                      {getRequesterPhone(selectedLoan)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Borrower Type</p>
@@ -1967,7 +1999,7 @@ export const LoansView: React.FC<LoansViewProps> = () => {
             <form onSubmit={handleApprovalSubmit} className="p-6 space-y-4">
               <div>
                 <p className="text-sm text-gray-600 mb-4">
-                  Approving loan for {selectedLoan.name} -{" "}
+                  Approving loan for {getRequesterName(selectedLoan)} -{" "}
                   {formatCurrency(selectedLoan.principal_amount)}
                 </p>
               </div>

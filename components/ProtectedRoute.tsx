@@ -15,6 +15,7 @@ const ROLE_PERMISSIONS = {
     "products",
     "purchases",
     "loans",
+    "pickup-delivery",
     "transactions",
     "finance",
     "admins",
@@ -42,6 +43,7 @@ const ROLE_PERMISSIONS = {
     "ussd",
     "purchases",
     "products",
+    "pickup-delivery",
   ],
   verifier: [
     "dashboard",
@@ -49,6 +51,7 @@ const ROLE_PERMISSIONS = {
     "products",
     "purchases",
     "loans",
+    "pickup-delivery",
   ],
 };
 

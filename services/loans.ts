@@ -75,6 +75,10 @@ export interface AdminLoanResponse {
     createdAt: Date;
     updatedAt: Date;
     items: LoanItem[];
+    farmer_name?: string;
+    farmer_phone?: string;
+    staff_name?: string;
+    staff_phone?: string;
 }
 
 export interface GetLoansQuery {
@@ -157,6 +161,25 @@ export interface LoanDeliveriesResponse {
     totalPages: number;
 }
 
+export interface PickupDeliveryKpisResponse {
+    period: {
+        startDate: string | null;
+        endDate: string | null;
+    };
+    deliveries: {
+        pending: number;
+        delivered: number;
+    };
+    pickups: {
+        total: number;
+        requested: number;
+        approved: number;
+        staffUpdated: number;
+        processed: number;
+        cancelled: number;
+    };
+}
+
 export interface PickupItem {
     name: string;
     quantity?: number;
@@ -215,6 +238,11 @@ export interface ProcessPickupToPurchaseData {
     pricePerKg?: number; // in naira
     location?: string;
     notes?: string;
+}
+
+export interface GetPickupDeliveryKpisQuery {
+    startDate?: string;
+    endDate?: string;
 }
 
 export class LoansApi {
@@ -379,6 +407,18 @@ export class LoansApi {
         const queryString = params.toString();
         return this.client.get<LoanDeliveriesResponse>(
             `/ops/loan-deliveries${queryString ? `?${queryString}` : ""}`
+        );
+    }
+
+    async getPickupDeliveryKpis(
+        query: GetPickupDeliveryKpisQuery = {}
+    ): Promise<PickupDeliveryKpisResponse> {
+        const params = new URLSearchParams();
+        if (query.startDate) params.append("startDate", query.startDate);
+        if (query.endDate) params.append("endDate", query.endDate);
+        const queryString = params.toString();
+        return this.client.get<PickupDeliveryKpisResponse>(
+            `/ops/kpis${queryString ? `?${queryString}` : ""}`
         );
     }
 

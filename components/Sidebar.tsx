@@ -18,6 +18,7 @@ import {
   Package,
   ShoppingCart,
   Gift,
+  Truck,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -39,6 +40,7 @@ const ROLE_PERMISSIONS = {
     "products",
     "purchases",
     "loans",
+    "pickup-delivery",
     "transactions",
     "finance",
     "admins",
@@ -66,6 +68,7 @@ const ROLE_PERMISSIONS = {
     "ussd",
     "purchases",
     "products",
+    "pickup-delivery",
   ],
   verifier: [
     "dashboard",
@@ -73,6 +76,7 @@ const ROLE_PERMISSIONS = {
     "products",
     "purchases",
     "loans",
+    "pickup-delivery",
   ],
 };
 
@@ -93,6 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: "products", label: "Inventory", icon: Package },
     { id: "purchases", label: "Purchases", icon: ShoppingCart },
     { id: "loans", label: "Credit Control", icon: CreditCard },
+    { id: "pickup-delivery", label: "Pickup & Delivery", icon: Truck },
     { id: "transactions", label: "Ledger", icon: Receipt },
     { id: "finance", label: "Finance Ops", icon: Briefcase },
     { id: "admins", label: "Admin Management", icon: Shield },
