@@ -20,6 +20,7 @@ import PayrollManagementView from "./components/PayrollManagementView";
 import PensionManagementView from "./components/PensionManagementView";
 import BonusManagementView from "./components/BonusManagementView";
 import FinanceView from "./components/FinanceView";
+import WithdrawersView from "./components/WithdrawersView";
 import { AdminProfilePage } from "./components/AdminProfilePage";
 import AdminForgotPassword from "./components/AdminForgotPassword";
 import { settingsApi } from "./services/settings";
@@ -331,6 +332,16 @@ const AdminApp: React.FC = () => {
               element={
                 <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["finance"]}>
                   <FinanceView />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Withdrawers - Finance, Super Admin */}
+            <Route
+              path="/withdrawers"
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["withdrawers"]}>
+                  <WithdrawersView />
                 </ProtectedRoute>
               }
             />
