@@ -3,6 +3,7 @@ import { apiClient } from './client';
 export interface Farmer {
   id: string;
   userId: string;
+  userType?: 'farmer' | 'student_farmer';
   firstName: string;
   lastName: string;
   name: string;
@@ -42,6 +43,7 @@ export interface GetAllFarmersParams {
   limit?: number;
   lga?: string;
   status?: 'active' | 'inactive' | 'suspended';
+  userType?: 'farmer' | 'student_farmer';
   activeLoan?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
@@ -138,23 +140,44 @@ export interface SetFarmerWithdrawalAccountResponse {
 }
 
 export const farmersApi = {
-  /**
-   * Get all farmers with pagination and filters
-   */
-  async getAllFarmers(params?: GetAllFarmersParams): Promise<PaginatedFarmersResponse> {
+  buildFarmersQuery(params?: GetAllFarmersParams): string {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.lga) queryParams.append('lga', params.lga);
     if (params?.status) queryParams.append('status', params.status);
+    if (params?.userType) queryParams.append('userType', params.userType);
     if (params?.activeLoan) queryParams.append('activeLoan', params.activeLoan);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-    const queryString = queryParams.toString();
+    return queryParams.toString();
+  },
+
+  /**
+   * Get all farmers with pagination and filters
+   */
+  async getAllFarmers(params?: GetAllFarmersParams): Promise<PaginatedFarmersResponse> {
+    const queryString = this.buildFarmersQuery(params);
     const url = `/admins/farmers/list${queryString ? `?${queryString}` : ''}`;
     
+    const response = await apiClient.get<PaginatedFarmersResponse>(url);
+    return response;
+  },
+
+  /**
+   * Get all student farmers with pagination and filters
+   */
+  async getAllStudentFarmers(
+    params?: Omit<GetAllFarmersParams, 'userType'>,
+  ): Promise<PaginatedFarmersResponse> {
+    const queryString = this.buildFarmersQuery({
+      ...params,
+      userType: 'student_farmer',
+    });
+    const url = `/admins/student-farmers/list${queryString ? `?${queryString}` : ''}`;
+
     const response = await apiClient.get<PaginatedFarmersResponse>(url);
     return response;
   },
@@ -218,6 +241,24 @@ export const farmersApi = {
     if (params?.endDate) queryParams.append('endDate', params.endDate);
     const queryString = queryParams.toString();
     const url = `/admins/dashboard/kpis${queryString ? `?${queryString}` : ''}`;
+
+    const response = await apiClient.get<{ kpiTable: FarmerDashboardKpiTable }>(
+      url,
+    );
+    return response.kpiTable;
+  },
+
+  /**
+   * Get KPI table for student farmers analytics surface
+   */
+  async getStudentFarmerDashboardKpiTable(
+    params?: DashboardKpiDateFilterParams,
+  ): Promise<FarmerDashboardKpiTable> {
+    const queryParams = new URLSearchParams();
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    const queryString = queryParams.toString();
+    const url = `/admins/student-farmers/kpis${queryString ? `?${queryString}` : ''}`;
 
     const response = await apiClient.get<{ kpiTable: FarmerDashboardKpiTable }>(
       url,

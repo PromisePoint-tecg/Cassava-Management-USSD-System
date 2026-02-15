@@ -19,6 +19,7 @@ import {
   ShoppingCart,
   Gift,
   Truck,
+  GraduationCap,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -37,6 +38,7 @@ const ROLE_PERMISSIONS = {
   super_admin: [
     "dashboard",
     "farmers",
+    "student-farmers",
     "products",
     "purchases",
     "loans",
@@ -65,6 +67,7 @@ const ROLE_PERMISSIONS = {
   support: [
     "dashboard",
     "farmers",
+    "student-farmers",
     "ussd",
     "purchases",
     "products",
@@ -73,6 +76,7 @@ const ROLE_PERMISSIONS = {
   verifier: [
     "dashboard",
     "farmers",
+    "student-farmers",
     "products",
     "purchases",
     "loans",
@@ -94,6 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const allMenuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "farmers", label: "Farmers Network", icon: Users },
+    { id: "student-farmers", label: "Student Farmers", icon: GraduationCap },
     { id: "products", label: "Inventory", icon: Package },
     { id: "purchases", label: "Purchases", icon: ShoppingCart },
     { id: "loans", label: "Credit Control", icon: CreditCard },

@@ -12,6 +12,7 @@ const ROLE_PERMISSIONS = {
   super_admin: [
     "dashboard",
     "farmers",
+    "student-farmers",
     "products",
     "purchases",
     "loans",
@@ -40,6 +41,7 @@ const ROLE_PERMISSIONS = {
   support: [
     "dashboard",
     "farmers",
+    "student-farmers",
     "ussd",
     "purchases",
     "products",
@@ -48,6 +50,7 @@ const ROLE_PERMISSIONS = {
   verifier: [
     "dashboard",
     "farmers",
+    "student-farmers",
     "products",
     "purchases",
     "loans",

@@ -4,6 +4,7 @@ import { Sidebar } from "./components/Sidebar";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Dashboard } from "./components/Dashboard";
 import { FarmersDirectory } from "./components/FarmersDirectory";
+import { StudentFarmersDirectory } from "./components/StudentFarmersDirectory";
 import { PurchasesView } from "./components/PurchasesView";
 import { LoansView } from "./components/LoansView";
 import { PickupDeliveryView } from "./components/PickupDeliveryView";
@@ -242,6 +243,19 @@ const AdminApp: React.FC = () => {
                   <FarmersDirectory />
                 </ProtectedRoute>
               } 
+            />
+
+            {/* Student Farmers - Support, Verifier, Super Admin */}
+            <Route
+              path="/student-farmers"
+              element={
+                <ProtectedRoute
+                  userRole={adminInfo?.role}
+                  requiredPermissions={["student-farmers"]}
+                >
+                  <StudentFarmersDirectory />
+                </ProtectedRoute>
+              }
             />
             
             {/* Products - Finance, Support, Verifier, Super Admin */}
