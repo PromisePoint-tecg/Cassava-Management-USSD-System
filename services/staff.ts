@@ -866,6 +866,7 @@ class StaffApi {
     bankCode?: string;
     accountNumber?: string;
     accountName?: string;
+    idempotencyKey?: string;
   }): Promise<any> {
     const token = getStaffAuthToken();
     const API_BASE_URL =

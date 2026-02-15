@@ -33,6 +33,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
   const [savedAccount, setSavedAccount] = useState<any>(null);
   const [loadingSavedAccount, setLoadingSavedAccount] = useState(false);
   const [requestingWithdrawal, setRequestingWithdrawal] = useState(false);
+  const [withdrawalRequestKey, setWithdrawalRequestKey] = useState("");
   const [withdrawalForm, setWithdrawalForm] = useState({
     amount: "",
     pin: "",
@@ -182,6 +183,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
       const withdrawalData: any = {
         amount: Math.round(amount), // Convert to kobo or minor unit if needed by API
         pin: withdrawalForm.pin,
+        idempotencyKey: withdrawalRequestKey || undefined,
       };
 
       if (!withdrawalForm.useSavedAccount || !savedAccount) {
@@ -191,11 +193,14 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
         withdrawalData.accountName = withdrawalForm.accountName;
       }
 
-      await staffApi.requestWithdrawal(withdrawalData);
+      const response = await staffApi.requestWithdrawal(withdrawalData);
 
       setShowWithdrawalModal(false);
+      const reference = response?.payout?.transactionReference;
       alert(
-        "Withdrawal request submitted successfully! You will be notified once it's processed."
+        `${response?.message || "Withdrawal request queued successfully."}${
+          reference ? `\nReference: ${reference}` : ""
+        }`
       );
 
       setWithdrawalForm({
@@ -207,6 +212,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
         accountNumber: "",
         accountName: "",
       });
+      setWithdrawalRequestKey("");
     } catch (err: any) {
       alert(err.message || "Failed to request withdrawal");
     } finally {
@@ -215,6 +221,10 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
   };
 
   const handleOpenWithdrawal = () => {
+    const idempotencySeed = `wdr_${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2, 10)}`;
+    setWithdrawalRequestKey(idempotencySeed);
     setShowWithdrawalModal(true);
     loadSavedAccount();
   };

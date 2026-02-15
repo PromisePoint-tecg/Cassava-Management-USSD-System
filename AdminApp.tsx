@@ -4,9 +4,11 @@ import { Sidebar } from "./components/Sidebar";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Dashboard } from "./components/Dashboard";
 import { FarmersDirectory } from "./components/FarmersDirectory";
+import { StudentFarmersDirectory } from "./components/StudentFarmersDirectory";
 import { PurchasesView } from "./components/PurchasesView";
 import { LoansView } from "./components/LoansView";
 import { PickupDeliveryView } from "./components/PickupDeliveryView";
+import ComplaintsView from "./components/ComplaintsView";
 import { SettingsView } from "./components/SettingsView";
 import ProductsView from "./components/ProductsView";
 import LoginPage from "./components/LoginPage";
@@ -18,6 +20,7 @@ import PayrollManagementView from "./components/PayrollManagementView";
 import PensionManagementView from "./components/PensionManagementView";
 import BonusManagementView from "./components/BonusManagementView";
 import FinanceView from "./components/FinanceView";
+import WithdrawersView from "./components/WithdrawersView";
 import { AdminProfilePage } from "./components/AdminProfilePage";
 import AdminForgotPassword from "./components/AdminForgotPassword";
 import { settingsApi } from "./services/settings";
@@ -243,6 +246,19 @@ const AdminApp: React.FC = () => {
                 </ProtectedRoute>
               } 
             />
+
+            {/* Student Farmers - Support, Verifier, Super Admin */}
+            <Route
+              path="/student-farmers"
+              element={
+                <ProtectedRoute
+                  userRole={adminInfo?.role}
+                  requiredPermissions={["student-farmers"]}
+                >
+                  <StudentFarmersDirectory />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Products - Finance, Support, Verifier, Super Admin */}
             <Route 
@@ -286,6 +302,19 @@ const AdminApp: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Complaints - Verifier, Support, Super Admin */}
+            <Route
+              path="/complaints"
+              element={
+                <ProtectedRoute
+                  userRole={adminInfo?.role}
+                  requiredPermissions={["complaints"]}
+                >
+                  <ComplaintsView />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Transactions - Finance, Super Admin */}
             <Route 
@@ -303,6 +332,16 @@ const AdminApp: React.FC = () => {
               element={
                 <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["finance"]}>
                   <FinanceView />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Withdrawers - Finance, Super Admin */}
+            <Route
+              path="/withdrawers"
+              element={
+                <ProtectedRoute userRole={adminInfo?.role} requiredPermissions={["withdrawers"]}>
+                  <WithdrawersView />
                 </ProtectedRoute>
               }
             />
