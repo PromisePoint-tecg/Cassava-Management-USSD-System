@@ -8,6 +8,7 @@ import { StudentFarmersDirectory } from "./components/StudentFarmersDirectory";
 import { PurchasesView } from "./components/PurchasesView";
 import { LoansView } from "./components/LoansView";
 import { PickupDeliveryView } from "./components/PickupDeliveryView";
+import ComplaintsView from "./components/ComplaintsView";
 import { SettingsView } from "./components/SettingsView";
 import ProductsView from "./components/ProductsView";
 import LoginPage from "./components/LoginPage";
@@ -297,6 +298,19 @@ const AdminApp: React.FC = () => {
                   requiredPermissions={["pickup-delivery"]}
                 >
                   <PickupDeliveryView />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Complaints - Verifier, Support, Super Admin */}
+            <Route
+              path="/complaints"
+              element={
+                <ProtectedRoute
+                  userRole={adminInfo?.role}
+                  requiredPermissions={["complaints"]}
+                >
+                  <ComplaintsView />
                 </ProtectedRoute>
               }
             />
