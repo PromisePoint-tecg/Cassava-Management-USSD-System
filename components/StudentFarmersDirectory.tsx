@@ -894,10 +894,10 @@ export const StudentFarmersDirectory: React.FC = () => {
   };
 
   return (
-    <div ref={farmersPageRef} className="space-y-5">
+    <div ref={farmersPageRef} className="space-y-5 w-full min-w-0 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-xl bg-[#066f48]">
               <GraduationCap className="w-6 h-6 text-white" />
@@ -919,6 +919,7 @@ export const StudentFarmersDirectory: React.FC = () => {
               borderRadius: '0.625rem',
               px: 2,
               py: 1,
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': { backgroundColor: '#055a3b' },
             }}
           >
@@ -1150,7 +1151,7 @@ export const StudentFarmersDirectory: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm relative z-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm relative z-10">
                   <div>
                     <span className="text-gray-500">LGA:</span>
                     <p className="font-medium text-gray-800">{farmer.lga.toUpperCase()}</p>
@@ -1229,15 +1230,15 @@ export const StudentFarmersDirectory: React.FC = () => {
 
           {/* Pagination */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-sm text-gray-600">
                 Page {currentPage} of {totalPages}
               </p>
-              <div className="flex gap-2">
+              <div className="flex w-full sm:w-auto gap-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 w-full sm:w-auto"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
@@ -1245,7 +1246,7 @@ export const StudentFarmersDirectory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 w-full sm:w-auto"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />
@@ -1268,10 +1269,10 @@ export const StudentFarmersDirectory: React.FC = () => {
                     {viewingFarmer.fullName.toUpperCase()} • {viewingFarmer.phone}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={printFarmerStatement}
-                    className="px-4 py-2 bg-[#066f48] hover:bg-[#055a3b] text-white rounded-lg transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-[#066f48] hover:bg-[#055a3b] text-white rounded-lg transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
                   >
                     <Printer className="w-4 h-4" />
                     Print Student Farmer Statement
@@ -1285,7 +1286,7 @@ export const StudentFarmersDirectory: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6 space-y-6 max-h-[84vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-6 max-h-[84vh] overflow-y-auto">
               {actionError && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
@@ -1307,7 +1308,7 @@ export const StudentFarmersDirectory: React.FC = () => {
                       Select the sections you want on the printable student farmer statement for better reporting UX.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
                     <button
                       onClick={selectAllStatementSections}
                       className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm"
@@ -1329,7 +1330,7 @@ export const StudentFarmersDirectory: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
                   {statementSectionOptions.map((option) => (
                     <label
                       key={option.key}
@@ -1359,7 +1360,7 @@ export const StudentFarmersDirectory: React.FC = () => {
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                   <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                     <h4 className="font-semibold text-gray-800 mb-3">Personal Information</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-500">Full Name</p>
                         <p className="font-medium text-gray-800">{viewingFarmer.fullName.toUpperCase()}</p>
@@ -1398,7 +1399,7 @@ export const StudentFarmersDirectory: React.FC = () => {
                         {showAddAccountForm ? 'Close Form' : 'Add Account'}
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-500">Wallet Balance</p>
                         <p className="font-semibold text-[#066f48]">{formatNaira(viewingFarmer.walletBalance || 0)}</p>
@@ -1527,7 +1528,7 @@ export const StudentFarmersDirectory: React.FC = () => {
                                 {loan.status}
                               </span>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-gray-600">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-xs text-gray-600">
                               <p>Principal: <span className="font-medium text-gray-800">{formatCurrency(loan.principalAmount)}</span></p>
                               <p>Total Repayment: <span className="font-medium text-gray-800">{formatCurrency(loan.totalRepayment)}</span></p>
                               <p>Paid: <span className="font-medium text-gray-800">{formatCurrency(loan.amountPaid)}</span></p>
@@ -1613,7 +1614,7 @@ export const StudentFarmersDirectory: React.FC = () => {
 
                   <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                     <h4 className="font-semibold text-gray-800 mb-3">Account Activity</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-500">Member Since</p>
                         <p className="font-medium text-gray-800">{formatDate(viewingFarmer.createdAt)}</p>

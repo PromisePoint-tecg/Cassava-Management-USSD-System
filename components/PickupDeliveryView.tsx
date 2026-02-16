@@ -547,7 +547,7 @@ export const PickupDeliveryView: React.FC = () => {
   ];
 
   return (
-    <div ref={pageRef} className="space-y-4 min-h-[calc(100vh-9.5rem)]">
+    <div ref={pageRef} className="space-y-4 min-h-[calc(100vh-9.5rem)] w-full min-w-0 overflow-x-hidden">
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
           <div>
@@ -562,24 +562,24 @@ export const PickupDeliveryView: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 no-print">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 no-print w-full xl:w-auto">
             <button
               onClick={refreshPageData}
-              className="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm"
+              className="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm w-full sm:w-auto"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </button>
             <button
               onClick={exportRecordsToPdf}
-              className="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm"
+              className="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm w-full sm:w-auto"
             >
               <Download className="w-4 h-4 mr-2" />
               Export Records
             </button>
             <button
               onClick={exportPageToPdf}
-              className="inline-flex items-center px-4 py-2.5 bg-[#066f48] text-white rounded-lg hover:bg-[#055a3a] transition-all text-sm"
+              className="inline-flex items-center justify-center px-4 py-2.5 bg-[#066f48] text-white rounded-lg hover:bg-[#055a3a] transition-all text-sm w-full sm:w-auto"
             >
               <Download className="w-4 h-4 mr-2" />
               Export Page
@@ -730,49 +730,19 @@ export const PickupDeliveryView: React.FC = () => {
             <LeafInlineLoader />
           </div>
         ) : activeTab === "deliveries" ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Requester
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Reference
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Delivery Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Pickup Date
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {deliveries.map((loan) => (
-                  <tr key={loan.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900">{getRequesterName(loan)}</p>
-                      <p className="text-sm text-gray-600">{getRequesterPhone(loan)}</p>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      {loan.reference}
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900">
-                        {formatCurrency(loan.principal_amount)}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        Outstanding: {formatCurrency(loan.amount_outstanding)}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
+          <>
+            <div className="lg:hidden p-4 space-y-3">
+              {deliveries.length === 0 ? (
+                <div className="py-10 text-center text-gray-500">No delivery records found.</div>
+              ) : (
+                deliveries.map((loan) => (
+                  <div key={loan.id} className="rounded-xl border border-gray-200 p-4">
+                    <p className="font-semibold text-gray-900">{getRequesterName(loan)}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">{getRequesterPhone(loan)}</p>
+                    <p className="text-xs text-gray-500 mt-2">Reference</p>
+                    <p className="text-sm font-semibold text-gray-900 break-all">{loan.reference}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="font-medium text-gray-900">{formatCurrency(loan.principal_amount)}</p>
                       <span
                         className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
                           (loan.delivery_status || "pending") === "delivered"
@@ -782,71 +752,129 @@ export const PickupDeliveryView: React.FC = () => {
                       >
                         {(loan.delivery_status || "pending").toUpperCase()}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {formatDate(loan.pickup_date)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2">
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Outstanding: {formatCurrency(loan.amount_outstanding)}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">Pickup Date: {formatDate(loan.pickup_date)}</p>
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => setDetailsModalData({ type: "delivery", payload: loan })}
+                        className="flex-1 p-2 text-sm border border-gray-200 text-[#066f48] hover:bg-emerald-50 rounded-lg"
+                      >
+                        View
+                      </button>
+                      {(loan.delivery_status || "pending") !== "delivered" && (
                         <button
-                          onClick={() =>
-                            setDetailsModalData({ type: "delivery", payload: loan })
-                          }
-                          className="p-2 text-[#066f48] hover:bg-emerald-50 rounded-lg"
+                          onClick={() => handleOpenDeliveryModal(loan)}
+                          className="flex-1 px-3 py-2 text-sm font-medium rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50"
                         >
-                          <Eye className="w-4 h-4" />
+                          Record
                         </button>
-                        {(loan.delivery_status || "pending") !== "delivered" && (
-                          <button
-                            onClick={() => handleOpenDeliveryModal(loan)}
-                            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50"
-                          >
-                            Record Delivery
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Requester
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Reference
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Amount
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Delivery Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Pickup Date
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {deliveries.length === 0 && (
-              <div className="py-16 text-center text-gray-500">No delivery records found.</div>
-            )}
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {deliveries.map((loan) => (
+                    <tr key={loan.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-gray-900">{getRequesterName(loan)}</p>
+                        <p className="text-sm text-gray-600">{getRequesterPhone(loan)}</p>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                        {loan.reference}
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-gray-900">
+                          {formatCurrency(loan.principal_amount)}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Outstanding: {formatCurrency(loan.amount_outstanding)}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            (loan.delivery_status || "pending") === "delivered"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {(loan.delivery_status || "pending").toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {formatDate(loan.pickup_date)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() =>
+                              setDetailsModalData({ type: "delivery", payload: loan })
+                            }
+                            className="p-2 text-[#066f48] hover:bg-emerald-50 rounded-lg"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {(loan.delivery_status || "pending") !== "delivered" && (
+                            <button
+                              onClick={() => handleOpenDeliveryModal(loan)}
+                              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50"
+                            >
+                              Record Delivery
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {deliveries.length === 0 && (
+                <div className="py-16 text-center text-gray-500">No delivery records found.</div>
+              )}
+            </div>
+          </>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Farmer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Channel
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Schedule
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Proposed Purchase
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {pickups.map((pickup) => (
-                  <tr key={pickup.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900">{pickup.farmer_name}</p>
-                      <p className="text-sm text-gray-600">{pickup.farmer_phone}</p>
-                    </td>
-                    <td className="px-6 py-4">
+          <>
+            <div className="lg:hidden p-4 space-y-3">
+              {pickups.length === 0 ? (
+                <div className="py-10 text-center text-gray-500">No pickup requests found.</div>
+              ) : (
+                pickups.map((pickup) => (
+                  <div key={pickup.id} className="rounded-xl border border-gray-200 p-4">
+                    <p className="font-semibold text-gray-900">{pickup.farmer_name}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">{pickup.farmer_phone}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-xs text-gray-500 uppercase">{pickup.channel}</p>
                       <span
                         className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
                           pickup.status === "processed"
@@ -860,56 +888,143 @@ export const PickupDeliveryView: React.FC = () => {
                       >
                         {pickup.status.toUpperCase()}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 uppercase">
-                      {pickup.channel}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {formatDateTime(pickup.scheduled_date)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      Schedule: {formatDateTime(pickup.scheduled_date)}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Proposed:{" "}
                       {pickup.proposed_weight_kg
                         ? `${pickup.proposed_weight_kg}kg @ ₦${Number(
                             pickup.proposed_price_per_kg || 0
                           ).toLocaleString("en-NG")}`
                         : "Awaiting staff update"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2">
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                      <button
+                        onClick={() => setDetailsModalData({ type: "pickup", payload: pickup })}
+                        className="p-2 text-xs border border-gray-200 text-[#066f48] hover:bg-emerald-50 rounded-lg"
+                      >
+                        View
+                      </button>
+                      {(pickup.status === "requested" || pickup.status === "staff_updated") && (
                         <button
-                          onClick={() =>
-                            setDetailsModalData({ type: "pickup", payload: pickup })
-                          }
-                          className="p-2 text-[#066f48] hover:bg-emerald-50 rounded-lg"
+                          onClick={() => handleOpenPickupApproval(pickup)}
+                          className="p-2 text-xs font-medium rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50"
                         >
-                          <Eye className="w-4 h-4" />
+                          Approve
                         </button>
-                        {(pickup.status === "requested" || pickup.status === "staff_updated") && (
-                          <button
-                            onClick={() => handleOpenPickupApproval(pickup)}
-                            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50"
-                          >
-                            Approve
-                          </button>
-                        )}
-                        {(pickup.status === "approved" || pickup.status === "staff_updated") && (
-                          <button
-                            onClick={() => handleOpenPickupProcess(pickup)}
-                            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                          >
-                            Process
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                      )}
+                      {(pickup.status === "approved" || pickup.status === "staff_updated") && (
+                        <button
+                          onClick={() => handleOpenPickupProcess(pickup)}
+                          className="p-2 text-xs font-medium rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                        >
+                          Process
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Farmer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Channel
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Schedule
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                      Proposed Purchase
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {pickups.length === 0 && (
-              <div className="py-16 text-center text-gray-500">No pickup requests found.</div>
-            )}
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {pickups.map((pickup) => (
+                    <tr key={pickup.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-gray-900">{pickup.farmer_name}</p>
+                        <p className="text-sm text-gray-600">{pickup.farmer_phone}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            pickup.status === "processed"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : pickup.status === "cancelled"
+                              ? "bg-red-100 text-red-700"
+                              : pickup.status === "staff_updated"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {pickup.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700 uppercase">
+                        {pickup.channel}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {formatDateTime(pickup.scheduled_date)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {pickup.proposed_weight_kg
+                          ? `${pickup.proposed_weight_kg}kg @ ₦${Number(
+                              pickup.proposed_price_per_kg || 0
+                            ).toLocaleString("en-NG")}`
+                          : "Awaiting staff update"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() =>
+                              setDetailsModalData({ type: "pickup", payload: pickup })
+                            }
+                            className="p-2 text-[#066f48] hover:bg-emerald-50 rounded-lg"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {(pickup.status === "requested" || pickup.status === "staff_updated") && (
+                            <button
+                              onClick={() => handleOpenPickupApproval(pickup)}
+                              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50"
+                            >
+                              Approve
+                            </button>
+                          )}
+                          {(pickup.status === "approved" || pickup.status === "staff_updated") && (
+                            <button
+                              onClick={() => handleOpenPickupProcess(pickup)}
+                              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                            >
+                              Process
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {pickups.length === 0 && (
+                <div className="py-16 text-center text-gray-500">No pickup requests found.</div>
+              )}
+            </div>
+          </>
         )}
       </div>
 
@@ -955,7 +1070,7 @@ export const PickupDeliveryView: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <pre className="text-xs whitespace-pre-wrap break-words text-gray-800 bg-gray-50 rounded-lg p-4">
                 {JSON.stringify(detailsModalData.payload, null, 2)}
               </pre>
@@ -976,7 +1091,7 @@ export const PickupDeliveryView: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               <p className="text-sm text-gray-600">
                 {selectedDelivery.reference} • {getRequesterName(selectedDelivery)}
               </p>

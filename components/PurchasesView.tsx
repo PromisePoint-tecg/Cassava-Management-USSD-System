@@ -31,7 +31,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   const [exportWindowPreset, setExportWindowPreset] =
     useState<ExportWindowPreset>("current_filters");
   const [exportRecordLimit, setExportRecordLimit] = useState("200");
-  const [tableLoading, setTableLoading] = useState(false);
+  const [dashboardRefreshing, setDashboardRefreshing] = useState(false);
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,42 +97,17 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
     loadDashboardData(true);
   }, [searchTerm, statusFilter, currentPage, startDate, endDate]);
 
-  const loadDashboardData = async (showTableLoader = false) => {
+  const loadDashboardData = async (showRefreshLoader = false) => {
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       setError("Start date cannot be after end date.");
       return;
     }
 
-    if (showTableLoader) {
-      setTableLoading(true);
+    if (showRefreshLoader) {
+      setDashboardRefreshing(true);
     }
 
     setError(null);
-    try {
-      await Promise.all([loadKPIs(), loadPurchases()]);
-    } catch (err) {
-      console.error("Failed to load purchase dashboard:", err);
-    } finally {
-      if (showTableLoader) {
-        setTableLoading(false);
-      }
-    }
-  };
-
-  const loadKPIs = async () => {
-    try {
-      const data = await purchasesApi.getPurchaseKPIs({
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-      });
-      setKpis(data);
-    } catch (err) {
-      console.error("Failed to load purchase KPIs:", err);
-      setError("Failed to load purchase statistics");
-    }
-  };
-
-  const loadPurchases = async () => {
     try {
       const query: GetPurchasesQuery = {
         page: currentPage,
@@ -145,13 +120,40 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         endDate: endDate || undefined,
       };
 
-      const data = await purchasesApi.getAllPurchases(query);
-      setPurchases(data.purchases);
-      setTotalPages(Math.max(1, data.totalPages || 1));
-      setTotal(data.total);
+      const [kpiResult, purchasesResult] = await Promise.allSettled([
+        purchasesApi.getPurchaseKPIs({
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+        }),
+        purchasesApi.getAllPurchases(query),
+      ]);
+
+      if (kpiResult.status === "fulfilled") {
+        setKpis(kpiResult.value);
+      } else {
+        setKpis(null);
+      }
+
+      if (purchasesResult.status === "fulfilled") {
+        setPurchases(purchasesResult.value.purchases || []);
+        setTotalPages(Math.max(1, purchasesResult.value.totalPages || 1));
+        setTotal(purchasesResult.value.total || 0);
+      } else {
+        setPurchases([]);
+        setTotalPages(1);
+        setTotal(0);
+      }
+
+      if (kpiResult.status === "rejected" && purchasesResult.status === "rejected") {
+        throw new Error("Failed to load purchase dashboard");
+      }
     } catch (err) {
-      console.error("Failed to load purchases:", err);
-      setError("Failed to load purchases");
+      console.error("Failed to load purchase dashboard:", err);
+      setError((err as Error)?.message || "Failed to load purchase dashboard");
+    } finally {
+      if (showRefreshLoader) {
+        setDashboardRefreshing(false);
+      }
     }
   };
 
@@ -235,8 +237,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         )}`,
       });
 
-      loadPurchases();
-      loadKPIs();
+      await loadDashboardData(true);
     } catch (err) {
       console.error("Failed to create purchase:", err);
       setError((err as Error)?.message || "Failed to create purchase");
@@ -258,8 +259,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
         message: "The failed purchase has been retried and processed successfully.",
       });
 
-      loadPurchases();
-      loadKPIs();
+      await loadDashboardData(true);
     } catch (err) {
       console.error("Failed to retry purchase:", err);
       setError((err as Error)?.message || "Failed to retry purchase. Please try again.");
@@ -706,7 +706,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 w-full min-w-0 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
@@ -747,7 +747,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
       {/* KPI Cards */}
       {kpis && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity ${dashboardRefreshing ? "opacity-60" : "opacity-100"}`}>
           {[
             {
               icon: Scale,
@@ -908,7 +908,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = () => {
 
       {/* Purchases Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        {tableLoading ? (
+        {dashboardRefreshing ? (
           <div className="py-12 flex justify-center">
             <LeafButtonLoader />
           </div>

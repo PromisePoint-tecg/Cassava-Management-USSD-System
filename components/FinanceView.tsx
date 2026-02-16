@@ -468,6 +468,7 @@ const FinanceView: React.FC = () => {
               value={startDate}
               onChange={(event) => setStartDate(event.target.value)}
               InputLabelProps={{ shrink: true }}
+              sx={{ width: { xs: "100%", sm: 165 } }}
             />
             <TextField
               label="End date"
@@ -476,6 +477,7 @@ const FinanceView: React.FC = () => {
               value={endDate}
               onChange={(event) => setEndDate(event.target.value)}
               InputLabelProps={{ shrink: true }}
+              sx={{ width: { xs: "100%", sm: 165 } }}
             />
             <Button
               variant="outlined"
@@ -485,6 +487,7 @@ const FinanceView: React.FC = () => {
                 textTransform: "none",
                 borderColor: "#cbd5e1",
                 color: "#1f2937",
+                width: { xs: "100%", sm: "auto" },
               }}
             >
               Refresh
@@ -497,6 +500,7 @@ const FinanceView: React.FC = () => {
                 textTransform: "none",
                 borderColor: "#cbd5e1",
                 color: "#1f2937",
+                width: { xs: "100%", sm: "auto" },
               }}
             >
               Export PDF
@@ -733,10 +737,75 @@ const FinanceView: React.FC = () => {
 
               {txError && <Alert severity="error">{txError}</Alert>}
 
+              <Stack spacing={1.2} sx={{ display: { xs: "flex", md: "none" } }}>
+                {txLoading ? (
+                  <LeafInlineLoader />
+                ) : transactions.length === 0 ? (
+                  <Paper
+                    elevation={0}
+                    sx={{ border: "1px solid #dbe4ee", borderRadius: 2, p: 2, textAlign: "center", color: "#64748b" }}
+                  >
+                    No transactions found for this wallet type.
+                  </Paper>
+                ) : (
+                  transactions.map((transaction) => (
+                    <Paper
+                      key={transaction.id}
+                      elevation={0}
+                      sx={{ border: "1px solid #dbe4ee", borderRadius: 2, p: 1.5 }}
+                    >
+                      <Typography sx={{ fontSize: 12, color: "#64748b" }}>
+                        {new Date(transaction.createdAt).toLocaleString()}
+                      </Typography>
+                      <Typography sx={{ mt: 0.4, fontWeight: 700, color: "#0f172a", wordBreak: "break-all" }}>
+                        {transaction.reference}
+                      </Typography>
+                      <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+                        <Typography sx={{ fontSize: 13, textTransform: "capitalize", color: "#334155" }}>
+                          {transaction.type.replace(/_/g, " ")}
+                        </Typography>
+                        <Chip
+                          size="small"
+                          label={transaction.status}
+                          sx={{
+                            textTransform: "capitalize",
+                            bgcolor:
+                              transaction.status === "completed"
+                                ? "#dcfce7"
+                                : transaction.status === "failed"
+                                ? "#fee2e2"
+                                : "#e2e8f0",
+                            color:
+                              transaction.status === "completed"
+                                ? "#166534"
+                                : transaction.status === "failed"
+                                ? "#b91c1c"
+                                : "#1e293b",
+                            fontWeight: 700,
+                          }}
+                        />
+                      </Stack>
+                      <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.8 }}>
+                        <Typography sx={{ fontSize: 13, color: "#64748b" }}>Amount</Typography>
+                        <Typography sx={{ fontSize: 14, color: "#066f48", fontWeight: 800 }}>
+                          {formatCurrency(transaction.amount)}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
+                        <Typography sx={{ fontSize: 13, color: "#64748b" }}>Balance After</Typography>
+                        <Typography sx={{ fontSize: 13, color: "#334155", fontWeight: 700 }}>
+                          {formatCurrency(transaction.balanceAfter)}
+                        </Typography>
+                      </Stack>
+                    </Paper>
+                  ))
+                )}
+              </Stack>
+
               <TableContainer
                 component={Paper}
                 elevation={0}
-                sx={{ border: "1px solid #dbe4ee", overflowX: "auto" }}
+                sx={{ border: "1px solid #dbe4ee", overflowX: "auto", display: { xs: "none", md: "block" } }}
               >
                 <Table size="small">
                   <TableHead>
@@ -815,10 +884,81 @@ const FinanceView: React.FC = () => {
                 Farmers Wallet Management
               </Typography>
               {farmersError && <Alert severity="error">{farmersError}</Alert>}
+              <Stack spacing={1.2} sx={{ display: { xs: "flex", md: "none" } }}>
+                {farmersLoading ? (
+                  <LeafInlineLoader />
+                ) : farmers.length === 0 ? (
+                  <Paper
+                    elevation={0}
+                    sx={{ border: "1px solid #dbe4ee", borderRadius: 2, p: 2, textAlign: "center", color: "#64748b" }}
+                  >
+                    No farmers found.
+                  </Paper>
+                ) : (
+                  farmers.map((farmer) => (
+                    <Paper
+                      key={farmer.id}
+                      elevation={0}
+                      sx={{ border: "1px solid #dbe4ee", borderRadius: 2, p: 1.5 }}
+                    >
+                      <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+                        {(farmer.fullName || farmer.name || "").toUpperCase()}
+                      </Typography>
+                      <Typography sx={{ mt: 0.2, fontSize: 13, color: "#64748b" }}>{farmer.phone}</Typography>
+                      <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+                        <Typography sx={{ fontSize: 13, color: "#64748b" }}>
+                          {(farmer.lga || "N/A").toUpperCase()}
+                        </Typography>
+                        <Typography sx={{ fontSize: 14, color: "#066f48", fontWeight: 800 }}>
+                          {formatCurrency(farmer.walletBalance)}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" spacing={1} sx={{ mt: 1.2 }}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          fullWidth
+                          onClick={() => openFarmerWalletModal(farmer, "fund")}
+                          sx={{ textTransform: "none", borderColor: "#066f48", color: "#066f48" }}
+                        >
+                          Fund
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          fullWidth
+                          onClick={() => openFarmerWalletModal(farmer, "withdraw")}
+                          sx={{ textTransform: "none", borderColor: "#b45309", color: "#b45309" }}
+                        >
+                          Withdraw
+                        </Button>
+                      </Stack>
+                    </Paper>
+                  ))
+                )}
+                <TablePagination
+                  component="div"
+                  count={farmersTotal}
+                  page={farmerPage}
+                  onPageChange={(_, nextPage) => setFarmerPage(nextPage)}
+                  rowsPerPage={farmerRowsPerPage}
+                  onRowsPerPageChange={(event) => {
+                    setFarmerRowsPerPage(parseInt(event.target.value, 10));
+                    setFarmerPage(0);
+                  }}
+                  rowsPerPageOptions={[10, 20, 50]}
+                  sx={{
+                    border: "1px solid #dbe4ee",
+                    borderRadius: 2,
+                    "& .MuiTablePagination-toolbar": { px: 1, flexWrap: "wrap", gap: 0.5 },
+                    "& .MuiTablePagination-displayedRows": { m: 0, fontSize: 12 },
+                  }}
+                />
+              </Stack>
               <TableContainer
                 component={Paper}
                 elevation={0}
-                sx={{ border: "1px solid #dbe4ee", overflowX: "auto" }}
+                sx={{ border: "1px solid #dbe4ee", overflowX: "auto", display: { xs: "none", md: "block" } }}
               >
                 <Table size="small">
                   <TableHead>
@@ -890,6 +1030,9 @@ const FinanceView: React.FC = () => {
                     setFarmerPage(0);
                   }}
                   rowsPerPageOptions={[10, 20, 50]}
+                  sx={{
+                    "& .MuiTablePagination-toolbar": { px: 1.5, flexWrap: "wrap", gap: 0.5 },
+                  }}
                 />
               </TableContainer>
             </Stack>
@@ -901,10 +1044,78 @@ const FinanceView: React.FC = () => {
                 Staff Directory
               </Typography>
               {staffError && <Alert severity="error">{staffError}</Alert>}
+              <Stack spacing={1.2} sx={{ display: { xs: "flex", md: "none" } }}>
+                {staffLoading ? (
+                  <LeafInlineLoader />
+                ) : staff.length === 0 ? (
+                  <Paper
+                    elevation={0}
+                    sx={{ border: "1px solid #dbe4ee", borderRadius: 2, p: 2, textAlign: "center", color: "#64748b" }}
+                  >
+                    No staff found.
+                  </Paper>
+                ) : (
+                  staff.map((member) => (
+                    <Paper
+                      key={member.id}
+                      elevation={0}
+                      sx={{ border: "1px solid #dbe4ee", borderRadius: 2, p: 1.5 }}
+                    >
+                      <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+                        {(member.fullName || `${member.firstName} ${member.lastName}` || "").toUpperCase()}
+                      </Typography>
+                      <Typography sx={{ mt: 0.2, fontSize: 13, color: "#64748b" }}>{member.phone}</Typography>
+                      <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+                        <Typography sx={{ fontSize: 13, color: "#334155" }}>
+                          {(member.role || "N/A").toUpperCase()}
+                        </Typography>
+                        <Typography sx={{ fontSize: 13, color: "#334155" }}>
+                          {(member.department || "N/A").toUpperCase()}
+                        </Typography>
+                      </Stack>
+                      <Chip
+                        size="small"
+                        label={member.status || "active"}
+                        sx={{
+                          mt: 1,
+                          textTransform: "capitalize",
+                          bgcolor:
+                            (member.status || "active") === "active"
+                              ? "#dcfce7"
+                              : "#e2e8f0",
+                          color:
+                            (member.status || "active") === "active"
+                              ? "#166534"
+                              : "#1e293b",
+                          fontWeight: 700,
+                        }}
+                      />
+                    </Paper>
+                  ))
+                )}
+                <TablePagination
+                  component="div"
+                  count={staffTotal}
+                  page={staffPage}
+                  onPageChange={(_, nextPage) => setStaffPage(nextPage)}
+                  rowsPerPage={staffRowsPerPage}
+                  onRowsPerPageChange={(event) => {
+                    setStaffRowsPerPage(parseInt(event.target.value, 10));
+                    setStaffPage(0);
+                  }}
+                  rowsPerPageOptions={[10, 20, 50]}
+                  sx={{
+                    border: "1px solid #dbe4ee",
+                    borderRadius: 2,
+                    "& .MuiTablePagination-toolbar": { px: 1, flexWrap: "wrap", gap: 0.5 },
+                    "& .MuiTablePagination-displayedRows": { m: 0, fontSize: 12 },
+                  }}
+                />
+              </Stack>
               <TableContainer
                 component={Paper}
                 elevation={0}
-                sx={{ border: "1px solid #dbe4ee", overflowX: "auto" }}
+                sx={{ border: "1px solid #dbe4ee", overflowX: "auto", display: { xs: "none", md: "block" } }}
               >
                 <Table size="small">
                   <TableHead>
@@ -974,6 +1185,9 @@ const FinanceView: React.FC = () => {
                     setStaffPage(0);
                   }}
                   rowsPerPageOptions={[10, 20, 50]}
+                  sx={{
+                    "& .MuiTablePagination-toolbar": { px: 1.5, flexWrap: "wrap", gap: 0.5 },
+                  }}
                 />
               </TableContainer>
             </Stack>

@@ -502,37 +502,37 @@ export const ComplaintsView: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <section className="bg-white border border-gray-200 rounded-2xl px-6 py-5 shadow-sm">
+    <div className="space-y-6 w-full min-w-0 overflow-x-hidden">
+      <section className="bg-white border border-gray-200 rounded-2xl px-4 sm:px-6 py-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-[#066f48] text-white flex items-center justify-center">
               <MessageSquareWarning className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold text-[#1f2937]">Complaints Desk</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1f2937]">Complaints Desk</h1>
               <p className="text-sm text-gray-500">Manage complaints, priorities, and resolutions in one place.</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
             <button
               onClick={loadComplaintsData}
-              className="h-11 px-4 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 inline-flex items-center gap-2"
+              className="h-11 px-4 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
             </button>
             <button
               onClick={openExportModal}
-              className="h-11 px-4 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 inline-flex items-center gap-2"
+              className="h-11 px-4 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <Download className="w-4 h-4" />
               Export PDF
             </button>
             <button
               onClick={openCreateModal}
-              className="h-11 px-4 rounded-xl bg-[#066f48] text-white font-semibold hover:bg-[#055a3a] inline-flex items-center gap-2"
+              className="h-11 px-4 rounded-xl bg-[#066f48] text-white font-semibold hover:bg-[#055a3a] inline-flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               New Complaint
@@ -560,7 +560,7 @@ export const ComplaintsView: React.FC = () => {
         ))}
       </section>
 
-      <section className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+      <section className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-3">
           <div className="lg:col-span-2 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -665,7 +665,51 @@ export const ComplaintsView: React.FC = () => {
           <LeafInlineLoader />
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="lg:hidden p-4 space-y-3">
+              {complaints.length === 0 ? (
+                <div className="py-10 text-center text-gray-500">
+                  No complaints found for selected filters.
+                </div>
+              ) : (
+                complaints.map((complaint) => (
+                  <div key={complaint.id} className="rounded-xl border border-gray-200 p-4">
+                    <p className="font-semibold text-gray-900 break-all">{complaint.reference}</p>
+                    <p className="text-sm font-semibold text-gray-900 mt-1">{complaint.complainantName}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {getComplainantTypeLabel(complaint.complainantType)}
+                      {complaint.complainantPhone ? ` • ${complaint.complainantPhone}` : ''}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-2 capitalize">{complaint.category || 'general'}</p>
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getPriorityBadge(
+                          complaint.priority,
+                        )}`}
+                      >
+                        {complaint.priority.toUpperCase()}
+                      </span>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(
+                          complaint.status,
+                        )}`}
+                      >
+                        {complaint.status.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Created: {formatDate(complaint.createdAt)}</p>
+                    <button
+                      onClick={() => openViewModal(complaint)}
+                      className="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50 text-gray-700 uppercase tracking-wide text-xs">
                   <tr>
@@ -738,7 +782,7 @@ export const ComplaintsView: React.FC = () => {
               <p className="text-sm text-gray-500">
                 Showing page {page} of {totalPages} • {total.toLocaleString()} records
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 overflow-x-auto">
                 <button
                   onClick={() => setPage((previous) => Math.max(1, previous - 1))}
                   disabled={page <= 1}
@@ -777,7 +821,7 @@ export const ComplaintsView: React.FC = () => {
       {createModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">Create Complaint</h3>
               <button
                 onClick={closeCreateModal}
@@ -787,7 +831,7 @@ export const ComplaintsView: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               {createError && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
                   {createError}
@@ -912,17 +956,17 @@ export const ComplaintsView: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-end gap-3">
               <button
                 onClick={closeCreateModal}
-                className="h-11 px-4 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50"
+                className="h-11 px-4 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 w-full sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 onClick={submitCreateComplaint}
                 disabled={createLoading}
-                className="h-11 px-4 rounded-xl bg-[#066f48] text-white font-semibold hover:bg-[#055a3a] disabled:opacity-60"
+                className="h-11 px-4 rounded-xl bg-[#066f48] text-white font-semibold hover:bg-[#055a3a] disabled:opacity-60 w-full sm:w-auto"
               >
                 {createLoading ? 'Saving...' : 'Create Complaint'}
               </button>
@@ -934,7 +978,7 @@ export const ComplaintsView: React.FC = () => {
       {viewModalOpen && selectedComplaint && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Complaint Details</h3>
                 <p className="text-xs text-gray-500 mt-1">Reference: {selectedComplaint.reference}</p>
@@ -947,7 +991,7 @@ export const ComplaintsView: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-5 max-h-[75vh] overflow-y-auto">
               {updateError && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
                   {updateError}
@@ -1054,17 +1098,17 @@ export const ComplaintsView: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-end gap-3">
               <button
                 onClick={closeViewModal}
-                className="h-11 px-4 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50"
+                className="h-11 px-4 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 w-full sm:w-auto"
               >
                 Close
               </button>
               <button
                 onClick={submitComplaintUpdate}
                 disabled={updateLoading}
-                className="h-11 px-4 rounded-xl bg-[#066f48] text-white font-semibold hover:bg-[#055a3a] disabled:opacity-60"
+                className="h-11 px-4 rounded-xl bg-[#066f48] text-white font-semibold hover:bg-[#055a3a] disabled:opacity-60 w-full sm:w-auto"
               >
                 {updateLoading ? 'Saving...' : 'Update Complaint'}
               </button>
@@ -1076,7 +1120,7 @@ export const ComplaintsView: React.FC = () => {
       {exportModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">Export Complaints PDF</h3>
               <button
                 onClick={() => setExportModalOpen(false)}
@@ -1086,7 +1130,7 @@ export const ComplaintsView: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700">From Date</label>
                 <input
@@ -1123,17 +1167,17 @@ export const ComplaintsView: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setExportModalOpen(false)}
-                className="h-11 px-4 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50"
+                className="h-11 px-4 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 w-full sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 onClick={exportComplaintStatementPdf}
                 disabled={exporting}
-                className="h-11 px-4 rounded-xl bg-[#066f48] text-white font-semibold hover:bg-[#055a3a] disabled:opacity-60"
+                className="h-11 px-4 rounded-xl bg-[#066f48] text-white font-semibold hover:bg-[#055a3a] disabled:opacity-60 w-full sm:w-auto"
               >
                 {exporting ? 'Exporting...' : 'Export PDF'}
               </button>
