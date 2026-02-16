@@ -190,7 +190,7 @@ const AdminApp: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 overflow-x-hidden">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -199,7 +199,7 @@ const AdminApp: React.FC = () => {
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         userRole={adminInfo?.role} // Pass the user role to Sidebar
       />
-      <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <main className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <header className="bg-slate-50 h-16 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 border-b border-gray-200">
           <div className="flex items-center gap-4">
             <button
@@ -223,7 +223,7 @@ const AdminApp: React.FC = () => {
             </button>
           </div>
         </header>
-        <div className="p-4 sm:p-6 lg:p-8">
+        <div className="p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" />} />
             
