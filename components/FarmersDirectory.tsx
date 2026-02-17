@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Users, 
   Eye, 
@@ -134,6 +134,7 @@ export const FarmersDirectory: React.FC = () => {
     accountNumber: '',
     accountName: '',
   });
+  const [selectedBank, setSelectedBank] = useState<SupportedBank | null>(null);
   const [bankSearchTerm, setBankSearchTerm] = useState('');
   const [supportedBanks, setSupportedBanks] = useState<SupportedBank[]>([]);
   const [loadingSupportedBanks, setLoadingSupportedBanks] = useState(false);
@@ -201,14 +202,6 @@ export const FarmersDirectory: React.FC = () => {
     loadFarmersData();
   }, [currentPage, statusFilter, lgaFilter, kpiStartDate, kpiEndDate]);
 
-  const filteredBanks = useMemo(() => {
-    const term = bankSearchTerm.trim().toLowerCase();
-    if (!term) return supportedBanks;
-    return supportedBanks.filter((bank) =>
-      bank.name.toLowerCase().includes(term),
-    );
-  }, [supportedBanks, bankSearchTerm]);
-
   const clearKpiDateFilter = () => {
     setKpiStartDate('');
     setKpiEndDate('');
@@ -226,6 +219,7 @@ export const FarmersDirectory: React.FC = () => {
       accountNumber: '',
       accountName: '',
     });
+    setSelectedBank(null);
     setBankSearchTerm('');
     setSupportedBanks([]);
     setVerifiedAccountName('');
@@ -233,10 +227,10 @@ export const FarmersDirectory: React.FC = () => {
     setVerifiedBankCode('');
   };
 
-  const loadSupportedBanks = async () => {
+  const loadSupportedBanks = async (search?: string) => {
     try {
       setLoadingSupportedBanks(true);
-      const banks = await farmersApi.getSupportedBanks();
+      const banks = await farmersApi.getSupportedBanks(search);
       setSupportedBanks(banks || []);
     } catch (err: any) {
       setActionError(err?.message || 'Failed to load supported banks.');
@@ -246,10 +240,15 @@ export const FarmersDirectory: React.FC = () => {
   };
 
   useEffect(() => {
-    if (showAddAccountForm && supportedBanks.length === 0 && !loadingSupportedBanks) {
-      loadSupportedBanks();
-    }
-  }, [showAddAccountForm, supportedBanks.length, loadingSupportedBanks]);
+    if (!showAddAccountForm) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const search = bankSearchTerm.trim();
+      loadSupportedBanks(search || undefined);
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [showAddAccountForm, bankSearchTerm]);
 
   const exportFarmersPagePdf = () => {
     if (!farmersPageRef.current) {
@@ -575,9 +574,12 @@ export const FarmersDirectory: React.FC = () => {
     const bankCode = addAccountForm.bankCode.trim();
     const accountNumber = addAccountForm.accountNumber.trim();
     const accountName = addAccountForm.accountName.trim();
-    const selectedBank = supportedBanks.find((bank) => bank.code === bankCode);
+    const resolvedSelectedBank =
+      selectedBank ||
+      supportedBanks.find((bank) => bank.code === bankCode) ||
+      null;
 
-    if (!selectedBank || !bankCode || !accountNumber || !accountName) {
+    if (!resolvedSelectedBank || !bankCode || !accountNumber || !accountName) {
       setActionError('Select a bank, enter account number, and verify account name before saving.');
       return;
     }
@@ -603,7 +605,7 @@ export const FarmersDirectory: React.FC = () => {
 
       const response = await farmersApi.setFarmerWithdrawalAccount({
         userId: viewingFarmer.userId,
-        bankName: selectedBank.name,
+        bankName: resolvedSelectedBank.name,
         bankCode,
         accountNumber,
         accountName,
@@ -624,6 +626,7 @@ export const FarmersDirectory: React.FC = () => {
 
       setActionSuccess('Withdrawal account saved successfully.');
       setShowAddAccountForm(false);
+      setSelectedBank(null);
       setBankSearchTerm('');
       setVerifiedAccountName('');
       setVerifiedAccountNumber('');
@@ -1488,6 +1491,7 @@ export const FarmersDirectory: React.FC = () => {
                             accountNumber: '',
                             accountName: '',
                           });
+                          setSelectedBank(null);
                           setBankSearchTerm('');
                           setShowAddAccountForm((prev) => !prev);
                         }}
@@ -1550,29 +1554,43 @@ export const FarmersDirectory: React.FC = () => {
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
                               placeholder="Type bank name..."
                             />
+                            <p className="text-xs text-gray-500 mt-1">
+                              {loadingSupportedBanks
+                                ? 'Searching banks...'
+                                : `${supportedBanks.length} bank(s) found`}
+                            </p>
                           </div>
                           <div>
                             <label className="block text-gray-600 mb-1">Select Bank</label>
                             <select
                               value={addAccountForm.bankCode}
                               onChange={(event) => {
+                                const nextCode = event.target.value;
+                                const nextBank =
+                                  supportedBanks.find((bank) => bank.code === nextCode) ||
+                                  null;
+                                setSelectedBank(nextBank);
                                 setVerifiedAccountName('');
                                 setVerifiedAccountNumber('');
                                 setVerifiedBankCode('');
                                 setActionSuccess(null);
                                 setAddAccountForm((prev) => ({
                                   ...prev,
-                                  bankCode: event.target.value,
+                                  bankCode: nextCode,
                                   accountName: '',
                                 }));
                               }}
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
-                              disabled={loadingSupportedBanks}
+                              disabled={loadingSupportedBanks || supportedBanks.length === 0}
                             >
                               <option value="">
-                                {loadingSupportedBanks ? 'Loading banks...' : 'Select bank'}
+                                {loadingSupportedBanks
+                                  ? 'Loading banks...'
+                                  : supportedBanks.length === 0
+                                  ? 'No bank found'
+                                  : 'Select bank'}
                               </option>
-                              {filteredBanks.map((bank) => (
+                              {supportedBanks.map((bank) => (
                                 <option key={bank.code} value={bank.code}>
                                   {bank.name}
                                 </option>
