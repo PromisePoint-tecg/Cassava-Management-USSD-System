@@ -26,7 +26,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { Briefcase, FileDown, RefreshCw, Wallet } from "lucide-react";
+import { Briefcase, FileDown, RefreshCw, Wallet, Download } from "lucide-react";
 import {
   financeApi,
   FinanceKpiMetric,
@@ -72,11 +72,146 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 2,
   })}`;
 
+const formatDateTime = (value?: string) => {
+  if (!value) return "N/A";
+  return new Date(value).toLocaleString();
+};
+
 const formatKpiValue = (metric: FinanceKpiMetric) => {
   if (metric.unit === "percent") return `${metric.value.toFixed(2)}%`;
   if (metric.unit === "count") return Math.round(metric.value).toLocaleString();
   return formatCurrency(metric.value);
 };
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+type TransactionSortBy = "createdAt" | "amount" | "status" | "type";
+
+const transactionSortOptions: Array<{ value: TransactionSortBy; label: string }> =
+  [
+    { value: "createdAt", label: "Date" },
+    { value: "amount", label: "Amount" },
+    { value: "status", label: "Status" },
+    { value: "type", label: "Type" },
+  ];
+
+const transactionStatusOptions = ["pending", "completed", "failed", "cancelled"];
+
+const exportTypeOptions = [
+  "sale",
+  "purchase",
+  "withdrawal",
+  "deposit",
+  "loan_disbursement",
+  "loan_repayment",
+  "savings_deposit",
+  "savings_withdrawal",
+  "organization_funding",
+  "payroll_disbursement",
+  "bonus_wallet_funding",
+  "bonus_allocation",
+  "bonus_transfer",
+];
+
+const outgoingTransactionTypes = new Set([
+  "withdrawal",
+  "purchase",
+  "loan_disbursement",
+  "payroll_disbursement",
+  "bonus_transfer",
+  "escrow_hold",
+]);
+
+const incomingTransactionTypes = new Set([
+  "deposit",
+  "sale",
+  "loan_repayment",
+  "savings_deposit",
+  "escrow_release",
+  "organization_funding",
+  "bonus_wallet_funding",
+  "bonus_allocation",
+]);
+
+type StatementKpis = {
+  totalRecords: number;
+  inflow: number;
+  outflow: number;
+  netMovement: number;
+  completed: number;
+  pending: number;
+  failed: number;
+  cancelled: number;
+};
+
+const computeStatementKpis = (rows: Transaction[]): StatementKpis => {
+  let inflow = 0;
+  let outflow = 0;
+  let completed = 0;
+  let pending = 0;
+  let failed = 0;
+  let cancelled = 0;
+
+  rows.forEach((tx) => {
+    const type = (tx.type || "").toLowerCase();
+    if (outgoingTransactionTypes.has(type)) {
+      outflow += tx.amount || 0;
+    } else if (incomingTransactionTypes.has(type)) {
+      inflow += tx.amount || 0;
+    } else if ((tx.amount || 0) >= 0) {
+      inflow += tx.amount || 0;
+    } else {
+      outflow += Math.abs(tx.amount || 0);
+    }
+
+    switch (tx.status) {
+      case "completed":
+        completed += 1;
+        break;
+      case "pending":
+        pending += 1;
+        break;
+      case "failed":
+        failed += 1;
+        break;
+      case "cancelled":
+        cancelled += 1;
+        break;
+      default:
+        break;
+    }
+  });
+
+  return {
+    totalRecords: rows.length,
+    inflow,
+    outflow,
+    netMovement: inflow - outflow,
+    completed,
+    pending,
+    failed,
+    cancelled,
+  };
+};
+
+const renderKpiCards = (kpis: StatementKpis) => `
+  <div class="kpis">
+    <div class="kpi"><span>Total Records</span><strong>${kpis.totalRecords.toLocaleString()}</strong></div>
+    <div class="kpi"><span>Total Inflow</span><strong>${formatCurrency(kpis.inflow)}</strong></div>
+    <div class="kpi"><span>Total Outflow</span><strong>${formatCurrency(kpis.outflow)}</strong></div>
+    <div class="kpi"><span>Net Movement</span><strong>${formatCurrency(kpis.netMovement)}</strong></div>
+    <div class="kpi"><span>Completed</span><strong>${kpis.completed.toLocaleString()}</strong></div>
+    <div class="kpi"><span>Pending</span><strong>${kpis.pending.toLocaleString()}</strong></div>
+    <div class="kpi"><span>Failed</span><strong>${kpis.failed.toLocaleString()}</strong></div>
+    <div class="kpi"><span>Cancelled</span><strong>${kpis.cancelled.toLocaleString()}</strong></div>
+  </div>
+`;
 
 const FinanceView: React.FC = () => {
   const financePageRef = useRef<HTMLDivElement>(null);
@@ -106,6 +241,23 @@ const FinanceView: React.FC = () => {
   const [txLoading, setTxLoading] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [txError, setTxError] = useState<string | null>(null);
+  const [txTotal, setTxTotal] = useState(0);
+  const [txPage, setTxPage] = useState(0);
+  const [txRowsPerPage, setTxRowsPerPage] = useState(25);
+  const [txSearch, setTxSearch] = useState("");
+  const [txStatus, setTxStatus] = useState("");
+  const [txSortBy, setTxSortBy] = useState<TransactionSortBy>("createdAt");
+  const [txSortOrder, setTxSortOrder] = useState<"asc" | "desc">("desc");
+  const [walletExporting, setWalletExporting] = useState(false);
+  const [statementExporting, setStatementExporting] = useState(false);
+  const [statementStatus, setStatementStatus] = useState("");
+  const [statementType, setStatementType] = useState("");
+  const [statementSortBy, setStatementSortBy] =
+    useState<TransactionSortBy>("createdAt");
+  const [statementSortOrder, setStatementSortOrder] = useState<"asc" | "desc">(
+    "desc"
+  );
+  const [statementLimit, setStatementLimit] = useState(500);
 
   const [fundModalOpen, setFundModalOpen] = useState(false);
   const [fundWalletType, setFundWalletType] = useState<OrganizationWalletType>("payroll");
@@ -119,6 +271,77 @@ const FinanceView: React.FC = () => {
   const [walletActionReason, setWalletActionReason] = useState("");
   const [walletActionSubmitting, setWalletActionSubmitting] = useState(false);
   const [walletActionError, setWalletActionError] = useState<string | null>(null);
+
+  const openPdfWindow = (title: string, bodyHtml: string) => {
+    const printWindow = window.open("", "_blank", "width=1280,height=900");
+    if (!printWindow) {
+      setError("Popup blocked. Enable popups to export statements.");
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>${escapeHtml(title)}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; color: #0f172a; }
+            h1, h2, h3 { margin: 0; }
+            .header { margin-bottom: 16px; }
+            .meta { color: #475569; font-size: 12px; margin-top: 6px; }
+            .section { margin-top: 22px; }
+            .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 12px 0 14px; }
+            .kpi { border: 1px solid #dbe4ee; border-radius: 8px; padding: 8px 10px; }
+            .kpi span { display: block; color: #64748b; font-size: 11px; margin-bottom: 4px; }
+            .kpi strong { font-size: 14px; color: #0f172a; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #e2e8f0; padding: 7px; font-size: 11px; text-align: left; vertical-align: top; }
+            th { background: #f8fafc; font-weight: 700; }
+            .page-break { page-break-before: always; margin-top: 12px; }
+            @media print {
+              .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            }
+          </style>
+        </head>
+        <body>${bodyHtml}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 650);
+  };
+
+  const getStatementQueryBase = () => ({
+    ...(startDate ? { startDate } : {}),
+    ...(endDate ? { endDate } : {}),
+    ...(statementStatus ? { status: statementStatus } : {}),
+    ...(statementType ? { type: statementType } : {}),
+    sortBy: statementSortBy,
+    sortOrder: statementSortOrder,
+  });
+
+  const fetchAllPages = async (
+    fetcher: (page: number) => Promise<{ transactions: Transaction[]; totalPages: number }>
+  ) => {
+    const allRows: Transaction[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    while (page <= totalPages && allRows.length < statementLimit) {
+      const response = await fetcher(page);
+      totalPages = response.totalPages || 1;
+      allRows.push(...(response.transactions || []));
+      page += 1;
+    }
+
+    return allRows.slice(0, statementLimit);
+  };
 
   const loadFinanceData = async () => {
     setLoading(true);
@@ -206,16 +429,22 @@ const FinanceView: React.FC = () => {
     setTxError(null);
     try {
       const result = await financeApi.getOrganizationTransactions({
-        page: 1,
-        limit: 50,
+        page: txPage + 1,
+        limit: txRowsPerPage,
         walletType: walletTxTab,
+        ...(txStatus ? { status: txStatus } : {}),
+        ...(txSearch ? { search: txSearch } : {}),
+        sortBy: txSortBy,
+        sortOrder: txSortOrder,
         ...(startDate ? { startDate } : {}),
         ...(endDate ? { endDate } : {}),
       });
       setTransactions(result.transactions || []);
+      setTxTotal(result.total || 0);
     } catch (err: any) {
       setTxError(err?.message || "Failed to load wallet transactions");
       setTransactions([]);
+      setTxTotal(0);
     } finally {
       setTxLoading(false);
     }
@@ -229,7 +458,22 @@ const FinanceView: React.FC = () => {
     if (tabIndex === 1) {
       loadWalletTransactions();
     }
-  }, [tabIndex, walletTxTab, startDate, endDate]);
+  }, [
+    tabIndex,
+    walletTxTab,
+    startDate,
+    endDate,
+    txPage,
+    txRowsPerPage,
+    txStatus,
+    txSearch,
+    txSortBy,
+    txSortOrder,
+  ]);
+
+  useEffect(() => {
+    setTxPage(0);
+  }, [walletTxTab, startDate, endDate, txStatus, txSearch, txSortBy, txSortOrder]);
 
   useEffect(() => {
     if (tabIndex === 2) {
@@ -267,6 +511,10 @@ const FinanceView: React.FC = () => {
 
   const activeWalletLabel =
     walletTypeOptions.find((option) => option.value === walletTxTab)?.label || "";
+  const currentWalletKpis = useMemo(
+    () => computeStatementKpis(transactions),
+    [transactions]
+  );
 
   const exportPagePdf = () => {
     if (!financePageRef.current) return;
@@ -392,6 +640,220 @@ const FinanceView: React.FC = () => {
       );
     } finally {
       setWalletActionSubmitting(false);
+    }
+  };
+
+  const exportWalletStatementPdf = async (includeAllWallets = false) => {
+    try {
+      setWalletExporting(true);
+      setError(null);
+
+      const walletScopes = includeAllWallets
+        ? walletTypeOptions
+        : walletTypeOptions.filter((item) => item.value === walletTxTab);
+
+      const sections = await Promise.all(
+        walletScopes.map(async (scope) => {
+          const rows = await fetchAllPages((page) =>
+            financeApi.getOrganizationTransactions({
+              page,
+              limit: 200,
+              walletType: scope.value,
+              ...(txStatus ? { status: txStatus } : {}),
+              ...(txSearch ? { search: txSearch } : {}),
+              ...(startDate ? { startDate } : {}),
+              ...(endDate ? { endDate } : {}),
+              sortBy: txSortBy,
+              sortOrder: txSortOrder,
+            })
+          );
+
+          return {
+            label: scope.label,
+            rows,
+            kpis: computeStatementKpis(rows),
+          };
+        })
+      );
+
+      const exportedAt = new Date().toLocaleString();
+      const filtersLabel = [
+        startDate ? `Start: ${startDate}` : "",
+        endDate ? `End: ${endDate}` : "",
+        txStatus ? `Status: ${txStatus}` : "Status: all",
+        txSearch ? `Search: ${txSearch}` : "",
+        `Sort: ${txSortBy} ${txSortOrder.toUpperCase()}`,
+        `Max records per section: ${statementLimit.toLocaleString()}`,
+      ]
+        .filter(Boolean)
+        .join(" | ");
+
+      const sectionsHtml = sections
+        .map((section, index) => {
+          const rowsHtml = section.rows
+            .map(
+              (tx) => `
+                <tr>
+                  <td>${escapeHtml(formatDateTime(tx.createdAt))}</td>
+                  <td>${escapeHtml(tx.reference || "N/A")}</td>
+                  <td>${escapeHtml((tx.type || "").replace(/_/g, " "))}</td>
+                  <td>${escapeHtml(tx.status || "N/A")}</td>
+                  <td>${escapeHtml(formatCurrency(tx.amount || 0))}</td>
+                  <td>${escapeHtml(formatCurrency(tx.balanceAfter || 0))}</td>
+                  <td>${escapeHtml(tx.description || "")}</td>
+                </tr>
+              `
+            )
+            .join("");
+
+          return `
+            <section class="${index > 0 ? "page-break" : ""}">
+              <h2>${escapeHtml(section.label)} Statement</h2>
+              <p class="meta">Exported: ${escapeHtml(exportedAt)}</p>
+              <p class="meta">${escapeHtml(filtersLabel)}</p>
+              ${renderKpiCards(section.kpis)}
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Reference</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Balance After</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${
+                    rowsHtml ||
+                    `<tr><td colspan="7">No transactions found for this section.</td></tr>`
+                  }
+                </tbody>
+              </table>
+            </section>
+          `;
+        })
+        .join("");
+
+      openPdfWindow(
+        includeAllWallets
+          ? "Wallet Statements - All Wallets"
+          : `Wallet Statement - ${activeWalletLabel}`,
+        `
+          <div class="header">
+            <h1>Finance Wallet Statement</h1>
+            <p class="meta">Promise Point Farms - Finance Ops Export</p>
+          </div>
+          ${sectionsHtml}
+        `
+      );
+    } catch (err: any) {
+      setError(err?.message || "Failed to export wallet statement.");
+    } finally {
+      setWalletExporting(false);
+    }
+  };
+
+  const exportFarmerTransactionStatement = async (farmer?: Farmer) => {
+    try {
+      setStatementExporting(true);
+      setError(null);
+
+      const baseQuery = getStatementQueryBase();
+      const rows = farmer
+        ? await fetchAllPages((page) =>
+            financeApi.getUserTransactions(farmer.userId, {
+              ...baseQuery,
+              page,
+              limit: 200,
+            })
+          )
+        : await fetchAllPages((page) =>
+            financeApi.getAllTransactions({
+              ...baseQuery,
+              userType: "farmer",
+              page,
+              limit: 200,
+            })
+          );
+
+      const kpis = computeStatementKpis(rows);
+      const uniqueFarmers = new Set(rows.map((tx) => tx.userId).filter(Boolean));
+      const reportTitle = farmer
+        ? `Farmer Transaction Statement - ${(farmer.fullName || farmer.name || "").toUpperCase()}`
+        : "Farmers Executive Transaction Statement";
+
+      const rowsHtml = rows
+        .map(
+          (tx) => `
+            <tr>
+              <td>${escapeHtml(formatDateTime(tx.createdAt))}</td>
+              <td>${escapeHtml(tx.reference || "N/A")}</td>
+              <td>${escapeHtml((tx.user?.name || "N/A").toUpperCase())}</td>
+              <td>${escapeHtml((tx.type || "").replace(/_/g, " "))}</td>
+              <td>${escapeHtml(tx.status || "N/A")}</td>
+              <td>${escapeHtml(formatCurrency(tx.amount || 0))}</td>
+              <td>${escapeHtml(formatCurrency(tx.balanceAfter || 0))}</td>
+              <td>${escapeHtml(tx.description || "")}</td>
+            </tr>
+          `
+        )
+        .join("");
+
+      const exportedAt = new Date().toLocaleString();
+      const filtersLabel = [
+        startDate ? `Start: ${startDate}` : "",
+        endDate ? `End: ${endDate}` : "",
+        statementStatus ? `Status: ${statementStatus}` : "Status: all",
+        statementType ? `Type: ${statementType}` : "Type: all",
+        `Sort: ${statementSortBy} ${statementSortOrder.toUpperCase()}`,
+        `Max records: ${statementLimit.toLocaleString()}`,
+      ]
+        .filter(Boolean)
+        .join(" | ");
+
+      openPdfWindow(
+        reportTitle,
+        `
+          <div class="header">
+            <h1>${escapeHtml(reportTitle)}</h1>
+            <p class="meta">Promise Point Farms - Finance Executive Statement</p>
+            <p class="meta">Exported: ${escapeHtml(exportedAt)}</p>
+            <p class="meta">${escapeHtml(filtersLabel)}</p>
+            ${
+              farmer
+                ? `<p class="meta">Farmer Phone: ${escapeHtml(farmer.phone || "N/A")} | LGA: ${escapeHtml((farmer.lga || "N/A").toUpperCase())}</p>`
+                : `<p class="meta">Unique Farmers in Statement: ${uniqueFarmers.size.toLocaleString()}</p>`
+            }
+          </div>
+          ${renderKpiCards(kpis)}
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Reference</th>
+                <th>Farmer</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Amount</th>
+                <th>Balance After</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                rowsHtml ||
+                `<tr><td colspan="8">No farmer transactions found for selected filters.</td></tr>`
+              }
+            </tbody>
+          </table>
+        `
+      );
+    } catch (err: any) {
+      setError(err?.message || "Failed to export farmer transaction statement.");
+    } finally {
+      setStatementExporting(false);
     }
   };
 
@@ -732,8 +1194,144 @@ const FinanceView: React.FC = () => {
               </Tabs>
 
               <Typography variant="body2" sx={{ color: "#64748b" }}>
-                Showing up to 50 latest transactions for {activeWalletLabel}.
+                Transfers table for {activeWalletLabel}. Apply sorting and filters, then export statements.
               </Typography>
+
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                spacing={1.2}
+                alignItems={{ xs: "stretch", md: "center" }}
+              >
+                <TextField
+                  size="small"
+                  label="Search"
+                  placeholder="Reference or description"
+                  value={txSearch}
+                  onChange={(event) => setTxSearch(event.target.value)}
+                  sx={{ minWidth: { xs: "100%", md: 220 } }}
+                />
+                <TextField
+                  select
+                  size="small"
+                  label="Status"
+                  value={txStatus}
+                  onChange={(event) => setTxStatus(event.target.value)}
+                  sx={{ minWidth: { xs: "100%", md: 160 } }}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {transactionStatusOptions.map((statusValue) => (
+                    <MenuItem key={statusValue} value={statusValue}>
+                      {statusValue}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  size="small"
+                  label="Sort by"
+                  value={txSortBy}
+                  onChange={(event) =>
+                    setTxSortBy(event.target.value as TransactionSortBy)
+                  }
+                  sx={{ minWidth: { xs: "100%", md: 150 } }}
+                >
+                  {transactionSortOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  size="small"
+                  label="Order"
+                  value={txSortOrder}
+                  onChange={(event) =>
+                    setTxSortOrder(event.target.value as "asc" | "desc")
+                  }
+                  sx={{ minWidth: { xs: "100%", md: 130 } }}
+                >
+                  <MenuItem value="desc">Desc</MenuItem>
+                  <MenuItem value="asc">Asc</MenuItem>
+                </TextField>
+                <Button
+                  variant="outlined"
+                  startIcon={<Download size={15} />}
+                  onClick={() => exportWalletStatementPdf(false)}
+                  disabled={walletExporting}
+                  sx={{
+                    textTransform: "none",
+                    borderColor: "#cbd5e1",
+                    color: "#1f2937",
+                  }}
+                >
+                  {walletExporting ? "Exporting..." : "Export Wallet PDF"}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<FileDown size={15} />}
+                  onClick={() => exportWalletStatementPdf(true)}
+                  disabled={walletExporting}
+                  sx={{
+                    textTransform: "none",
+                    borderColor: "#cbd5e1",
+                    color: "#1f2937",
+                  }}
+                >
+                  {walletExporting ? "Exporting..." : "Export All Wallets"}
+                </Button>
+              </Stack>
+
+              <Grid container spacing={1.2}>
+                <Grid item xs={6} md={3}>
+                  <Card elevation={0} sx={{ border: "1px solid #dbe4ee", borderRadius: 1.5 }}>
+                    <CardContent sx={{ py: 1.2 }}>
+                      <Typography variant="caption" sx={{ color: "#64748b" }}>
+                        Records
+                      </Typography>
+                      <Typography sx={{ fontWeight: 800 }}>
+                        {currentWalletKpis.totalRecords.toLocaleString()}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6} md={3}>
+                  <Card elevation={0} sx={{ border: "1px solid #dbe4ee", borderRadius: 1.5 }}>
+                    <CardContent sx={{ py: 1.2 }}>
+                      <Typography variant="caption" sx={{ color: "#64748b" }}>
+                        Inflow
+                      </Typography>
+                      <Typography sx={{ fontWeight: 800, color: "#065f46" }}>
+                        {formatCurrency(currentWalletKpis.inflow)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6} md={3}>
+                  <Card elevation={0} sx={{ border: "1px solid #dbe4ee", borderRadius: 1.5 }}>
+                    <CardContent sx={{ py: 1.2 }}>
+                      <Typography variant="caption" sx={{ color: "#64748b" }}>
+                        Outflow
+                      </Typography>
+                      <Typography sx={{ fontWeight: 800, color: "#991b1b" }}>
+                        {formatCurrency(currentWalletKpis.outflow)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6} md={3}>
+                  <Card elevation={0} sx={{ border: "1px solid #dbe4ee", borderRadius: 1.5 }}>
+                    <CardContent sx={{ py: 1.2 }}>
+                      <Typography variant="caption" sx={{ color: "#64748b" }}>
+                        Net
+                      </Typography>
+                      <Typography sx={{ fontWeight: 800, color: "#0f172a" }}>
+                        {formatCurrency(currentWalletKpis.netMovement)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
 
               {txError && <Alert severity="error">{txError}</Alert>}
 
@@ -875,14 +1473,134 @@ const FinanceView: React.FC = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+
+              <TablePagination
+                component="div"
+                count={txTotal}
+                page={txPage}
+                onPageChange={(_, nextPage) => setTxPage(nextPage)}
+                rowsPerPage={txRowsPerPage}
+                onRowsPerPageChange={(event) => {
+                  setTxRowsPerPage(parseInt(event.target.value, 10));
+                  setTxPage(0);
+                }}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                sx={{
+                  border: "1px solid #dbe4ee",
+                  borderRadius: 2,
+                  "& .MuiTablePagination-toolbar": { px: 1.5, flexWrap: "wrap", gap: 0.5 },
+                }}
+              />
             </Stack>
           )}
 
           {tabIndex === 2 && (
             <Stack spacing={2}>
-              <Typography variant="h6" sx={sectionTitleSx}>
-                Farmers Wallet Management
-              </Typography>
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                alignItems={{ xs: "flex-start", md: "center" }}
+                justifyContent="space-between"
+                spacing={1.2}
+              >
+                <Box>
+                  <Typography variant="h6" sx={sectionTitleSx}>
+                    Farmers Wallet Management
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#64748b" }}>
+                    Sort and export executive transaction statements for a single farmer or all farmers.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="outlined"
+                  startIcon={<FileDown size={15} />}
+                  onClick={() => exportFarmerTransactionStatement()}
+                  disabled={statementExporting}
+                  sx={{
+                    textTransform: "none",
+                    borderColor: "#cbd5e1",
+                    color: "#1f2937",
+                  }}
+                >
+                  {statementExporting ? "Exporting..." : "Export All Farmers Statement"}
+                </Button>
+              </Stack>
+
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                spacing={1.2}
+                alignItems={{ xs: "stretch", md: "center" }}
+              >
+                <TextField
+                  select
+                  size="small"
+                  label="Status"
+                  value={statementStatus}
+                  onChange={(event) => setStatementStatus(event.target.value)}
+                  sx={{ minWidth: { xs: "100%", md: 160 } }}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {transactionStatusOptions.map((statusValue) => (
+                    <MenuItem key={statusValue} value={statusValue}>
+                      {statusValue}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  size="small"
+                  label="Type"
+                  value={statementType}
+                  onChange={(event) => setStatementType(event.target.value)}
+                  sx={{ minWidth: { xs: "100%", md: 220 } }}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {exportTypeOptions.map((typeOption) => (
+                    <MenuItem key={typeOption} value={typeOption}>
+                      {typeOption.replace(/_/g, " ")}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  size="small"
+                  label="Sort by"
+                  value={statementSortBy}
+                  onChange={(event) =>
+                    setStatementSortBy(event.target.value as TransactionSortBy)
+                  }
+                  sx={{ minWidth: { xs: "100%", md: 150 } }}
+                >
+                  {transactionSortOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  size="small"
+                  label="Order"
+                  value={statementSortOrder}
+                  onChange={(event) =>
+                    setStatementSortOrder(event.target.value as "asc" | "desc")
+                  }
+                  sx={{ minWidth: { xs: "100%", md: 130 } }}
+                >
+                  <MenuItem value="desc">Desc</MenuItem>
+                  <MenuItem value="asc">Asc</MenuItem>
+                </TextField>
+                <TextField
+                  size="small"
+                  label="Max records"
+                  type="number"
+                  value={statementLimit}
+                  onChange={(event) =>
+                    setStatementLimit(Math.max(50, Number(event.target.value || 500)))
+                  }
+                  inputProps={{ min: 50, max: 5000 }}
+                  sx={{ minWidth: { xs: "100%", md: 140 } }}
+                />
+              </Stack>
               {farmersError && <Alert severity="error">{farmersError}</Alert>}
               <Stack spacing={1.2} sx={{ display: { xs: "flex", md: "none" } }}>
                 {farmersLoading ? (
@@ -931,6 +1649,16 @@ const FinanceView: React.FC = () => {
                           sx={{ textTransform: "none", borderColor: "#b45309", color: "#b45309" }}
                         >
                           Withdraw
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          fullWidth
+                          onClick={() => exportFarmerTransactionStatement(farmer)}
+                          disabled={statementExporting}
+                          sx={{ textTransform: "none", borderColor: "#0f172a", color: "#0f172a" }}
+                        >
+                          Statement
                         </Button>
                       </Stack>
                     </Paper>
@@ -1011,6 +1739,15 @@ const FinanceView: React.FC = () => {
                                 sx={{ textTransform: "none", borderColor: "#b45309", color: "#b45309" }}
                               >
                                 Withdraw
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => exportFarmerTransactionStatement(farmer)}
+                                disabled={statementExporting}
+                                sx={{ textTransform: "none", borderColor: "#0f172a", color: "#0f172a" }}
+                              >
+                                Statement
                               </Button>
                             </Stack>
                           </TableCell>
