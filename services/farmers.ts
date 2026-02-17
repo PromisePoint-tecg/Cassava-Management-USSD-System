@@ -129,6 +129,22 @@ export interface SetFarmerWithdrawalAccountData {
   accountName: string;
 }
 
+export interface SupportedBank {
+  name: string;
+  code: string;
+}
+
+export interface VerifyBankAccountInput {
+  accountNumber: string;
+  bankCode: string;
+}
+
+export interface VerifyBankAccountResult {
+  accountName: string;
+  accountNumber: string;
+  bankCode: string;
+}
+
 export interface SetFarmerWithdrawalAccountResponse {
   message: string;
   wallet: {
@@ -272,10 +288,28 @@ export const farmersApi = {
   async setFarmerWithdrawalAccount(
     data: SetFarmerWithdrawalAccountData,
   ): Promise<SetFarmerWithdrawalAccountResponse> {
-    const response = await apiClient.post<SetFarmerWithdrawalAccountResponse>(
+    const response: any = await apiClient.post(
       `/admins/wallet/set-account`,
       data,
     );
-    return response;
+    return response?.data || response;
+  },
+
+  async getSupportedBanks(search?: string): Promise<SupportedBank[]> {
+    const query = search?.trim()
+      ? `?search=${encodeURIComponent(search.trim())}`
+      : '';
+    const response: any = await apiClient.get(`/admins/wallet/banks${query}`);
+    return response?.data || response || [];
+  },
+
+  async verifyBankAccount(
+    data: VerifyBankAccountInput,
+  ): Promise<VerifyBankAccountResult> {
+    const response: any = await apiClient.post(
+      `/admins/wallet/verify-account`,
+      data,
+    );
+    return response?.data || response;
   },
 };
