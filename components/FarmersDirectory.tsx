@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Users, 
   Eye, 
@@ -30,6 +30,7 @@ import {
   FarmerDashboardKpiRow,
   FarmerDashboardKpiTable,
   GetAllFarmersParams,
+  SupportedBank,
   UserFinancialDetails,
 } from '../services/farmers';
 import LeafInlineLoader from './Loader';
@@ -129,11 +130,17 @@ export const FarmersDirectory: React.FC = () => {
   const [showAddAccountForm, setShowAddAccountForm] = useState(false);
   const [settingAccount, setSettingAccount] = useState(false);
   const [addAccountForm, setAddAccountForm] = useState({
-    bankName: '',
     bankCode: '',
     accountNumber: '',
     accountName: '',
   });
+  const [bankSearchTerm, setBankSearchTerm] = useState('');
+  const [supportedBanks, setSupportedBanks] = useState<SupportedBank[]>([]);
+  const [loadingSupportedBanks, setLoadingSupportedBanks] = useState(false);
+  const [verifyingAccount, setVerifyingAccount] = useState(false);
+  const [verifiedAccountName, setVerifiedAccountName] = useState('');
+  const [verifiedAccountNumber, setVerifiedAccountNumber] = useState('');
+  const [verifiedBankCode, setVerifiedBankCode] = useState('');
 
   // Fetch farmers and KPI summary together
   const loadFarmersData = async () => {
@@ -194,6 +201,14 @@ export const FarmersDirectory: React.FC = () => {
     loadFarmersData();
   }, [currentPage, statusFilter, lgaFilter, kpiStartDate, kpiEndDate]);
 
+  const filteredBanks = useMemo(() => {
+    const term = bankSearchTerm.trim().toLowerCase();
+    if (!term) return supportedBanks;
+    return supportedBanks.filter((bank) =>
+      bank.name.toLowerCase().includes(term),
+    );
+  }, [supportedBanks, bankSearchTerm]);
+
   const clearKpiDateFilter = () => {
     setKpiStartDate('');
     setKpiEndDate('');
@@ -207,12 +222,34 @@ export const FarmersDirectory: React.FC = () => {
     setActionSuccess(null);
     setShowAddAccountForm(false);
     setAddAccountForm({
-      bankName: '',
       bankCode: '',
       accountNumber: '',
       accountName: '',
     });
+    setBankSearchTerm('');
+    setSupportedBanks([]);
+    setVerifiedAccountName('');
+    setVerifiedAccountNumber('');
+    setVerifiedBankCode('');
   };
+
+  const loadSupportedBanks = async () => {
+    try {
+      setLoadingSupportedBanks(true);
+      const banks = await farmersApi.getSupportedBanks();
+      setSupportedBanks(banks || []);
+    } catch (err: any) {
+      setActionError(err?.message || 'Failed to load supported banks.');
+    } finally {
+      setLoadingSupportedBanks(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showAddAccountForm && supportedBanks.length === 0 && !loadingSupportedBanks) {
+      loadSupportedBanks();
+    }
+  }, [showAddAccountForm, supportedBanks.length, loadingSupportedBanks]);
 
   const exportFarmersPagePdf = () => {
     if (!farmersPageRef.current) {
@@ -490,21 +527,72 @@ export const FarmersDirectory: React.FC = () => {
     updatedAt: farmerDetail.updatedAt,
   });
 
+  const handleVerifyFarmerWithdrawalAccount = async () => {
+    const bankCode = addAccountForm.bankCode.trim();
+    const accountNumber = addAccountForm.accountNumber.trim();
+
+    if (!bankCode) {
+      setActionError('Select a bank before verifying account number.');
+      return;
+    }
+
+    if (!/^\d{10}$/.test(accountNumber)) {
+      setActionError('Account number must be exactly 10 digits before verification.');
+      return;
+    }
+
+    try {
+      setVerifyingAccount(true);
+      setActionError(null);
+      setActionSuccess(null);
+
+      const verified = await farmersApi.verifyBankAccount({
+        bankCode,
+        accountNumber,
+      });
+
+      setAddAccountForm((prev) => ({
+        ...prev,
+        accountName: verified.accountName,
+      }));
+      setVerifiedAccountName(verified.accountName);
+      setVerifiedAccountNumber(accountNumber);
+      setVerifiedBankCode(bankCode);
+      setActionSuccess(`Account verified: ${verified.accountName}`);
+    } catch (err: any) {
+      setVerifiedAccountName('');
+      setVerifiedAccountNumber('');
+      setVerifiedBankCode('');
+      setActionError(err?.message || 'Failed to verify account details.');
+    } finally {
+      setVerifyingAccount(false);
+    }
+  };
+
   const handleSetFarmerWithdrawalAccount = async () => {
     if (!viewingFarmer) return;
 
-    const bankName = addAccountForm.bankName.trim();
     const bankCode = addAccountForm.bankCode.trim();
     const accountNumber = addAccountForm.accountNumber.trim();
     const accountName = addAccountForm.accountName.trim();
+    const selectedBank = supportedBanks.find((bank) => bank.code === bankCode);
 
-    if (!bankName || !bankCode || !accountNumber || !accountName) {
-      setActionError('Bank name, bank code, account number and account name are required.');
+    if (!selectedBank || !bankCode || !accountNumber || !accountName) {
+      setActionError('Select a bank, enter account number, and verify account name before saving.');
       return;
     }
 
     if (!/^\d{10}$/.test(accountNumber)) {
       setActionError('Account number must be exactly 10 digits.');
+      return;
+    }
+
+    if (
+      verifiedAccountName !== accountName ||
+      verifiedAccountNumber !== accountNumber ||
+      verifiedBankCode !== bankCode
+    ) {
+      setActionError('Verify this account number before saving.');
       return;
     }
 
@@ -515,7 +603,7 @@ export const FarmersDirectory: React.FC = () => {
 
       const response = await farmersApi.setFarmerWithdrawalAccount({
         userId: viewingFarmer.userId,
-        bankName,
+        bankName: selectedBank.name,
         bankCode,
         accountNumber,
         accountName,
@@ -536,6 +624,10 @@ export const FarmersDirectory: React.FC = () => {
 
       setActionSuccess('Withdrawal account saved successfully.');
       setShowAddAccountForm(false);
+      setBankSearchTerm('');
+      setVerifiedAccountName('');
+      setVerifiedAccountNumber('');
+      setVerifiedBankCode('');
       await loadFarmersData();
     } catch (err: any) {
       setActionError(err?.message || 'Failed to set withdrawal account.');
@@ -1388,6 +1480,15 @@ export const FarmersDirectory: React.FC = () => {
                         onClick={() => {
                           setActionError(null);
                           setActionSuccess(null);
+                          setVerifiedAccountName('');
+                          setVerifiedAccountNumber('');
+                          setVerifiedBankCode('');
+                          setAddAccountForm({
+                            bankCode: '',
+                            accountNumber: '',
+                            accountName: '',
+                          });
+                          setBankSearchTerm('');
                           setShowAddAccountForm((prev) => !prev);
                         }}
                         className="px-3 py-2 rounded-lg border border-[#9adfbd] bg-[#ecfdf5] text-[#065f46] hover:bg-[#dff7eb] transition-all flex items-center justify-center gap-2 text-sm"
@@ -1439,70 +1540,92 @@ export const FarmersDirectory: React.FC = () => {
                       <div className="mt-4 border-t border-gray-200 pt-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                           <div>
-                            <label className="block text-gray-600 mb-1">Bank Name</label>
+                            <label className="block text-gray-600 mb-1">Search Bank</label>
                             <input
                               type="text"
-                              value={addAccountForm.bankName}
+                              value={bankSearchTerm}
                               onChange={(event) =>
-                                setAddAccountForm((prev) => ({
-                                  ...prev,
-                                  bankName: event.target.value,
-                                }))
+                                setBankSearchTerm(event.target.value)
                               }
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
-                              placeholder="e.g Access Bank"
+                              placeholder="Type bank name..."
                             />
                           </div>
                           <div>
-                            <label className="block text-gray-600 mb-1">Bank Code</label>
-                            <input
-                              type="text"
+                            <label className="block text-gray-600 mb-1">Select Bank</label>
+                            <select
                               value={addAccountForm.bankCode}
-                              onChange={(event) =>
+                              onChange={(event) => {
+                                setVerifiedAccountName('');
+                                setVerifiedAccountNumber('');
+                                setVerifiedBankCode('');
+                                setActionSuccess(null);
                                 setAddAccountForm((prev) => ({
                                   ...prev,
                                   bankCode: event.target.value,
-                                }))
-                              }
+                                  accountName: '',
+                                }));
+                              }}
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
-                              placeholder="e.g 044"
-                            />
+                              disabled={loadingSupportedBanks}
+                            >
+                              <option value="">
+                                {loadingSupportedBanks ? 'Loading banks...' : 'Select bank'}
+                              </option>
+                              {filteredBanks.map((bank) => (
+                                <option key={bank.code} value={bank.code}>
+                                  {bank.name}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                           <div>
                             <label className="block text-gray-600 mb-1">Account Number</label>
                             <input
                               type="text"
                               value={addAccountForm.accountNumber}
-                              onChange={(event) =>
+                              onChange={(event) => {
+                                setVerifiedAccountName('');
+                                setVerifiedAccountNumber('');
+                                setVerifiedBankCode('');
+                                setActionSuccess(null);
                                 setAddAccountForm((prev) => ({
                                   ...prev,
                                   accountNumber: event.target.value.replace(/\D/g, '').slice(0, 10),
-                                }))
-                              }
+                                  accountName: '',
+                                }));
+                              }}
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
                               placeholder="10-digit account number"
                             />
                           </div>
                           <div>
-                            <label className="block text-gray-600 mb-1">Account Name</label>
+                            <label className="block text-gray-600 mb-1">Verified Account Name</label>
                             <input
                               type="text"
                               value={addAccountForm.accountName}
-                              onChange={(event) =>
-                                setAddAccountForm((prev) => ({
-                                  ...prev,
-                                  accountName: event.target.value,
-                                }))
-                              }
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#066f48]"
-                              placeholder="Account holder name"
+                              placeholder="Verify account to populate name"
+                              readOnly
                             />
                           </div>
                         </div>
-                        <div className="mt-3 flex justify-end">
+                        <div className="mt-3 flex flex-wrap justify-end gap-2">
+                          <button
+                            onClick={handleVerifyFarmerWithdrawalAccount}
+                            disabled={
+                              verifyingAccount ||
+                              !addAccountForm.bankCode ||
+                              addAccountForm.accountNumber.length !== 10
+                            }
+                            className="px-4 py-2 rounded-lg border border-[#066f48] text-[#066f48] hover:bg-[#ecfdf5] disabled:opacity-60 transition-all flex items-center gap-2 text-sm"
+                          >
+                            {verifyingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                            Verify Account
+                          </button>
                           <button
                             onClick={handleSetFarmerWithdrawalAccount}
-                            disabled={settingAccount}
+                            disabled={settingAccount || !verifiedAccountName}
                             className="px-4 py-2 rounded-lg bg-[#066f48] hover:bg-[#055a3b] disabled:opacity-60 text-white transition-all flex items-center gap-2 text-sm"
                           >
                             {settingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
