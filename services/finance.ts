@@ -101,6 +101,39 @@ class FinanceApi {
     return response.data || response;
   }
 
+  async getAllTransactions(
+    params: TransactionQueryParams = {}
+  ): Promise<TransactionsResponse> {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.append(key, String(value));
+      }
+    });
+
+    const response: any = await apiClient.get(
+      `/admin/transactions?${searchParams.toString()}`
+    );
+    return response.data || response;
+  }
+
+  async getUserTransactions(
+    userId: string,
+    params: TransactionQueryParams = {}
+  ): Promise<TransactionsResponse> {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.append(key, String(value));
+      }
+    });
+
+    const response: any = await apiClient.get(
+      `/admin/transactions/user/${userId}?${searchParams.toString()}`
+    );
+    return response.data || response;
+  }
+
   async fundUserWallet(payload: AdminWalletActionPayload): Promise<any> {
     const response: any = await apiClient.post("/admins/wallet/fund", payload);
     return response.data || response;
