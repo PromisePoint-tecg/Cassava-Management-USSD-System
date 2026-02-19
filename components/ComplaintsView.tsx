@@ -21,6 +21,7 @@ import {
   CreateComplaintPayload,
   UpdateComplaintPayload,
 } from '../services/complaints';
+import { adminApi, Admin } from '../services/admin';
 import { LeafInlineLoader } from './Loader';
 
 const statusOptions: Array<{ value: ComplaintStatus; label: string }> = [
@@ -92,6 +93,12 @@ const getPriorityBadge = (priority: ComplaintPriority) => {
 const getComplainantTypeLabel = (value: ComplaintComplainantType) =>
   complainantTypeOptions.find((option) => option.value === value)?.label ||
   value;
+
+const getAdminDisplayName = (admin?: Admin | null) =>
+  admin?.fullName?.trim() ||
+  `${admin?.firstName || ''} ${admin?.lastName || ''}`.trim() ||
+  admin?.email ||
+  'ADMIN';
 
 const escapeHtml = (value: string) =>
   value
@@ -175,10 +182,15 @@ export const ComplaintsView: React.FC = () => {
     status: 'open',
     priority: 'medium',
     resolutionNotes: '',
+    assignedToAdminId: undefined,
     assignedToAdminName: '',
   });
   const [updateLoading, setUpdateLoading] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [assignableAdmins, setAssignableAdmins] = useState<Admin[]>([]);
+  const [assignAdminsLoading, setAssignAdminsLoading] = useState(false);
+  const [assignAdminsError, setAssignAdminsError] = useState<string | null>(null);
+  const [assignAdminSearch, setAssignAdminSearch] = useState('');
 
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportStartDate, setExportStartDate] = useState('');
@@ -286,19 +298,54 @@ export const ComplaintsView: React.FC = () => {
   const openViewModal = (complaint: ComplaintItem) => {
     setSelectedComplaint(complaint);
     setUpdateError(null);
+    setAssignAdminSearch('');
+    setAssignAdminsError(null);
     setUpdateForm({
       status: complaint.status,
       priority: complaint.priority,
       resolutionNotes: complaint.resolutionNotes || '',
+      assignedToAdminId: complaint.assignedToAdminId || undefined,
       assignedToAdminName: complaint.assignedToAdminName || '',
     });
     setViewModalOpen(true);
+    void loadAssignableAdmins();
   };
 
   const closeViewModal = () => {
     setViewModalOpen(false);
     setSelectedComplaint(null);
     setUpdateError(null);
+  };
+
+  const loadAssignableAdmins = async () => {
+    setAssignAdminsLoading(true);
+    setAssignAdminsError(null);
+
+    try {
+      const fetchedAdmins: Admin[] = [];
+      const pageSize = 100;
+      let currentPage = 1;
+      let totalPagesToLoad = 1;
+
+      do {
+        const response = await adminApi.getAllAdmins({
+          page: currentPage,
+          limit: pageSize,
+          status: 'all',
+        });
+
+        fetchedAdmins.push(...(response.admins || []));
+        totalPagesToLoad = Math.max(1, response.totalPages || 1);
+        currentPage += 1;
+      } while (currentPage <= totalPagesToLoad);
+
+      setAssignableAdmins(fetchedAdmins);
+    } catch (err: any) {
+      setAssignAdminsError(err?.message || 'Failed to fetch admins for assignment.');
+      setAssignableAdmins([]);
+    } finally {
+      setAssignAdminsLoading(false);
+    }
   };
 
   const submitComplaintUpdate = async () => {
@@ -308,11 +355,19 @@ export const ComplaintsView: React.FC = () => {
     setUpdateError(null);
 
     try {
-      const updated = await complaintsApi.updateComplaint(selectedComplaint.id, {
-        ...updateForm,
+      const payload: UpdateComplaintPayload = {
+        status: updateForm.status,
+        priority: updateForm.priority,
         resolutionNotes: updateForm.resolutionNotes?.trim() || undefined,
-        assignedToAdminName: updateForm.assignedToAdminName?.trim() || undefined,
-      });
+      };
+
+      if (updateForm.assignedToAdminId) {
+        payload.assignedToAdminId = updateForm.assignedToAdminId;
+        payload.assignedToAdminName =
+          updateForm.assignedToAdminName?.trim() || undefined;
+      }
+
+      const updated = await complaintsApi.updateComplaint(selectedComplaint.id, payload);
 
       setSelectedComplaint(updated);
       await loadComplaintsData();
@@ -501,6 +556,23 @@ export const ComplaintsView: React.FC = () => {
     [page, totalPages],
   );
 
+  const filteredAssignableAdmins = useMemo(() => {
+    const query = assignAdminSearch.trim().toLowerCase();
+    if (!query) return assignableAdmins;
+
+    return assignableAdmins.filter((admin) => {
+      const candidate = `${admin.fullName || ''} ${admin.firstName || ''} ${admin.lastName || ''} ${admin.email || ''}`.toLowerCase();
+      return candidate.includes(query);
+    });
+  }, [assignableAdmins, assignAdminSearch]);
+
+  const selectedAssignedAdmin = useMemo(
+    () =>
+      assignableAdmins.find((admin) => admin.id === updateForm.assignedToAdminId) ||
+      null,
+    [assignableAdmins, updateForm.assignedToAdminId],
+  );
+
   return (
     <div className="space-y-6 w-full min-w-0 overflow-x-hidden">
       <section className="bg-white border border-gray-200 rounded-2xl px-4 sm:px-6 py-5 shadow-sm">
@@ -680,6 +752,9 @@ export const ComplaintsView: React.FC = () => {
                       {complaint.complainantPhone ? ` • ${complaint.complainantPhone}` : ''}
                     </p>
                     <p className="text-xs text-gray-600 mt-2 capitalize">{complaint.category || 'general'}</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Assigned: {complaint.assignedToAdminName || 'Unassigned'}
+                    </p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getPriorityBadge(
@@ -718,6 +793,7 @@ export const ComplaintsView: React.FC = () => {
                     <th className="px-4 py-3 text-left">Category</th>
                     <th className="px-4 py-3 text-left">Priority</th>
                     <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-left">Assigned Admin</th>
                     <th className="px-4 py-3 text-left">Created At</th>
                     <th className="px-4 py-3 text-left">Action</th>
                   </tr>
@@ -725,7 +801,7 @@ export const ComplaintsView: React.FC = () => {
                 <tbody className="divide-y divide-gray-100">
                   {complaints.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-14 text-center text-gray-500">
+                      <td colSpan={8} className="px-4 py-14 text-center text-gray-500">
                         No complaints found for selected filters.
                       </td>
                     </tr>
@@ -760,6 +836,9 @@ export const ComplaintsView: React.FC = () => {
                           >
                             {complaint.status.replace('_', ' ').toUpperCase()}
                           </span>
+                        </td>
+                        <td className="px-4 py-4 text-gray-700">
+                          {complaint.assignedToAdminName || 'Unassigned'}
                         </td>
                         <td className="px-4 py-4 text-gray-700">{formatDate(complaint.createdAt)}</td>
                         <td className="px-4 py-4">
@@ -1067,19 +1146,71 @@ export const ComplaintsView: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-semibold text-gray-700">Assigned Admin Name</label>
-                <input
-                  value={updateForm.assignedToAdminName || ''}
-                  onChange={(event) =>
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-gray-700">Assign Admin</label>
+                <div className="relative">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={assignAdminSearch}
+                    onChange={(event) => setAssignAdminSearch(event.target.value)}
+                    className="w-full h-11 border border-gray-300 rounded-xl pl-10 pr-3 text-sm"
+                    placeholder="Search admins by name or email"
+                  />
+                </div>
+
+                <select
+                  value={updateForm.assignedToAdminId || ''}
+                  onChange={(event) => {
+                    const adminId = event.target.value;
+                    const selectedAdmin = assignableAdmins.find(
+                      (admin) => admin.id === adminId,
+                    );
+
                     setUpdateForm((previous) => ({
                       ...previous,
-                      assignedToAdminName: event.target.value,
-                    }))
-                  }
-                  className="mt-1 w-full h-11 border border-gray-300 rounded-xl px-3 text-sm"
-                  placeholder="Optional assignment label"
-                />
+                      assignedToAdminId: adminId || undefined,
+                      assignedToAdminName: adminId
+                        ? getAdminDisplayName(selectedAdmin)
+                        : undefined,
+                    }));
+                  }}
+                  disabled={assignAdminsLoading}
+                  className="w-full h-11 border border-gray-300 rounded-xl px-3 text-sm disabled:bg-gray-100 disabled:text-gray-500"
+                >
+                  <option value="">
+                    {assignAdminsLoading ? 'Loading admins...' : 'Select an admin'}
+                  </option>
+                  {filteredAssignableAdmins.map((admin) => (
+                    <option key={admin.id} value={admin.id}>
+                      {getAdminDisplayName(admin)}
+                      {admin.isActive ? '' : ' (Inactive)'}
+                    </option>
+                  ))}
+                </select>
+
+                {assignAdminsError && (
+                  <p className="text-xs text-red-600">{assignAdminsError}</p>
+                )}
+
+                {!assignAdminsLoading &&
+                  !assignAdminsError &&
+                  filteredAssignableAdmins.length === 0 && (
+                    <p className="text-xs text-gray-500">
+                      No admin matches your search.
+                    </p>
+                  )}
+
+                {selectedAssignedAdmin && (
+                  <p className="text-xs text-gray-500">
+                    Selected: {getAdminDisplayName(selectedAssignedAdmin)} ({selectedAssignedAdmin.email})
+                  </p>
+                )}
+
+                {!updateForm.assignedToAdminId && selectedComplaint.assignedToAdminName && (
+                  <p className="text-xs text-amber-700">
+                    Current label: {selectedComplaint.assignedToAdminName}. Select an admin above to link this complaint to a real admin account.
+                  </p>
+                )}
               </div>
 
               <div>
