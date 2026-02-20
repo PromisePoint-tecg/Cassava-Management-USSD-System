@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Users, 
+  Users,
+  GraduationCap,
   Eye, 
   UserX, 
   UserCheck,
@@ -64,7 +65,7 @@ const statementSectionOptions: Array<{
   {
     key: 'personal',
     label: 'Personal Profile',
-    description: 'Farmer identity and registration profile details',
+    description: 'Student farmer identity and registration profile details',
   },
   {
     key: 'wallet',
@@ -89,7 +90,7 @@ const statementSectionOptions: Array<{
   {
     key: 'sessions',
     label: 'USSD Sessions',
-    description: 'Recent farmer USSD session activity',
+    description: 'Recent student farmer USSD session activity',
   },
   {
     key: 'activity',
@@ -98,7 +99,7 @@ const statementSectionOptions: Array<{
   },
 ];
 
-export const FarmersDirectory: React.FC = () => {
+export const StudentFarmersDirectory: React.FC = () => {
   const farmersPageRef = useRef<HTMLDivElement>(null);
   const [farmers, setFarmers] = useState<Farmer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,10 +170,10 @@ export const FarmersDirectory: React.FC = () => {
       };
 
       const [farmersResult, kpiResult] = await Promise.allSettled([
-        farmersApi.getAllFarmers(params),
+        farmersApi.getAllStudentFarmers(params),
         hasInvalidDateRange
           ? Promise.resolve<FarmerDashboardKpiTable | null>(null)
-          : farmersApi.getDashboardKpiTable(dashboardKpiFilters),
+          : farmersApi.getStudentFarmerDashboardKpiTable(dashboardKpiFilters),
       ]);
 
       if (farmersResult.status === 'rejected') {
@@ -192,7 +193,7 @@ export const FarmersDirectory: React.FC = () => {
         setKpiTable(null);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch farmers');
+      setError(err.message || 'Failed to fetch student farmers');
     } finally {
       setLoading(false);
     }
@@ -273,7 +274,7 @@ export const FarmersDirectory: React.FC = () => {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>Farmers KPI Dashboard Export</title>
+          <title>Student Farmers KPI Dashboard Export</title>
           ${styleTags}
           <style>
             body { background: white; margin: 0; padding: 16px; }
@@ -440,14 +441,15 @@ export const FarmersDirectory: React.FC = () => {
   };
 
   const desiredKpiOrder = [
-    'Total Registered Farmers',
     'Total Registered Student Farmers',
-    'Total Registered Staff',
-    'New Registrations (This Period)',
-    'Monthly Active Users (MAU)',
-    'Daily Active Users (DAU)',
+    'New Student Registrations (This Period)',
+    'Monthly Active Student Farmers (MAU)',
+    'Daily Active Student Farmers (DAU)',
     'Repeat Usage Rate',
-    '% Women Farmers',
+    '% Women Student Farmers',
+    'Student Session Completion Rate',
+    'Average Session Time',
+    'Student Account Statements',
   ];
 
   const farmerKpiRows: FarmerDashboardKpiRow[] = desiredKpiOrder
@@ -891,7 +893,7 @@ export const FarmersDirectory: React.FC = () => {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>Farmer Statement - ${safe(viewingFarmer.fullName)}</title>
+          <title>Student Farmer Statement - ${safe(viewingFarmer.fullName)}</title>
           ${styleTags}
           <style>
             body {
@@ -967,7 +969,7 @@ export const FarmersDirectory: React.FC = () => {
         </head>
         <body>
           <div class="header">
-            <h1 class="title">Farmer Statement</h1>
+            <h1 class="title">Student Farmer Statement</h1>
             <p class="meta"><strong>Farmer:</strong> ${safe(viewingFarmer.fullName.toUpperCase())}</p>
             <p class="meta"><strong>Phone:</strong> ${safe(viewingFarmer.phone)}</p>
             <p class="meta"><strong>Generated:</strong> ${formatDateTime(new Date())}</p>
@@ -987,17 +989,17 @@ export const FarmersDirectory: React.FC = () => {
   };
 
   return (
-    <div ref={farmersPageRef} className="space-y-5">
+    <div ref={farmersPageRef} className="space-y-5 w-full min-w-0 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-xl bg-[#066f48]">
-              <Users className="w-6 h-6 text-white" />
+              <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Farmers Directory</h2>
-              <p className="text-sm text-gray-600">{total} total farmers</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Student Farmers Directory</h2>
+              <p className="text-sm text-gray-600">{total} total student farmers</p>
             </div>
           </div>
           <Button
@@ -1012,6 +1014,7 @@ export const FarmersDirectory: React.FC = () => {
               borderRadius: '0.625rem',
               px: 2,
               py: 1,
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': { backgroundColor: '#055a3b' },
             }}
           >
@@ -1047,7 +1050,7 @@ export const FarmersDirectory: React.FC = () => {
                 variant="subtitle1"
                 sx={{ fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}
               >
-                Farmer KPI Snapshot
+                Student Farmer KPI Snapshot
               </Typography>
               <Typography
                 variant="caption"
@@ -1219,7 +1222,7 @@ export const FarmersDirectory: React.FC = () => {
       ) : farmers.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
           <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No farmers found</p>
+          <p className="text-gray-600">No student farmers found</p>
         </div>
       ) : (
         <>
@@ -1243,7 +1246,7 @@ export const FarmersDirectory: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm relative z-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm relative z-10">
                   <div>
                     <span className="text-gray-500">LGA:</span>
                     <p className="font-medium text-gray-800">{farmer.lga.toUpperCase()}</p>
@@ -1322,15 +1325,15 @@ export const FarmersDirectory: React.FC = () => {
 
           {/* Pagination */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-sm text-gray-600">
                 Page {currentPage} of {totalPages}
               </p>
-              <div className="flex gap-2">
+              <div className="flex w-full sm:w-auto gap-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 w-full sm:w-auto"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
@@ -1338,7 +1341,7 @@ export const FarmersDirectory: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all text-gray-700"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-gray-700 w-full sm:w-auto"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />
@@ -1356,18 +1359,18 @@ export const FarmersDirectory: React.FC = () => {
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
               <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-3">
                 <div>
-                  <h3 className="text-lg font-bold text-[#066f48]">Farmer Statement Center</h3>
+                  <h3 className="text-lg font-bold text-[#066f48]">Student Farmer Statement Center</h3>
                   <p className="text-sm text-gray-600 mt-0.5">
                     {viewingFarmer.fullName.toUpperCase()} • {viewingFarmer.phone}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={printFarmerStatement}
-                    className="px-4 py-2 bg-[#066f48] hover:bg-[#055a3b] text-white rounded-lg transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-[#066f48] hover:bg-[#055a3b] text-white rounded-lg transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
                   >
                     <Printer className="w-4 h-4" />
-                    Print Farmer Statement
+                    Print Student Farmer Statement
                   </button>
                   <button
                     onClick={closeViewingFarmerModal}
@@ -1378,7 +1381,7 @@ export const FarmersDirectory: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6 space-y-6 max-h-[84vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-6 max-h-[84vh] overflow-y-auto">
               {actionError && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
@@ -1395,12 +1398,12 @@ export const FarmersDirectory: React.FC = () => {
               <div className="bg-[#f7fcf9] border border-[#d1f5e1] rounded-xl p-4">
                 <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
                   <div>
-                    <h4 className="font-semibold text-[#065f46]">Print Farmer Statement</h4>
+                    <h4 className="font-semibold text-[#065f46]">Print Student Farmer Statement</h4>
                     <p className="text-sm text-gray-600 mt-1">
-                      Select the sections you want on the printable statement for better reporting UX.
+                      Select the sections you want on the printable student farmer statement for better reporting UX.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
                     <button
                       onClick={selectAllStatementSections}
                       className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm"
@@ -1422,7 +1425,7 @@ export const FarmersDirectory: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
                   {statementSectionOptions.map((option) => (
                     <label
                       key={option.key}
@@ -1446,13 +1449,13 @@ export const FarmersDirectory: React.FC = () => {
               {loadingFarmerStatement ? (
                 <div className="py-10 flex flex-col items-center gap-2">
                   <LeafInlineLoader />
-                  <p className="text-sm text-gray-600">Loading farmer statement data...</p>
+                  <p className="text-sm text-gray-600">Loading student farmer statement data...</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                   <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                     <h4 className="font-semibold text-gray-800 mb-3">Personal Information</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-500">Full Name</p>
                         <p className="font-medium text-gray-800">{viewingFarmer.fullName.toUpperCase()}</p>
@@ -1501,7 +1504,7 @@ export const FarmersDirectory: React.FC = () => {
                         {showAddAccountForm ? 'Close Form' : 'Add Account'}
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-500">Wallet Balance</p>
                         <p className="font-semibold text-[#066f48]">{formatNaira(viewingFarmer.walletBalance || 0)}</p>
@@ -1666,7 +1669,7 @@ export const FarmersDirectory: React.FC = () => {
                                 {loan.status}
                               </span>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-gray-600">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-xs text-gray-600">
                               <p>Principal: <span className="font-medium text-gray-800">{formatCurrency(loan.principalAmount)}</span></p>
                               <p>Total Repayment: <span className="font-medium text-gray-800">{formatCurrency(loan.totalRepayment)}</span></p>
                               <p>Paid: <span className="font-medium text-gray-800">{formatCurrency(loan.amountPaid)}</span></p>
@@ -1752,7 +1755,7 @@ export const FarmersDirectory: React.FC = () => {
 
                   <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                     <h4 className="font-semibold text-gray-800 mb-3">Account Activity</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-500">Member Since</p>
                         <p className="font-medium text-gray-800">{formatDate(viewingFarmer.createdAt)}</p>
@@ -1820,7 +1823,7 @@ export const FarmersDirectory: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-200 bg-yellow-50">
-              <h3 className="text-lg font-bold text-yellow-800">Suspend Farmer Account</h3>
+              <h3 className="text-lg font-bold text-yellow-800">Suspend Student Farmer Account</h3>
             </div>
             <div className="p-6 space-y-4">
               {actionError && (

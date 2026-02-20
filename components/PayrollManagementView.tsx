@@ -11,11 +11,13 @@ import {
   type PayrollTransaction,
   type PayrollStatistics as Stats,
   type CreatePayrollDto,
-} from "../api/payroll";
-import { adminApi, type FundOrganizationWalletData } from "../api/admin";
+} from "../services/payroll";
+import { adminApi, type FundOrganizationWalletData } from "../services/admin";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { SuccessModal } from "./SuccessModal";
+import { Wallet, Users, CheckCircle, XCircle, Eye, RefreshCw } from "lucide-react";
+import LeafButtonLoader, { LeafInlineLoader } from "./Loader";
 
 const PayrollManagementView: React.FC = () => {
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
@@ -42,20 +44,19 @@ const PayrollManagementView: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    fetchPayrolls();
-    fetchOrganizationWallet();
+    const loadData = async () => {
+      await Promise.all([fetchPayrolls(), fetchOrganizationWallet()]);
+    };
+    loadData();
   }, [page, filterStatus]);
 
   const fetchOrganizationWallet = async () => {
     try {
       setWalletLoading(true);
       setWalletError(null);
-      console.log("Fetching organization wallet...");
       const wallet = await adminApi.getOrganizationWallet();
-      console.log("Organization wallet received:", wallet);
       setOrganizationWallet(wallet);
     } catch (err: any) {
-      console.error("Failed to fetch organization wallet:", err);
       const errorMsg = err?.response?.data?.message || err?.message || "Wallet not found";
       if (errorMsg.includes("not found") || errorMsg.includes("not a function")) {
         setWalletError("No payroll wallet. Click 'Fund Payroll Wallet' to create one.");
@@ -80,7 +81,6 @@ const PayrollManagementView: React.FC = () => {
       if (filterStatus !== "all") params.status = filterStatus;
 
       const response = await getAllPayrolls(params);
-      console.log("Payroll API response:", response);
       setPayrolls(response.payrolls || []);
       setTotalPages(response.pages || 1);
     } catch (err: any) {
@@ -89,7 +89,6 @@ const PayrollManagementView: React.FC = () => {
         err?.message ||
         "Failed to load payrolls";
       setError(errorMessage);
-      console.error("Error fetching payrolls:", err);
     } finally {
       setLoading(false);
     }
@@ -109,7 +108,6 @@ const PayrollManagementView: React.FC = () => {
         err?.message ||
         "Failed to create payroll";
       setError(errorMessage);
-      console.error("Error creating payroll:", err);
     }
   };
 
@@ -143,10 +141,8 @@ const PayrollManagementView: React.FC = () => {
   ) => {
     try {
       setError(null);
-      console.log("Funding organization wallet with:", data);
       const response = await adminApi.fundOrganizationWallet(data);
-      console.log("Fund wallet response:", response);
-      const newBalance = response?.wallet?.balance || response?.balance || 0;
+      const newBalance = response.wallet.balance;
       setSuccessMessage(
         `Organization wallet funded successfully! New balance: ₦${(
           newBalance / 100
@@ -154,7 +150,6 @@ const PayrollManagementView: React.FC = () => {
       );
       setShowSuccessModal(true);
       setShowFundWalletModal(false);
-      // Refresh wallet balance
       await fetchOrganizationWallet();
     } catch (err: any) {
       const errorMessage =
@@ -162,7 +157,6 @@ const PayrollManagementView: React.FC = () => {
         err?.message ||
         "Failed to fund organization wallet";
       setError(errorMessage);
-      console.error("Error funding organization wallet:", err);
     }
   };
 
@@ -177,111 +171,75 @@ const PayrollManagementView: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      pending: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-          Pending
-        </span>
-      ),
-      processing: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-          Processing
-        </span>
-      ),
-      completed: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-          Completed
-        </span>
-      ),
-      failed: (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-          Failed
-        </span>
-      ),
+      pending: <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">Pending</span>,
+      processing: <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">Processing</span>,
+      completed: <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Completed</span>,
+      failed: <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700 border border-red-200">Failed</span>,
     };
     return badges[status as keyof typeof badges] || status;
   };
 
   if (loading && payrolls.length === 0) {
-    return <LoadingSpinner />;
-  }
-
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="flex items-center justify-center min-h-screen">
+      <LeafInlineLoader />
+    </div>
+  );
+}
+  return (
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Payroll Management
-        </h1>
-        <p className="text-gray-600">
-          Create and process monthly payroll for staff
-        </p>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-lg bg-[#066f48]">
+              <Wallet className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">Payroll Management</h2>
+              <p className="text-sm sm:text-base text-gray-600">Create and process monthly payroll for staff</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Error Message with improved styling */}
+      {/* Error Message */}
       {error && (
-        <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg animate-in fade-in duration-300">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3 flex-1">
-              <p className="text-sm text-red-800 font-medium">{error}</p>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="ml-3 flex-shrink-0 text-red-500 hover:text-red-700"
-            >
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+          <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+          <p className="text-red-800 text-sm flex-1">{error}</p>
+          <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700">
+            ✕
+          </button>
         </div>
       )}
 
       {/* Actions Bar */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-          {/* Filter */}
-          <div className="flex gap-4">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="completed">Completed</option>
-              <option value="failed">Failed</option>
-            </select>
-          </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Completed</option>
+            <option value="failed">Failed</option>
+          </select>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => setShowFundWalletModal(true)}
-              className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap"
+              className="px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-all whitespace-nowrap flex items-center justify-center gap-2"
             >
-              💰 Fund Payroll Wallet
+              <Wallet className="w-4 h-4" />
+              Fund Payroll Wallet
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
+              className="px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-all whitespace-nowrap flex items-center justify-center gap-2"
             >
               + Create Payroll
             </button>
@@ -290,133 +248,158 @@ const PayrollManagementView: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg shadow-sm border border-emerald-200 p-5 hover:shadow-md transition-all">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Wallet Balance Card */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-emerald-700">Payroll Wallet Balance</div>
+            <div className="text-sm font-medium text-gray-700">Payroll Wallet</div>
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
           </div>
-          <div className="mt-2">
-            {walletLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-emerald-600"></div>
-                <span className="text-lg text-emerald-600 font-medium">Loading...</span>
-              </div>
-            ) : walletError ? (
-              <div className="text-sm text-red-600 font-medium">{walletError}</div>
-            ) : (
-              <div className="text-2xl font-bold text-emerald-900 tracking-tight break-words">
-                {formatCurrency(organizationWallet?.balance || 0)}
-              </div>
-            )}
-          </div>
+          {walletLoading ? (
+            <div className="text-lg text-gray-600 font-medium">Loading...</div>
+          ) : walletError ? (
+            <div className="text-sm text-red-600 font-medium">{walletError}</div>
+          ) : (
+            <div className="text-2xl sm:text-3xl font-bold text-gray-800 break-words">
+              {formatCurrency(organizationWallet?.balance || 0)}
+            </div>
+          )}
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-1">
+
+        {/* Pending Card */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
             <div className="text-sm text-gray-600">Pending</div>
             <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-gray-600">
+          <div className="text-2xl sm:text-3xl font-bold text-gray-700">
             {payrolls.filter((p) => p.status === "pending").length}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-1">
+
+        {/* Completed Card */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
             <div className="text-sm text-gray-600">Completed</div>
             <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-emerald-600">
+          <div className="text-2xl sm:text-3xl font-bold text-emerald-700">
             {payrolls.filter((p) => p.status === "completed").length}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-1">
+
+        {/* Failed Card */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
             <div className="text-sm text-gray-600">Failed</div>
-            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-gray-700">
+          <div className="text-2xl sm:text-3xl font-bold text-gray-700">
             {payrolls.filter((p) => p.status === "failed").length}
           </div>
         </div>
       </div>
 
-      {/* Payroll Table - Full width */}
-      <div className="flex-1 flex flex-col bg-white rounded-lg shadow overflow-hidden min-h-0">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Payroll Records</h2>
-        </div>
-        <div className="flex-1 overflow-x-auto overflow-y-auto">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+      {/* Mobile Card View */}
+      <div className="lg:hidden space-y-4">
+        {payrolls.map((payroll) => (
+          <div key={payroll.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div className="space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-gray-800">{payroll.periodLabel}</h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {new Date(payroll.periodStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })} - {new Date(payroll.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </p>
+                </div>
+                {getStatusBadge(payroll.status)}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500">Staff:</span>
+                  <p className="font-medium text-gray-800">{payroll.totalStaffCount}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Net Amount:</span>
+                  <p className="font-medium text-gray-800">{formatCurrency(payroll.totalNetAmount)}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Processed:</span>
+                  <p className="font-medium text-green-600">{payroll.processedStaffCount}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Failed:</span>
+                  <p className="font-medium text-red-600">{payroll.failedStaffCount}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setSelectedPayroll(payroll);
+                    setShowDetailsModal(true);
+                  }}
+                  className="flex-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  View
+                </button>
+                {(payroll.status === "pending" || payroll.status === "failed") && (
+                  <button
+                    onClick={() => {
+                      setSelectedPayroll(payroll);
+                      setShowProcessModal(true);
+                    }}
+                    className="flex-1 px-3 py-2 text-sm bg-emerald-600 rounded-lg text-white hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    {payroll.status === "failed" ? "Retry" : "Process"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden lg:block bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-gray-600">
+            <thead className="bg-gray-50 text-gray-700 font-medium uppercase text-xs border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Period
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Staff
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Net Amount
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pension
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-3">Period</th>
+                <th className="px-6 py-3">Staff</th>
+                <th className="px-6 py-3 text-right">Net Amount</th>
+                <th className="px-6 py-3 text-right">Pension</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {payrolls.map((payroll) => (
-                <tr key={payroll.id} className="hover:bg-gray-50">
+                <tr key={payroll.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {payroll.periodLabel}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {new Date(payroll.periodStart).toLocaleDateString(
-                          "en-US",
-                          { month: "short", day: "numeric" }
-                        )}{" "}
-                        -{" "}
-                        {new Date(payroll.periodEnd).toLocaleDateString(
-                          "en-US",
-                          { month: "short", day: "numeric" }
-                        )}
-                      </div>
+                    <div className="text-sm font-medium text-gray-800">{payroll.periodLabel}</div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(payroll.periodStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })} - {new Date(payroll.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">
-                      {payroll.totalStaffCount}
-                    </div>
+                    <div className="text-sm font-semibold text-gray-800">{payroll.totalStaffCount}</div>
                     <div className="text-xs text-gray-500">
-                      <span className="text-emerald-600">
-                        ✓{payroll.processedStaffCount}
-                      </span>{" "}
-                      <span className="text-gray-600">
-                        ✗{payroll.failedStaffCount}
-                      </span>
+                      <span className="text-emerald-600">✓{payroll.processedStaffCount}</span> <span className="text-red-600">✗{payroll.failedStaffCount}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {formatCurrency(payroll.totalNetAmount)}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Gross: {formatCurrency(payroll.totalGrossAmount)}
-                    </div>
+                    <div className="text-sm font-medium text-gray-800">{formatCurrency(payroll.totalNetAmount)}</div>
+                    <div className="text-xs text-gray-500">Gross: {formatCurrency(payroll.totalGrossAmount)}</div>
                   </td>
                   <td className="px-6 py-4 text-right text-sm font-medium text-emerald-600 whitespace-nowrap">
                     {formatCurrency(payroll.totalPensionAmount)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(payroll.status)}
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(payroll.status)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex flex-col gap-1">
                       <button
@@ -446,53 +429,34 @@ const PayrollManagementView: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Pagination */}
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Page <span className="font-medium">{page}</span> of{" "}
-                <span className="font-medium">{totalPages}</span>
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </nav>
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
+            <p className="text-sm text-gray-600">
+              Page <span className="font-medium">{page}</span> of <span className="font-medium">{totalPages}</span>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Modals */}
       {showDetailsModal && selectedPayroll && (
@@ -869,7 +833,7 @@ const PayrollTransactionsModal: React.FC<{
           </div>
 
           {loading ? (
-            <LoadingSpinner />
+            <LeafInlineLoader />
           ) : (
             <>
               <div className="overflow-y-auto max-h-96">

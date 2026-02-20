@@ -7,11 +7,13 @@ import {
   XCircle,
   Loader2,
   RefreshCw,
+  Leaf,
 } from "lucide-react";
-import { staffApi, StaffProfile } from "../api/staff";
+import { staffApi, StaffProfile } from "../services/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";
+import LeafInlineLoader from "./Loader";
 
 interface DocumentsPageProps {
   onLogout: () => void;
@@ -20,6 +22,7 @@ interface DocumentsPageProps {
 export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingNIN, setUploadingNIN] = useState(false);
   const [submittingBVN, setSubmittingBVN] = useState(false);
@@ -37,6 +40,7 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
   const loadProfile = async () => {
     try {
       setLoading(true);
+      setRefreshing(true);
       setError(null);
       const data = await staffApi.getProfile();
       setProfile(data);
@@ -45,13 +49,13 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
         err.message?.includes("Invalid or expired token") ||
         err.message?.includes("401")
       ) {
-        // Token is invalid, logout
         onLogout();
         return;
       }
       setError(err.message || "Failed to load profile");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -80,7 +84,6 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
         err.message?.includes("Invalid or expired token") ||
         err.message?.includes("401")
       ) {
-        // Token is invalid, logout
         onLogout();
         return;
       }
@@ -119,7 +122,6 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
         err.message?.includes("Invalid or expired token") ||
         err.message?.includes("401")
       ) {
-        // Token is invalid, logout
         onLogout();
         return;
       }
@@ -138,7 +140,7 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
       currentPath={location.pathname}
     >
       {loading && !profile ? (
-        <LoadingSpinner message="Loading documents..." />
+        <LeafInlineLoader />
       ) : error && !profile ? (
         <ErrorMessage
           title="Error Loading Documents"
@@ -146,27 +148,32 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
           onRetry={loadProfile}
         />
       ) : (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                Identity Documents
-              </h2>
-              <p className="text-gray-600 mt-1">
-                Upload your NIN document and enter your BVN
-              </p>
+        <div className="space-y-5">
+          {/* Header */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                  Identity Documents
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Upload your NIN document and enter your BVN
+                </p>
+              </div>
+              <button
+                onClick={loadProfile}
+                disabled={refreshing}
+                className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center sm:justify-start"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
             </div>
-            <button
-              onClick={loadProfile}
-              className="flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </button>
           </div>
 
+          {/* Success Message */}
           {uploadSuccess && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 shadow-sm">
               <div className="flex items-start">
                 <CheckCircle2 className="w-5 h-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-green-800">{uploadSuccess}</div>
@@ -174,8 +181,9 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
             </div>
           )}
 
+          {/* Error Message */}
           {uploadError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
               <div className="flex items-center">
                 <XCircle className="w-5 h-5 text-red-600 mr-2" />
                 <p className="text-sm text-red-800">{uploadError}</p>
@@ -183,23 +191,23 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* NIN Upload - Only show if not already uploaded */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* NIN Upload */}
             {!profile.hasNin && (
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                       National Identification Number (NIN)
                     </h3>
                     {profile.nin && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         NIN: {profile.nin}
                       </p>
                     )}
                   </div>
                   {profile.ninDocumentUrl && (
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
                   )}
                 </div>
                 <div className="space-y-3">
@@ -211,7 +219,7 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
                       disabled={uploadingNIN}
                       className="hidden"
                     />
-                    <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors">
+                    <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all">
                       {uploadingNIN ? (
                         <>
                           <Loader2 className="w-5 h-5 mr-2 animate-spin text-green-600" />
@@ -236,38 +244,38 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
                       href={profile.ninDocumentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-center px-4 py-2 text-sm text-green-600 hover:text-green-700 border border-green-300 rounded-lg hover:bg-green-50"
+                      className="block text-center px-4 py-2 text-sm text-green-600 hover:text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-all"
                     >
                       View Document
                     </a>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-600">
                     Accepted formats: JPG, PNG, PDF. Max size: 5MB
                   </p>
                 </div>
               </div>
             )}
 
-            {/* BVN Input - Only show if not already added */}
+            {/* BVN Input */}
             {!profile.hasBvn && (
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                       Bank Verification Number (BVN)
                     </h3>
                     {profile.bvn && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         BVN: {profile.bvn}
                       </p>
                     )}
                   </div>
                   {profile.bvn && (
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
                   )}
                 </div>
                 <div className="space-y-3">
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <input
                       type="text"
                       value={bvnInput}
@@ -278,14 +286,14 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
                       }
                       placeholder="Enter 11-digit BVN"
                       disabled={submittingBVN || !!profile.bvn}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+                      className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 text-gray-900 placeholder-gray-500 transition-all"
                     />
                     <button
                       onClick={handleBVNSubmit}
                       disabled={
                         submittingBVN || !bvnInput.trim() || !!profile.bvn
                       }
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-sm transition-all w-full sm:w-auto"
                     >
                       {submittingBVN ? (
                         <>
@@ -297,23 +305,23 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({ onLogout }) => {
                       )}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-600">
                     Enter your 11-digit Bank Verification Number
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Show completion message if both are uploaded */}
+            {/* Completion Message */}
             {profile.hasNin && profile.hasBvn && (
-              <div className="col-span-full bg-green-50 border border-green-200 rounded-xl p-6 shadow-sm">
-                <div className="flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-green-600 mr-3" />
+              <div className="col-span-full bg-green-50 border border-green-200 rounded-xl shadow-sm p-5">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <CheckCircle2 className="w-8 h-8 text-green-600 flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-semibold text-green-900">
+                    <h3 className="text-base sm:text-lg font-semibold text-green-900">
                       All Documents Submitted
                     </h3>
-                    <p className="text-green-700 mt-1">
+                    <p className="text-sm text-green-700 mt-1">
                       Your NIN document and BVN have been successfully uploaded
                       and verified.
                     </p>

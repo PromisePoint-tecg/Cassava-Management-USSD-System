@@ -9,10 +9,11 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react";
-import { staffApi, StaffProfile } from "../api/staff";
+import { staffApi, StaffProfile } from "../services/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";
+import LeafInlineLoader, { LeafLoader } from "./Loader";
 
 interface ProfilePageProps {
   onLogout: () => void;
@@ -22,12 +23,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [uploadingNIN, setUploadingNIN] = useState(false);
-  const [uploadingBVN, setUploadingBVN] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState<React.ReactNode | null>(
-    null
-  );
   const location = useLocation();
 
   useEffect(() => {
@@ -45,85 +40,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
         err.message?.includes("Invalid or expired token") ||
         err.message?.includes("401")
       ) {
-        // Token is invalid, logout
         onLogout();
         return;
       }
       setError(err.message || "Failed to load profile");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleNINUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size must be less than 5MB");
-      return;
-    }
-
-    try {
-      setUploadingNIN(true);
-      setUploadError(null);
-      setUploadSuccess(null);
-
-      await staffApi.uploadNIN(file);
-
-      setUploadSuccess("NIN document uploaded successfully!");
-      await loadProfile();
-
-      setTimeout(() => setUploadSuccess(null), 3000);
-    } catch (err: any) {
-      if (
-        err.message?.includes("Invalid or expired token") ||
-        err.message?.includes("401")
-      ) {
-        // Token is invalid, logout
-        onLogout();
-        return;
-      }
-      setUploadError(err.message || "Failed to upload NIN document");
-    } finally {
-      setUploadingNIN(false);
-      e.target.value = "";
-    }
-  };
-
-  const handleBVNUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size must be less than 5MB");
-      return;
-    }
-
-    try {
-      setUploadingBVN(true);
-      setUploadError(null);
-      setUploadSuccess(null);
-
-      await staffApi.uploadBVN(file);
-
-      setUploadSuccess("BVN document uploaded successfully!");
-      await loadProfile();
-
-      setTimeout(() => setUploadSuccess(null), 3000);
-    } catch (err: any) {
-      if (
-        err.message?.includes("Invalid or expired token") ||
-        err.message?.includes("401")
-      ) {
-        // Token is invalid, logout
-        onLogout();
-        return;
-      }
-      setUploadError(err.message || "Failed to upload BVN document");
-    } finally {
-      setUploadingBVN(false);
-      e.target.value = "";
     }
   };
 
@@ -136,7 +58,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
       currentPath={location.pathname}
     >
       {loading ? (
-        <LoadingSpinner message="Loading profile..." />
+        <LeafInlineLoader />
       ) : error ? (
         <ErrorMessage
           title="Error Loading Profile"
@@ -144,57 +66,61 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
           onRetry={loadProfile}
         />
       ) : (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">My Profile</h2>
-              <p className="text-gray-600 mt-1">
-                View and manage your personal information
-              </p>
+        <div className="space-y-5">
+          {/* Header */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">My Profile</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  View and manage your personal information
+                </p>
+              </div>
+              <button
+                onClick={loadProfile}
+                className="flex items-center px-4 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </button>
             </div>
-            <button
-              onClick={loadProfile}
-              className="flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </button>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          {/* Personal Information */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <User className="w-5 h-5 mr-2 text-green-600" />
               Personal Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <p className="text-xs text-gray-500 mb-1">Full Name</p>
+                <p className="text-xs text-gray-600 mb-1">Full Name</p>
                 <p className="text-sm font-medium text-gray-900">
                   {profile.firstName} {profile.lastName}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Email</p>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-xs text-gray-600 mb-1">Email</p>
+                <p className="text-sm font-medium text-gray-900 break-all">
                   {profile.email}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Phone Number</p>
+                <p className="text-xs text-gray-600 mb-1">Phone Number</p>
                 <p className="text-sm font-medium text-gray-900">
                   {profile.phone}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Role</p>
+                <p className="text-xs text-gray-600 mb-1">Role</p>
                 <p className="text-sm font-medium text-gray-900 capitalize">
                   {profile.role}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Status</p>
+                <p className="text-xs text-gray-600 mb-1">Status</p>
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  className={`inline-block px-2 py-1 text-xs font-medium rounded-lg ${
                     profile.isActive
                       ? "bg-green-100 text-green-800"
                       : "bg-gray-100 text-gray-800"
@@ -203,156 +129,95 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
                   {profile.isActive ? "Active" : "Inactive"}
                 </span>
               </div>
-              {profile.nin && (
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">NIN</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {profile.nin}
-                  </p>
-                </div>
-              )}
-              {profile.bvn && (
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">BVN</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {profile.bvn}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
           {/* Documents Section */}
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-green-600" />
               Identity Documents
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm text-gray-600 mb-5">
               Upload and manage your NIN and BVN documents
             </p>
 
-            {uploadSuccess && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                <div className="flex items-start">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-green-800">{uploadSuccess}</div>
-                </div>
-              </div>
-            )}
-
-            {uploadError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <div className="flex items-center">
-                  <XCircle className="w-5 h-5 text-red-600 mr-2" />
-                  <p className="text-sm text-red-800">{uploadError}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* NIN Upload */}
-              <div className="border border-gray-200 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* NIN Document */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h4 className="text-base font-semibold text-gray-900 mb-1">
                       National Identification Number (NIN)
                     </h4>
-                    {profile.nin && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        NIN: {profile.nin}
-                      </p>
-                    )}
+                    <p className="text-xs text-gray-600">
+                      Your NIN document for verification
+                    </p>
                   </div>
-                  {profile.ninDocumentUrl && (
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                  {profile.hasNin ? (
+                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                  ) : (
+                    <XCircle className="w-6 h-6 text-gray-400 flex-shrink-0" />
                   )}
                 </div>
-                <div className="space-y-3">
-                  <label className="block">
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={handleNINUpload}
-                      disabled={uploadingNIN}
-                      className="hidden"
-                    />
-                    <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors">
-                      {uploadingNIN ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin text-green-600" />
-                          <span className="text-sm text-gray-700">
-                            Uploading...
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-5 h-5 mr-2 text-gray-600" />
-                          <span className="text-sm text-gray-700">
-                            {profile.ninDocumentUrl
-                              ? "Replace NIN Document"
-                              : "Upload NIN Document"}
-                          </span>
-                        </>
-                      )}
+
+                {profile.hasNin && profile.ninDocumentUrl ? (
+                  <div className="space-y-3">
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <p className="text-xs text-gray-600 mb-1">Status</p>
+                      <p className="text-sm font-medium text-green-600">Uploaded</p>
                     </div>
-                  </label>
-                  <p className="text-xs text-gray-500">
-                    Accepted formats: JPG, PNG, PDF. Max size: 5MB
-                  </p>
-                </div>
+                    <a
+                      href={profile.ninDocumentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-center px-4 py-2 text-sm text-white bg-green-600 hover:bg-green-700 rounded-lg transition-all shadow-sm"
+                    >
+                      View Document
+                    </a>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs text-amber-800">
+                      Please upload your NIN document in the Documents section
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* BVN Upload */}
-              <div className="border border-gray-200 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900">
+              {/* BVN */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h4 className="text-base font-semibold text-gray-900 mb-1">
                       Bank Verification Number (BVN)
                     </h4>
-                    {profile.bvn && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        BVN: {profile.bvn}
-                      </p>
-                    )}
+                    <p className="text-xs text-gray-600">
+                      Your 11-digit BVN for verification
+                    </p>
                   </div>
-                  {profile.bvnDocumentUrl && (
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                  {profile.hasBvn ? (
+                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                  ) : (
+                    <XCircle className="w-6 h-6 text-gray-400 flex-shrink-0" />
                   )}
                 </div>
-                <div className="space-y-3">
-                  <label className="block">
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={handleBVNUpload}
-                      disabled={uploadingBVN}
-                      className="hidden"
-                    />
-                    <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors">
-                      {uploadingBVN ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin text-green-600" />
-                          <span className="text-sm text-gray-700">
-                            Uploading...
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-5 h-5 mr-2 text-gray-600" />
-                          <span className="text-sm text-gray-700">
-                            {profile.bvnDocumentUrl
-                              ? "Replace BVN Document"
-                              : "Upload BVN Document"}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </label>
-                  <p className="text-xs text-gray-500">
-                    Accepted formats: JPG, PNG, PDF. Max size: 5MB
-                  </p>
-                </div>
+
+                {profile.hasBvn && profile.bvn ? (
+                  <div className="bg-white border border-gray-200 rounded-lg p-3">
+                    <p className="text-xs text-gray-600 mb-1">BVN Number</p>
+                    <p className="text-base font-mono font-medium text-gray-900">
+                      {profile.bvn}
+                    </p>
+                    <p className="text-xs text-green-600 mt-2">✓ Verified</p>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs text-amber-800">
+                      Please add your BVN in the Documents section
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

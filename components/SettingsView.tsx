@@ -8,9 +8,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { SystemSettings } from "../types";
-import { settingsApi } from "../api/settings";
+import { settingsApi } from "../services/settings";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
+import LeafInlineLoader from "./Loader";
 
 interface SettingsViewProps {
   onSave: (settings: SystemSettings) => void;
@@ -36,8 +37,8 @@ const Toggle = ({
     }`}
   >
     <div>
-      <h3 className="text-sm font-medium text-gray-900">{label}</h3>
-      <p className="text-sm text-gray-500">{description}</p>
+      <h3 className="text-sm font-medium text-gray-800">{label}</h3>
+      <p className="text-sm text-gray-600">{description}</p>
     </div>
     <button
       onClick={() => !disabled && onChange(!checked)}
@@ -103,7 +104,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading system settings..." />;
+    return <LeafInlineLoader />;
   }
 
   if (error) {
@@ -117,40 +118,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-          System Configuration
-        </h2>
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex items-center px-4 sm:px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm focus:ring-4 focus:ring-emerald-100 w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Save className="w-4 h-4 mr-2" />
-          {loading
-            ? "Saving..."
-            : isSaved
-            ? "Saved Successfully!"
-            : "Save Changes"}
-        </button>
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-[#066f48] shadow-lg">
+              <Sliders className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">System Configuration</h2>
+              <p className="text-sm text-gray-600">Manage your system settings and pricing</p>
+            </div>
+          </div>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex items-center px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md focus:ring-4 focus:ring-emerald-100 w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {loading
+              ? "Saving..."
+              : isSaved
+              ? "Saved Successfully!"
+              : "Save Changes"}
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6">
-        {/* Pricing & Financials */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 max-w-2xl">
-          <div className="flex items-center mb-6">
-            <div className="p-2 bg-emerald-50 rounded-lg mr-3">
-              <Sliders className="w-5 h-5 text-emerald-600" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-800">
-              Cassava Pricing Configuration
-            </h3>
-          </div>
-
-          <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Grid Layout for Settings Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Price per Kilogram Card */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Price per Kilogram (₦/kg)
               </label>
               <div className="relative rounded-md shadow-sm">
@@ -172,13 +175,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   }
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-gray-500">
                 Price for small-scale purchases (under 1000kg).
               </p>
             </div>
+          </div>
 
+          {/* Tax Rate Card */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Payroll Tax Rate (%)
               </label>
               <div className="relative rounded-md shadow-sm">
@@ -198,12 +204,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <span className="text-gray-500 sm:text-sm">%</span>
                 </div>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-gray-500">
                 Tax rate applied to payroll calculations (e.g., 7.5 for 7.5%).
               </p>
             </div>
+          </div>
 
+          {/* Price per Ton Card */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Price per Ton (₦/ton)
+              </label>
               <div className="relative rounded-md shadow-sm">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <span className="text-gray-500 sm:text-sm">₦</span>
@@ -223,48 +235,50 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   }
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Bulk pricing for large purchases (1000kg and above). 1 ton =
-                1000kg.
+              <p className="mt-2 text-xs text-gray-500">
+                Bulk pricing for large purchases (1000kg and above). 1 ton = 1000kg.
               </p>
             </div>
+          </div>
+        </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <Sliders
-                    className="h-5 w-5 text-blue-400"
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">
-                    System Configuration Summary
-                  </h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <p>Current settings:</p>
-                    <ul className="list-disc list-inside mt-1 space-y-1">
-                      <li>
-                        <strong>Retail pricing:</strong> ₦
-                        {formData.cassavaPricePerKg}/kg for orders under 1000kg
-                      </li>
-                      <li>
-                        <strong>Bulk pricing:</strong> ₦
-                        {(formData.cassavaPricePerTon / 1000).toFixed(2)}/kg for
-                        orders 1000kg and above
-                      </li>
-                      <li>
-                        <strong>Payroll tax rate:</strong> {formData.taxRate}%
-                        applied to all payroll calculations
-                      </li>
-                    </ul>
-                  </div>
+        {/* Summary Card */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <div>
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <Sliders
+                  className="h-5 w-5 text-[#066f48]"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-gray-800">
+                  System Configuration Summary
+                </h3>
+                <div className="mt-2 text-sm text-gray-700">
+                  <p>Current settings:</p>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>
+                      <strong>Retail pricing:</strong> ₦
+                      {formData.cassavaPricePerKg}/kg for orders under 1000kg
+                    </li>
+                    <li>
+                      <strong>Bulk pricing:</strong> ₦
+                      {(formData.cassavaPricePerTon / 1000).toFixed(2)}/kg for
+                      orders 1000kg and above
+                    </li>
+                    <li>
+                      <strong>Payroll tax rate:</strong> {formData.taxRate}%
+                      applied to all payroll calculations
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };

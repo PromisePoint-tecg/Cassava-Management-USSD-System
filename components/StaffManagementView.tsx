@@ -11,10 +11,11 @@ import {
   type RegisterStaffDto,
   type UpdateStaffDto,
   type ApproveStaffDto,
-} from "../api/staff";
+} from "../services/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { SuccessModal } from "./SuccessModal";
+import LeafInlineLoader, { LeafLoader } from "./Loader";
 
 interface StaffManagementViewProps {
   adminId: string;
@@ -148,39 +149,56 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
   const getStatusBadge = (staff: Staff) => {
     if (!staff.isApproved) {
       return (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
+        <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-100/90 text-amber-700 border border-amber-200/50 backdrop-blur-sm">
           Pending Approval
         </span>
       );
     }
     if (!staff.isActive) {
       return (
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+        <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-red-100/90 text-red-700 border border-red-200/50 backdrop-blur-sm">
           Deactivated
         </span>
       );
     }
     return (
-      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+      <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-green-100/90 text-green-700 border border-green-200/50 backdrop-blur-sm">
         Active
       </span>
     );
   };
 
   if (loading && staff.length === 0) {
-    return <LoadingSpinner />;
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+          <LeafInlineLoader />
+        </div>
+      );
   }
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Staff Management
-        </h1>
-        <p className="text-gray-600">
-          Manage staff members, approvals, and salaries
-        </p>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+              Staff Management
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
+              Manage staff members, approvals, and salaries
+            </p>
+          </div>
+          <button
+            onClick={() => setShowRegisterModal(true)}
+            className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all text-sm sm:text-base whitespace-nowrap"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Register Staff
+          </button>
+        </div>
 
         {/* Pending Approvals Alert */}
         {staff && staff.filter((s) => !s.isApproved).length > 0 && (
@@ -219,115 +237,110 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
         )}
       </div>
 
-      {/* Error Message with improved styling */}
+      {/* Error Message */}
       {error && (
-        <div className="mb-4 bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg animate-in fade-in duration-300">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3 flex-1">
-              <p className="text-sm text-red-800 font-medium">{error}</p>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="ml-3 flex-shrink-0 text-red-500 hover:text-red-700"
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start shadow-sm">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-red-500"
+              viewBox="0 0 20 20"
+              fill="currentColor"
             >
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
           </div>
+          <div className="ml-3 flex-1">
+            <p className="text-sm text-red-800 font-medium">{error}</p>
+          </div>
+          <button
+            onClick={() => setError(null)}
+            className="ml-3 flex-shrink-0 text-red-500 hover:text-red-700"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
         </div>
       )}
 
-      {/* Actions Bar */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
+      {/* Filters */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           {/* Search */}
-          <div className="flex-1">
-            <div className="flex gap-2">
+          <div className="flex-1 flex gap-2">
+            <div className="relative flex-1">
+              <svg className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
               <input
                 type="text"
-                placeholder="Search by name, phone, or employee ID..."
+                placeholder="Search by name or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#066f48] focus:border-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500 text-sm sm:text-base"
               />
-              <button
-                onClick={handleSearch}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Search
-              </button>
             </div>
+            <button
+              onClick={handleSearch}
+              className="px-4 sm:px-5 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all whitespace-nowrap text-sm sm:text-base"
+            >
+              Search
+            </button>
           </div>
 
           {/* Filters */}
           <select
-            value={filterApproval}
-            onChange={(e) => setFilterApproval(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          >
-            <option value="all">All Approvals</option>
-            <option value="approved">Approved</option>
-            <option value="pending">Pending</option>
-          </select>
-
-          <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-800 text-sm sm:text-base"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
 
-          {/* Register Button */}
-          <button
-            onClick={() => setShowRegisterModal(true)}
-            className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap"
+          <select
+            value={filterApproval}
+            onChange={(e) => setFilterApproval(e.target.value)}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-800 text-sm sm:text-base"
           >
-            + Register Staff
-          </button>
+            <option value="all">All Approvals</option>
+            <option value="approved">Approved</option>
+            <option value="pending">Pending</option>
+          </select>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
           <div className="text-sm text-gray-600 mb-1">Total Staff</div>
-          <div className="text-3xl font-bold text-gray-900">
+          <div className="text-2xl sm:text-3xl font-bold text-gray-800">
             {staff?.length || 0}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
           <div className="flex items-center justify-between mb-1">
             <div className="text-sm text-gray-600">Active</div>
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-green-600">
+          <div className="text-2xl sm:text-3xl font-bold text-green-600">
             {staff?.filter((s) => s.isActive && s.isApproved).length || 0}
           </div>
         </div>
+
         <div
-          className="bg-white rounded-lg shadow-sm border border-amber-200 p-4 cursor-pointer hover:shadow-md hover:border-amber-300 transition-all"
+          className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 cursor-pointer hover:shadow-md transition-all"
           onClick={() => setFilterApproval("pending")}
         >
           <div className="flex items-center justify-between mb-1">
@@ -339,7 +352,7 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
               </span>
             )}
           </div>
-          <div className="text-3xl font-bold text-amber-600">
+          <div className="text-2xl sm:text-3xl font-bold text-amber-600">
             {staff?.filter((s) => !s.isApproved).length || 0}
           </div>
           {staff && staff.filter((s) => !s.isApproved).length > 0 && (
@@ -348,47 +361,136 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
             </div>
           )}
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all">
           <div className="flex items-center justify-between mb-1">
             <div className="text-sm text-gray-600">Deactivated</div>
             <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
           </div>
-          <div className="text-3xl font-bold text-gray-600">
+          <div className="text-2xl sm:text-3xl font-bold text-gray-600">
             {staff?.filter((s) => !s.isActive && s.isApproved).length || 0}
           </div>
         </div>
       </div>
 
-      {/* Staff Table - Flex grow to fill remaining space */}
-      <div className="flex-1 flex flex-col bg-white rounded-lg shadow overflow-hidden min-h-0">
-        <div className="flex-1 overflow-x-auto overflow-y-auto">
+      {/* Staff Table */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* Mobile Card View */}
+        <div className="lg:hidden space-y-4 p-4">
+          {staff?.map((member) => (
+            <div key={member.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-gray-800">{member.fullName}</h3>
+                    <p className="text-xs text-gray-600 mt-1">{member.employeeId}</p>
+                    <p className="text-xs text-gray-600">{member.phone}</p>
+                  </div>
+                  {getStatusBadge(member)}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-500">Role:</span>
+                    <p className="font-medium text-gray-800">{member.role}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Department:</span>
+                    <p className="font-medium text-gray-800">{member.department}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Salary:</span>
+                    <p className="font-medium text-gray-800">{formatCurrency(member.monthlySalary)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Pension:</span>
+                    <p className="font-medium text-gray-800">{formatCurrency(member.pensionContributions)}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setSelectedStaff(member);
+                      setShowDetailsModal(true);
+                    }}
+                    className="flex-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg text-emerald-600 hover:bg-gray-50 transition-all font-medium"
+                  >
+                    View
+                  </button>
+                  {!member.isApproved && (
+                    <button
+                      onClick={() => handleApprove(member)}
+                      className="flex-1 px-3 py-2 text-sm bg-green-600 rounded-lg text-white hover:bg-green-700 transition-all font-medium"
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {member.isApproved && member.isActive && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setSelectedStaff(member);
+                          setShowEditModal(true);
+                        }}
+                        className="px-3 py-2 text-sm bg-white border border-amber-300 rounded-lg text-amber-600 hover:bg-amber-50 transition-all font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedStaff(member);
+                          setShowDeactivateModal(true);
+                        }}
+                        className="px-3 py-2 text-sm bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 transition-all font-medium"
+                      >
+                        Deactivate
+                      </button>
+                    </>
+                  )}
+                  {member.isApproved && !member.isActive && (
+                    <button
+                      onClick={() => handleReactivate(member.id)}
+                      className="flex-1 px-3 py-2 text-sm bg-green-600 rounded-lg text-white hover:bg-green-700 transition-all font-medium"
+                    >
+                      Reactivate
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Employee
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Role & Department
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Monthly Salary
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Pension
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {staff?.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={member.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
                         {member.fullName}
@@ -401,22 +503,22 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{member.role}</div>
                     <div className="text-sm text-gray-500">
                       {member.department}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatCurrency(member.monthlySalary)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatCurrency(member.pensionContributions)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(member)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex gap-3">
                       <button
                         onClick={() => {
@@ -477,53 +579,35 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Pagination - Sticky at bottom */}
-        <div className="flex-shrink-0 bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Page <span className="font-medium">{page}</span> of{" "}
-                <span className="font-medium">{totalPages}</span>
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </nav>
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
+            <p className="text-sm text-gray-600">
+              Page <span className="font-medium">{page}</span> of{" "}
+              <span className="font-medium">{totalPages}</span>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Modals */}
       {showDetailsModal && selectedStaff && (
@@ -608,14 +692,14 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Staff Details</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200 my-auto">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-start">
+            <h2 className="text-2xl font-bold text-[#066f48]">Staff Details</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -632,210 +716,210 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
               </svg>
             </button>
           </div>
+        </div>
 
-          <div className="space-y-6">
-            {/* Personal Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Personal Information
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-600">Full Name</label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.fullName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">Employee ID</label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.employeeId}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">Phone</label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.phone}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">LGA</label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.lga}
-                  </p>
-                </div>
+        <div className="p-6 space-y-6">
+          {/* Personal Information */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Personal Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-600">Full Name</label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.fullName}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Employee ID</label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.employeeId}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Phone</label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.phone}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">LGA</label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.lga}
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Identity Documents */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Identity Documents
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-600">NIN</label>
-                  {staff.nin ? (
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Uploaded
-                      </span>
-                      <a
-                        href={staff.nin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-700 hover:text-green-900 text-sm underline"
-                      >
-                        View Document
-                      </a>
-                    </div>
-                  ) : (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                      Not Uploaded
+          {/* Identity Documents */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Identity Documents
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-600">NIN</label>
+                {staff.nin ? (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100/90 text-green-800 border border-green-200/50">
+                      Uploaded
                     </span>
-                  )}
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">BVN</label>
-                  {staff.bvn ? (
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Verified
-                      </span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {staff.bvn.substring(0, 3)}****{staff.bvn.substring(7)}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                      Not Provided
+                    <a
+                      href={staff.nin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-700 hover:text-green-900 text-sm underline"
+                    >
+                      View Document
+                    </a>
+                  </div>
+                ) : (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100/90 text-gray-700 border border-gray-200/50">
+                    Not Uploaded
+                  </span>
+                )}
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">BVN</label>
+                {staff.bvn ? (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100/90 text-green-800 border border-green-200/50">
+                      Verified
                     </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Employment Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Employment Information
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-600">Role</label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.role}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">Department</label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.department}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">Status</label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.isActive ? "Active" : "Inactive"}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">
-                    Approval Status
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.isApproved ? "Approved" : "Pending"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Financial Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Financial Information
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-600">
-                    Monthly Salary
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {formatCurrency(staff.monthlySalary)}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">
-                    Total Salary Paid
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {formatCurrency(staff.totalSalaryPaid)}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600">
-                    Pension Contributions
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {formatCurrency(staff.pensionContributions)}
-                  </p>
-                </div>
-                {staff.wallet && (
-                  <>
-                    <div>
-                      <label className="text-sm text-gray-600">
-                        Wallet Balance
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(staff.wallet.balance)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-600">
-                        Pension Balance
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(staff.wallet.pensionBalance)}
-                      </p>
-                    </div>
-                  </>
+                    <span className="text-sm font-medium text-gray-800">
+                      {staff.bvn.substring(0, 3)}****{staff.bvn.substring(7)}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100/90 text-gray-700 border border-gray-200/50">
+                    Not Provided
+                  </span>
                 )}
               </div>
             </div>
+          </div>
 
-            {staff.deactivationReason && (
+          {/* Employment Information */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Employment Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Deactivation Details
-                </h3>
-                <div>
-                  <label className="text-sm text-gray-600">Reason</label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {staff.deactivationReason}
-                  </p>
-                </div>
-                {staff.deactivatedAt && (
-                  <div className="mt-2">
+                <label className="text-sm text-gray-600">Role</label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.role}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Department</label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.department}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Status</label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.isActive ? "Active" : "Inactive"}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">
+                  Approval Status
+                </label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.isApproved ? "Approved" : "Pending"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Information */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Financial Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-600">
+                  Monthly Salary
+                </label>
+                <p className="text-sm font-medium text-gray-800">
+                  {formatCurrency(staff.monthlySalary)}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">
+                  Total Salary Paid
+                </label>
+                <p className="text-sm font-medium text-gray-800">
+                  {formatCurrency(staff.totalSalaryPaid)}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">
+                  Pension Contributions
+                </label>
+                <p className="text-sm font-medium text-gray-800">
+                  {formatCurrency(staff.pensionContributions)}
+                </p>
+              </div>
+              {staff.wallet && (
+                <>
+                  <div>
                     <label className="text-sm text-gray-600">
-                      Deactivated At
+                      Wallet Balance
                     </label>
-                    <p className="text-sm font-medium text-gray-900">
-                      {new Date(staff.deactivatedAt).toLocaleString()}
+                    <p className="text-sm font-medium text-gray-800">
+                      {formatCurrency(staff.wallet.balance)}
                     </p>
                   </div>
-                )}
-              </div>
-            )}
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Pension Balance
+                    </label>
+                    <p className="text-sm font-medium text-gray-800">
+                      {formatCurrency(staff.wallet.pensionBalance)}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="mt-6 flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-            >
-              Close
-            </button>
-          </div>
+          {staff.deactivationReason && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                Deactivation Details
+              </h3>
+              <div>
+                <label className="text-sm text-gray-600">Reason</label>
+                <p className="text-sm font-medium text-gray-800">
+                  {staff.deactivationReason}
+                </p>
+              </div>
+              {staff.deactivatedAt && (
+                <div className="mt-2">
+                  <label className="text-sm text-gray-600">
+                    Deactivated At
+                  </label>
+                  <p className="text-sm font-medium text-gray-800">
+                    {new Date(staff.deactivatedAt).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 flex justify-end p-6 border-t border-gray-200">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-100 border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-200 transition-all"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -863,16 +947,16 @@ const RegisterStaffModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-xl border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-start">
+            <h2 className="text-2xl font-bold text-[#066f48]">
               Register New Staff
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -889,154 +973,154 @@ const RegisterStaffModal: React.FC<{
               </svg>
             </button>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, firstName: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.lastName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, lastName: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-            </div>
-
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 relative z-10">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone
-              </label>
-              <input
-                type="tel"
-                required
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                placeholder="08012345678"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                LGA
+                First Name
               </label>
               <input
                 type="text"
                 required
-                value={formData.lga}
+                value={formData.firstName}
                 onChange={(e) =>
-                  setFormData({ ...formData, lga: e.target.value })
+                  setFormData({ ...formData, firstName: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role
-                </label>
-                <select
-                  required
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Select role</option>
-                  <option value="Field Officer">Field Officer</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Supervisor">Supervisor</option>
-                  <option value="Admin Staff">Admin Staff</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Department
-                </label>
-                <select
-                  required
-                  value={formData.department}
-                  onChange={(e) =>
-                    setFormData({ ...formData, department: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Select department</option>
-                  <option value="Operations">Operations</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Logistics">Logistics</option>
-                  <option value="IT">IT</option>
-                </select>
-              </div>
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Monthly Salary (₦)
+                Last Name
               </label>
               <input
-                type="number"
+                type="text"
                 required
-                min="0"
-                step="0.01"
-                value={formData.monthlySalary / 100}
+                value={formData.lastName}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    monthlySalary: parseFloat(e.target.value) * 100,
-                  })
+                  setFormData({ ...formData, lastName: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
+          </div>
 
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone
+            </label>
+            <input
+              type="tel"
+              required
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
+              placeholder="08012345678"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              LGA
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.lga}
+              onChange={(e) =>
+                setFormData({ ...formData, lga: e.target.value })
+              }
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Role
+              </label>
+              <select
+                required
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
-              >
-                Register
-              </button>
+                <option value="">Select role</option>
+                <option value="Field Officer">Field Officer</option>
+                <option value="Manager">Manager</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Admin Staff">Admin Staff</option>
+              </select>
             </div>
-          </form>
-        </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Department
+              </label>
+              <select
+                required
+                value={formData.department}
+                onChange={(e) =>
+                  setFormData({ ...formData, department: e.target.value })
+                }
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+              >
+                <option value="">Select department</option>
+                <option value="Operations">Operations</option>
+                <option value="Finance">Finance</option>
+                <option value="Logistics">Logistics</option>
+                <option value="IT">IT</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Monthly Salary (₦)
+            </label>
+            <input
+              type="number"
+              required
+              min="0"
+              step="0.01"
+              value={formData.monthlySalary / 100}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  monthlySalary: parseFloat(e.target.value) * 100,
+                })
+              }
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 text-gray-700 rounded-xl hover:bg-white/50 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg"
+            >
+              Register
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
-// Edit Staff Modal (similar structure, pre-filled with staff data)
+// Edit Staff Modal
 const EditStaffModal: React.FC<{
   staff: Staff;
   onClose: () => void;
@@ -1057,14 +1141,14 @@ const EditStaffModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Edit Staff</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-xl border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-start">
+            <h2 className="text-2xl font-bold text-[#066f48]">Edit Staff</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -1081,124 +1165,124 @@ const EditStaffModal: React.FC<{
               </svg>
             </button>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, firstName: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.lastName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, lastName: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-            </div>
-
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 relative z-10">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                LGA
+                First Name
               </label>
               <input
                 type="text"
-                value={formData.lga}
+                value={formData.firstName}
                 onChange={(e) =>
-                  setFormData({ ...formData, lga: e.target.value })
+                  setFormData({ ...formData, firstName: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role
-                </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="Field Officer">Field Officer</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Supervisor">Supervisor</option>
-                  <option value="Admin Staff">Admin Staff</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Department
-                </label>
-                <select
-                  value={formData.department}
-                  onChange={(e) =>
-                    setFormData({ ...formData, department: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="Operations">Operations</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Logistics">Logistics</option>
-                  <option value="IT">IT</option>
-                </select>
-              </div>
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Monthly Salary (₦)
+                Last Name
               </label>
               <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={(formData.monthlySalary || 0) / 100}
+                type="text"
+                value={formData.lastName}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    monthlySalary: parseFloat(e.target.value) * 100,
-                  })
+                  setFormData({ ...formData, lastName: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
+          </div>
 
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              LGA
+            </label>
+            <input
+              type="text"
+              value={formData.lga}
+              onChange={(e) =>
+                setFormData({ ...formData, lga: e.target.value })
+              }
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Role
+              </label>
+              <select
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Update
-              </button>
+                <option value="Field Officer">Field Officer</option>
+                <option value="Manager">Manager</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Admin Staff">Admin Staff</option>
+              </select>
             </div>
-          </form>
-        </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Department
+              </label>
+              <select
+                value={formData.department}
+                onChange={(e) =>
+                  setFormData({ ...formData, department: e.target.value })
+                }
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+              >
+                <option value="Operations">Operations</option>
+                <option value="Finance">Finance</option>
+                <option value="Logistics">Logistics</option>
+                <option value="IT">IT</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Monthly Salary (₦)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={(formData.monthlySalary || 0) / 100}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  monthlySalary: parseFloat(e.target.value) * 100,
+                })
+              }
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 text-gray-700 rounded-xl hover:bg-white/50 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-lg"
+            >
+              Update
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -1218,16 +1302,16 @@ const DeactivateStaffModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-xl border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-red-50">
+          <div className="flex justify-between items-start">
+            <h2 className="text-2xl font-bold text-red-700">
               Deactivate Staff
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -1244,8 +1328,10 @@ const DeactivateStaffModal: React.FC<{
               </svg>
             </button>
           </div>
+        </div>
 
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="p-6">
+          <p className="text-sm text-gray-700 mb-4">
             You are about to deactivate <strong>{staff.fullName}</strong>.
             Please provide a reason.
           </p>
@@ -1260,7 +1346,7 @@ const DeactivateStaffModal: React.FC<{
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500/30 focus:outline-none focus:border-red-500 transition-all text-gray-800"
                 placeholder="Enter reason for deactivation..."
               />
             </div>
@@ -1269,13 +1355,13 @@ const DeactivateStaffModal: React.FC<{
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-lg"
               >
                 Deactivate
               </button>
@@ -1287,7 +1373,7 @@ const DeactivateStaffModal: React.FC<{
   );
 };
 
-// Approve Staff Modal with Salary and Profile Picture
+// Approve Staff Modal
 interface ApproveStaffModalProps {
   staff: Staff;
   adminId: string;
@@ -1368,14 +1454,14 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Approve Staff</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200 my-auto">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-[#066f48]">Approve Staff</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"
             >
               <svg
                 className="w-6 h-6"
@@ -1392,9 +1478,11 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
               </svg>
             </button>
           </div>
+        </div>
 
+        <div className="p-6">
           <div className="mb-6 p-4 bg-emerald-50 rounded-lg">
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-semibold text-gray-800 mb-2">
               {staff.fullName}
             </h3>
             <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
@@ -1427,7 +1515,7 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
                     <img
                       src={profilePicturePreview}
                       alt="Profile preview"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-white/50"
                     />
                   </div>
                 )}
@@ -1436,9 +1524,9 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                    className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50/90 file:text-green-700 hover:file:bg-green-100/90"
                   />
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-gray-600">
                     PNG, JPG, WEBP up to 5MB
                   </p>
                 </div>
@@ -1457,10 +1545,10 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
                 onChange={(e) => setMonthlySalary(Number(e.target.value))}
                 min="0"
                 step="1000"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
                 placeholder="Enter monthly salary"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-600">
                 Pension: Employee 8% (₦
                 {Math.round(monthlySalary * 0.08).toLocaleString()}) + Employer
                 10% (₦{Math.round(monthlySalary * 0.1).toLocaleString()})
@@ -1476,7 +1564,7 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
                 placeholder="Add any notes about the approval..."
               />
             </div>
@@ -1486,14 +1574,14 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
                 type="button"
                 onClick={onClose}
                 disabled={submitting || uploading}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 text-gray-700 rounded-xl hover:bg-white/50 disabled:opacity-50 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting || uploading}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg transition-all"
               >
                 {uploading && (
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">

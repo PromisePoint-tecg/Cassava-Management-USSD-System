@@ -45,6 +45,7 @@ export interface CreateAdminData {
   password: string;
   firstName: string;
   lastName: string;
+  phone: string;
   role: AdminRole;
   permissions?: string[];
   createdBy?: string;
@@ -81,6 +82,60 @@ export interface OrganizationWallet {
   currency: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export type DashboardKpiStatus = "on_track" | "at_risk" | "off_track";
+export type DashboardKpiUnit = "count" | "percent" | "minutes";
+
+export interface DashboardKpiRow {
+  kpi: string;
+  target: number;
+  actual: number;
+  status: DashboardKpiStatus;
+  unit: DashboardKpiUnit;
+}
+
+export interface DashboardKpiTable {
+  period: string;
+  rows: DashboardKpiRow[];
+  generatedAt: string;
+}
+
+export interface DashboardKpisResponse {
+  transactions: {
+    totalTransactions: number;
+    totalValue: number;
+    successfulTransactions: number;
+    failedTransactions: number;
+    todayTransactions: number;
+    thisWeekTransactions: number;
+    thisMonthTransactions: number;
+  };
+  farmers: {
+    totalFarmers: number;
+    activeFarmers: number;
+    newFarmersThisMonth: number;
+    topPerformingFarmer: string;
+  };
+  purchases: {
+    totalPurchases: number;
+    totalValue: number;
+    completedPurchases: number;
+    pendingPurchases: number;
+  };
+  ussdSessions: {
+    totalSessions: number;
+    activeSessions: number;
+    completedSessions: number;
+    failedSessions: number;
+    networkProviders: Record<string, number>;
+  };
+  systemHealth: {
+    uptime: string;
+    responseTime: number;
+    errorRate: number;
+  };
+  kpiTable: DashboardKpiTable;
 }
 
 class AdminAPI {
@@ -234,6 +289,22 @@ class AdminAPI {
 
     const result = await response.json();
     return result.data || result;
+  }
+
+  async getDashboardKPIs(): Promise<DashboardKpisResponse> {
+    const response = await fetch(`${API_BASE_URL}/admins/dashboard/kpis`, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to fetch dashboard KPIs" }));
+      throw new Error(error.message || "Failed to fetch dashboard KPIs");
+    }
+
+    return response.json();
   }
 
   // Role utility functions

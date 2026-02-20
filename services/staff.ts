@@ -46,6 +46,7 @@ export interface StaffBalances {
   savings: number;
   pension: number;
   wallet: number;
+  bonus: number;
 }
 
 export interface StaffProfile extends Staff {
@@ -94,10 +95,13 @@ export interface DeactivateStaffDto {
 export interface LoanType {
   id: string;
   name: string;
+  user_type: "farmer" | "staff";
   description: string;
   category: string;
   interest_rate: number;
   duration_months: number;
+  min_amount?: number;
+  max_amount?: number;
   is_active: boolean;
   times_issued: number;
   createdAt: string;
@@ -120,6 +124,47 @@ export interface StaffLoanRequest {
   durationMonths: number;
   pickupLocation?: string;
   pickupDate?: string;
+}
+
+export interface StaffTaskPickupItem {
+  name: string;
+  quantity?: number;
+  unit_price?: number;
+  total_price?: number;
+  note?: string;
+}
+
+export interface StaffTaskPickup {
+  id: string;
+  farmer_name: string;
+  farmer_phone: string;
+  status: "requested" | "approved" | "staff_updated" | "processed" | "cancelled";
+  scheduled_date?: string;
+  request_notes?: string;
+  approved_notes?: string;
+  assigned_staff_name?: string;
+  staff_notes?: string;
+  pickup_items?: StaffTaskPickupItem[];
+  proposed_weight_kg?: number;
+  proposed_price_per_kg?: number;
+  createdAt: string;
+}
+
+export interface StaffTaskLoanDelivery {
+  id: string;
+  reference: string;
+  farmer_name: string;
+  farmer_phone: string;
+  pickup_date?: string;
+  pickup_location?: string;
+  delivery_status?: "pending" | "delivered";
+  principal_amount: number;
+  items?: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }>;
 }
 
 // Admin management interfaces
@@ -245,6 +290,7 @@ class StaffApi {
         savings: (profile.wallet.savings_balance || 0) / 100,
         pension: (profile.wallet.escrow_balance || 0) / 100,
         wallet: (profile.wallet.balance || 0) / 100,
+        bonus: (profile.wallet.bonus_balance || 0) / 100,
       };
     }
 
@@ -284,6 +330,7 @@ class StaffApi {
       savings: (balances.savings_balance || balances.savings || 0) / 100,
       pension: (balances.escrow_balance || balances.pension || 0) / 100,
       wallet: (balances.balance || balances.wallet || 0) / 100,
+      bonus: (balances.bonus_balance || balances.bonus || 0) / 100,
     };
   }
 
@@ -455,7 +502,7 @@ class StaffApi {
     }
   }
 
-  // Admin management endpoints - try both /staff and /admins/staff
+  // Admin management endpoints - use /staff
   async getAllStaff(filters: StaffFilters = {}): Promise<StaffResponse> {
     const params = new URLSearchParams();
     if (filters.page) params.append("page", filters.page.toString());
@@ -469,20 +516,11 @@ class StaffApi {
 
     const queryString = params.toString();
 
-    // Try /admins/staff first, fallback to /staff
-    try {
-      return await this.client.get<StaffResponse>(
-        `/admins/staff?${queryString}`
-      );
-    } catch (error: any) {
-      if (error.message?.includes("500") || error.message?.includes("404")) {
-        const response: any = await this.client.get<PaginatedStaffResponse>(
-          `/staff?${queryString}`
-        );
-        return response.data || response;
-      }
-      throw error;
-    }
+    const response: any = await this.client.get<PaginatedStaffResponse>(
+      `/staff?${queryString}`
+    );
+
+    return response.data || response;
   }
 
   /**
@@ -828,6 +866,7 @@ class StaffApi {
     bankCode?: string;
     accountNumber?: string;
     accountName?: string;
+    idempotencyKey?: string;
   }): Promise<any> {
     const token = getStaffAuthToken();
     const API_BASE_URL =
@@ -850,6 +889,86 @@ class StaffApi {
 
     const result = await response.json();
     return result && result.data ? result.data : result;
+  }
+
+  /**
+   * Get pickup and delivery tasks assigned to logged-in staff
+   */
+  async getPickupDeliveryTasks(params?: {
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    pickups: StaffTaskPickup[];
+    loanDeliveries: StaffTaskLoanDelivery[];
+  }> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+    const query = new URLSearchParams();
+    if (params?.status) query.set("status", params.status);
+    if (params?.search) query.set("search", params.search);
+    if (params?.startDate) query.set("startDate", params.startDate);
+    if (params?.endDate) query.set("endDate", params.endDate);
+
+    const response = await fetch(
+      `${API_BASE_URL}/ops/staff/tasks${query.toString() ? `?${query.toString()}` : ""}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to load staff tasks" }));
+      throw new Error(error.message || "Failed to load staff tasks");
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Staff updates pickup details after field operation
+   */
+  async updatePickupTask(
+    pickupId: string,
+    data: {
+      pickup_items?: StaffTaskPickupItem[];
+      proposed_weight_kg?: number;
+      proposed_price_per_kg?: number;
+      staff_notes?: string;
+    }
+  ): Promise<StaffTaskPickup> {
+    const token = getStaffAuthToken();
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const response = await fetch(
+      `${API_BASE_URL}/ops/staff/pickups/${pickupId}/update`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to update pickup task" }));
+      throw new Error(error.message || "Failed to update pickup task");
+    }
+
+    return response.json();
   }
 
   /**

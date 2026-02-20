@@ -10,16 +10,22 @@ import {
   CheckCircle2,
   XCircle,
   X,
+  Truck,
+  PackageCheck,
+  Save,
 } from "lucide-react";
 import {
   staffApi,
   StaffProfile,
   LoanType,
   StaffLoanRequest,
-} from "../api/staff";
+  StaffTaskPickup,
+  StaffTaskLoanDelivery,
+} from "../services/staff";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";
+import LeafInlineLoader from "./Loader";
 
 interface StaffPortalProps {
   onLogout: () => void;
@@ -39,6 +45,22 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
   const [submittingLoanRequest, setSubmittingLoanRequest] = useState(false);
   const [showLoanSuccessModal, setShowLoanSuccessModal] = useState(false);
   const [loanSuccessData, setLoanSuccessData] = useState<any>(null);
+  const [pickupTasks, setPickupTasks] = useState<StaffTaskPickup[]>([]);
+  const [loanDeliveryTasks, setLoanDeliveryTasks] = useState<
+    StaffTaskLoanDelivery[]
+  >([]);
+  const [loadingTasks, setLoadingTasks] = useState(false);
+  const [taskError, setTaskError] = useState<string | null>(null);
+  const [selectedPickupTask, setSelectedPickupTask] =
+    useState<StaffTaskPickup | null>(null);
+  const [showPickupUpdateModal, setShowPickupUpdateModal] = useState(false);
+  const [pickupUpdateLoading, setPickupUpdateLoading] = useState(false);
+  const [pickupUpdateForm, setPickupUpdateForm] = useState({
+    proposed_weight_kg: 0,
+    proposed_price_per_kg: 0,
+    staff_notes: "",
+    pickup_items_text: "",
+  });
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-NG", {
@@ -60,7 +82,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
   useEffect(() => {
     loadProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadOperationalTasks();
   }, []);
 
   const loadProfile = async () => {
@@ -80,6 +102,20 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       setError(err?.message || "Failed to load profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOperationalTasks = async () => {
+    try {
+      setLoadingTasks(true);
+      setTaskError(null);
+      const data = await staffApi.getPickupDeliveryTasks();
+      setPickupTasks(data.pickups || []);
+      setLoanDeliveryTasks(data.loanDeliveries || []);
+    } catch (err: any) {
+      setTaskError(err?.message || "Failed to load operational tasks");
+    } finally {
+      setLoadingTasks(false);
     }
   };
 
@@ -120,7 +156,6 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       setSubmittingLoanRequest(true);
       setError(null);
 
-      // Convert principal to minor unit expected by server
       const requestData = {
         ...loanRequestForm,
         principalAmount: Math.round(loanRequestForm.principalAmount * 100),
@@ -134,7 +169,6 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       setLoanSuccessData(loanData);
       setShowLoanSuccessModal(true);
 
-      // Reset form
       setLoanRequestForm({
         loanTypeId: "",
         principalAmount: 0,
@@ -164,6 +198,50 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
     loadLoanTypes();
   };
 
+  const openPickupUpdateModal = (pickup: StaffTaskPickup) => {
+    setSelectedPickupTask(pickup);
+    const itemText = (pickup.pickup_items || [])
+      .map((item) => {
+        const qty = item.quantity ? ` x${item.quantity}` : "";
+        return `${item.name}${qty}`;
+      })
+      .join(", ");
+    setPickupUpdateForm({
+      proposed_weight_kg: pickup.proposed_weight_kg || 0,
+      proposed_price_per_kg: pickup.proposed_price_per_kg || 0,
+      staff_notes: pickup.staff_notes || "",
+      pickup_items_text: itemText,
+    });
+    setShowPickupUpdateModal(true);
+  };
+
+  const handleSubmitPickupUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPickupTask) return;
+
+    try {
+      setPickupUpdateLoading(true);
+      const itemNames = pickupUpdateForm.pickup_items_text
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const payload = {
+        proposed_weight_kg: pickupUpdateForm.proposed_weight_kg,
+        proposed_price_per_kg: pickupUpdateForm.proposed_price_per_kg,
+        staff_notes: pickupUpdateForm.staff_notes,
+        pickup_items: itemNames.map((name) => ({ name })),
+      };
+      await staffApi.updatePickupTask(selectedPickupTask.id, payload);
+      setShowPickupUpdateModal(false);
+      setSelectedPickupTask(null);
+      await loadOperationalTasks();
+    } catch (err: any) {
+      setTaskError(err?.message || "Failed to update pickup task");
+    } finally {
+      setPickupUpdateLoading(false);
+    }
+  };
+
   return (
     <StaffLayout
       title="Staff Portal"
@@ -174,7 +252,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
       showBackButton={false}
     >
       {loading && !profile ? (
-        <LoadingSpinner message="Loading staff portal..." />
+        <LeafInlineLoader />
       ) : error && !profile ? (
         <ErrorMessage
           title="Error Loading Portal"
@@ -182,79 +260,82 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
           onRetry={loadProfile}
         />
       ) : (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Welcome back, {profile.firstName}!
-              </h2>
-              <p className="text-gray-600">
-                Here's an overview of your account
-              </p>
+        <div className="space-y-5">
+          {/* Header */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                  Welcome back, {profile.firstName}!
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Here's an overview of your account
+                </p>
+              </div>
+              <button
+                onClick={handleOpenLoanRequest}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm w-full sm:w-auto justify-center sm:justify-start"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Request Loan
+              </button>
             </div>
-            <button
-              onClick={handleOpenLoanRequest}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Request Loan
-            </button>
           </div>
 
           {/* Balance Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-200 rounded-full">
-                  <PiggyBank className="w-6 h-6 text-green-700" />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <PiggyBank className="w-5 h-5 text-green-600" />
                 </div>
               </div>
               <h3 className="text-sm font-medium text-gray-600 mb-1">
                 Savings
               </h3>
-              <p className="text-2xl font-bold text-gray-800">
+              <p className="text-xl sm:text-2xl font-bold text-gray-800">
                 {formatCurrency(profile.balances?.savings || 0)}
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-200 rounded-full">
-                  <Building2 className="w-6 h-6 text-blue-700" />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Building2 className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
               <h3 className="text-sm font-medium text-gray-600 mb-1">
                 Pension
               </h3>
-              <p className="text-2xl font-bold text-gray-800">
+              <p className="text-xl sm:text-2xl font-bold text-gray-800">
                 {formatCurrency(profile.balances?.pension || 0)}
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-purple-200 rounded-full">
-                  <Wallet className="w-6 h-6 text-purple-700" />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Wallet className="w-5 h-5 text-purple-600" />
                 </div>
               </div>
               <h3 className="text-sm font-medium text-gray-600 mb-1">Wallet</h3>
-              <p className="text-2xl font-bold text-gray-800">
+              <p className="text-xl sm:text-2xl font-bold text-gray-800">
                 {formatCurrency(profile.balances?.wallet || 0)}
               </p>
             </div>
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
                 Account Status
               </h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">Status</span>
                   <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${
+                    className={`px-2 py-1 text-xs font-medium rounded-lg ${
                       profile.isActive
                         ? "bg-green-100 text-green-800"
                         : "bg-gray-100 text-gray-800"
@@ -264,14 +345,14 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">Role</span>
                   <span className="text-sm font-medium text-gray-900 capitalize">
                     {profile.role}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2">
                   <span className="text-sm text-gray-600">Member Since</span>
                   <span className="text-sm font-medium text-gray-900">
                     {new Date(profile.createdAt).toLocaleDateString("en-NG", {
@@ -283,12 +364,12 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
                 Document Status
               </h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">NIN Document</span>
                   {profile.hasNin ? (
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -296,7 +377,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     <XCircle className="w-5 h-5 text-gray-400" />
                   )}
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">BVN Document</span>
                   {profile.hasBvn ? (
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -305,27 +386,226 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   )}
                 </div>
                 {(!profile.hasNin || !profile.hasBvn) && (
-                  <p className="text-xs text-amber-600 mt-2">
+                  <p className="text-xs text-amber-600 mt-2 py-2">
                     Please upload missing documents in the Documents section
                   </p>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Pickup & Delivery Tasks */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800">
+                  Pickup & Delivery Tasks
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Update pickup outcomes and review pending loan deliveries.
+                </p>
+              </div>
+              <button
+                onClick={loadOperationalTasks}
+                className="px-3 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {taskError && (
+              <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {taskError}
+              </div>
+            )}
+
+            {loadingTasks ? (
+              <LeafInlineLoader />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="rounded-lg border border-gray-200">
+                  <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-[#066f48]" />
+                    <p className="font-medium text-gray-800">Pickup Requests</p>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                    {pickupTasks.length === 0 ? (
+                      <p className="p-4 text-sm text-gray-500">No pickup tasks assigned.</p>
+                    ) : (
+                      pickupTasks.map((task) => (
+                        <div key={task.id} className="p-4">
+                          <p className="font-medium text-gray-900">{task.farmer_name}</p>
+                          <p className="text-xs text-gray-600">{task.farmer_phone}</p>
+                          <p className="text-xs text-gray-500 mt-1 capitalize">
+                            Status: {task.status.replace("_", " ")}
+                          </p>
+                          <button
+                            onClick={() => openPickupUpdateModal(task)}
+                            className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#066f48]/30 text-[#066f48] hover:bg-emerald-50"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                            Update Pickup
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-gray-200">
+                  <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+                    <PackageCheck className="w-4 h-4 text-[#066f48]" />
+                    <p className="font-medium text-gray-800">Loan Deliveries</p>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                    {loanDeliveryTasks.length === 0 ? (
+                      <p className="p-4 text-sm text-gray-500">
+                        No pending loan delivery tasks.
+                      </p>
+                    ) : (
+                      loanDeliveryTasks.map((task) => (
+                        <div key={task.id} className="p-4">
+                          <p className="font-medium text-gray-900">{task.farmer_name}</p>
+                          <p className="text-xs text-gray-600">{task.farmer_phone}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Ref: {task.reference}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Pickup Date:{" "}
+                            {task.pickup_date
+                              ? new Date(task.pickup_date).toLocaleString("en-NG")
+                              : "Not set"}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Update Pickup Modal */}
+      {showPickupUpdateModal && selectedPickupTask && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-xl w-full border border-gray-200">
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Update Pickup Task
+              </h3>
+              <button
+                onClick={() => setShowPickupUpdateModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmitPickupUpdate} className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Items (comma-separated)
+                </label>
+                <textarea
+                  value={pickupUpdateForm.pickup_items_text}
+                  onChange={(e) =>
+                    setPickupUpdateForm({
+                      ...pickupUpdateForm,
+                      pickup_items_text: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  placeholder="Cassava tubers, stems, fertilizer"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Proposed Weight (kg)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={pickupUpdateForm.proposed_weight_kg || ""}
+                    onChange={(e) =>
+                      setPickupUpdateForm({
+                        ...pickupUpdateForm,
+                        proposed_weight_kg: Number(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Proposed Price / Kg (₦)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={pickupUpdateForm.proposed_price_per_kg || ""}
+                    onChange={(e) =>
+                      setPickupUpdateForm({
+                        ...pickupUpdateForm,
+                        proposed_price_per_kg: Number(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Staff Notes
+                </label>
+                <textarea
+                  value={pickupUpdateForm.staff_notes}
+                  onChange={(e) =>
+                    setPickupUpdateForm({
+                      ...pickupUpdateForm,
+                      staff_notes: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPickupUpdateModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={pickupUpdateLoading}
+                  className="flex-1 px-4 py-2 bg-[#066f48] text-white rounded-lg hover:bg-[#055b3d] disabled:opacity-60"
+                >
+                  {pickupUpdateLoading ? "Saving..." : "Save Update"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
       {/* Loan Request Modal */}
       {showLoanRequestModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
               <h3 className="text-lg font-semibold text-gray-900">
                 Request Loan
               </h3>
               <button
                 onClick={() => setShowLoanRequestModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded-lg transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -350,7 +630,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                         durationMonths: selectedType?.duration_months || 6,
                       });
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                     required
                     disabled={loadingLoanTypes}
                   >
@@ -382,7 +662,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                       })
                     }
                     placeholder="e.g., 100000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                     required
                     min={1000}
                     step={1000}
@@ -399,7 +679,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     type="number"
                     value={loanRequestForm.interestRate}
                     readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                    className="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg text-gray-800"
                   />
                 </div>
 
@@ -411,7 +691,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     type="number"
                     value={loanRequestForm.durationMonths}
                     readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                    className="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg text-gray-800"
                   />
                 </div>
               </div>
@@ -430,7 +710,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   }
                   placeholder="Describe the purpose of this loan..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                   required
                 />
               </div>
@@ -450,7 +730,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                       })
                     }
                     placeholder="e.g., Main Office"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                   />
                 </div>
 
@@ -467,7 +747,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                         pickupDate: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
                   />
                 </div>
               </div>
@@ -476,14 +756,14 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                 <button
                   type="button"
                   onClick={() => setShowLoanRequestModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingLoanRequest}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
                 >
                   {submittingLoanRequest ? "Submitting..." : "Submit Request"}
                 </button>
@@ -495,9 +775,9 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
 
       {/* Loan Success Modal */}
       {showLoanSuccessModal && loanSuccessData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-green-50">
               <h3 className="text-lg font-semibold text-green-800 flex items-center">
                 <CheckCircle2 className="w-6 h-6 mr-2" />
                 Loan Request Successful!
@@ -507,14 +787,14 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                   setShowLoanSuccessModal(false);
                   setLoanSuccessData(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded-lg transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="p-6 space-y-4 relative z-10">
+              <div className="bg-green-50/80 backdrop-blur-sm border border-green-200/50 rounded-[1.5rem] p-4">
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm font-medium text-gray-600">
@@ -586,7 +866,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     <span className="text-sm font-medium text-gray-600">
                       Status:
                     </span>
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 capitalize">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100/80 text-yellow-800 capitalize backdrop-blur-sm border border-yellow-200/50">
                       {loanSuccessData.status}
                     </span>
                   </div>
@@ -604,7 +884,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onLogout }) => {
                     setShowLoanSuccessModal(false);
                     setLoanSuccessData(null);
                   }}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-lg"
                 >
                   Got it!
                 </button>

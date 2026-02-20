@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Plus, CheckCircle2, Loader2, X } from "lucide-react";
-import { staffApi, StaffProfile } from "../api/staff";
+import { staffApi, StaffProfile } from "../services/staff";
 import { BalancesView } from "./BalancesView";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ErrorMessage } from "./ErrorMessage";
 import { StaffLayout } from "./StaffLayout";
+import LeafInlineLoader from "./Loader";
 
 interface BalancesPageProps {
   onLogout: () => void;
@@ -32,6 +33,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
   const [savedAccount, setSavedAccount] = useState<any>(null);
   const [loadingSavedAccount, setLoadingSavedAccount] = useState(false);
   const [requestingWithdrawal, setRequestingWithdrawal] = useState(false);
+  const [withdrawalRequestKey, setWithdrawalRequestKey] = useState("");
   const [withdrawalForm, setWithdrawalForm] = useState({
     amount: "",
     pin: "",
@@ -181,6 +183,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
       const withdrawalData: any = {
         amount: Math.round(amount), // Convert to kobo or minor unit if needed by API
         pin: withdrawalForm.pin,
+        idempotencyKey: withdrawalRequestKey || undefined,
       };
 
       if (!withdrawalForm.useSavedAccount || !savedAccount) {
@@ -190,11 +193,14 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
         withdrawalData.accountName = withdrawalForm.accountName;
       }
 
-      await staffApi.requestWithdrawal(withdrawalData);
+      const response = await staffApi.requestWithdrawal(withdrawalData);
 
       setShowWithdrawalModal(false);
+      const reference = response?.payout?.transactionReference;
       alert(
-        "Withdrawal request submitted successfully! You will be notified once it's processed."
+        `${response?.message || "Withdrawal request queued successfully."}${
+          reference ? `\nReference: ${reference}` : ""
+        }`
       );
 
       setWithdrawalForm({
@@ -206,6 +212,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
         accountNumber: "",
         accountName: "",
       });
+      setWithdrawalRequestKey("");
     } catch (err: any) {
       alert(err.message || "Failed to request withdrawal");
     } finally {
@@ -214,6 +221,10 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
   };
 
   const handleOpenWithdrawal = () => {
+    const idempotencySeed = `wdr_${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2, 10)}`;
+    setWithdrawalRequestKey(idempotencySeed);
     setShowWithdrawalModal(true);
     loadSavedAccount();
   };
@@ -227,7 +238,7 @@ export const BalancesPage: React.FC<BalancesPageProps> = ({ onLogout }) => {
       currentPath={location.pathname}
     >
       {loading ? (
-        <LoadingSpinner message="Loading balances..." />
+        <LeafInlineLoader />
       ) : error ? (
         <ErrorMessage
           title="Error Loading Balances"

@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, LayoutDashboard, User, FileText, LogOut } from "lucide-react";
+import { Menu, X, LayoutDashboard, User, FileText, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface StaffSidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   onLogout: () => void;
   currentPath: string;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const StaffSidebar: React.FC<StaffSidebarProps> = ({
@@ -14,6 +16,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({
   setSidebarOpen,
   onLogout,
   currentPath,
+  isCollapsed = false,
+  onToggleCollapse,
 }) => {
   const navigate = useNavigate();
 
@@ -46,64 +50,131 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({
 
   return (
     <>
-      {/* Mobile sidebar overlay */}
+      {/* Backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/20 z-40 lg:hidden transition-all duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform flex flex-col ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
+        className={`
+          fixed left-0 top-0 bottom-0 z-50 flex flex-col
+          bg-white transition-all duration-300
+          border-r border-gray-200
+          shadow-sm
+          lg:translate-x-0
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${isCollapsed ? "w-20" : "w-64"}
+        `}
       >
-        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
-          <div className="flex items-center">
-            <span className="text-lg font-semibold text-gray-800">
-              Promise Point Agritech
-            </span>
+
+        {/* Logo Section */}
+        <div className="h-20 flex items-center justify-between px-4 border-b border-gray-100">
+          <div className={`flex items-center ${isCollapsed ? "justify-center w-full" : ""}`}>
+            <img 
+              src="/logo.png" 
+              alt="Promise Point Agritech Logo" 
+              className={`transition-all duration-300 object-contain ${isCollapsed ? "h-9" : "h-16"}`}
+            />
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          {!isCollapsed && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          )}
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                navigate(item.path);
-                setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                currentPath === item.path
-                  ? "bg-green-100 text-green-700 border-r-2 border-green-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
-            >
-              <item.icon className="w-5 h-5 mr-3" />
-              {item.label}
-            </button>
-          ))}
+        {/* Toggle Button */}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className="hidden lg:flex absolute -right-3 top-16 w-8 h-8 bg-white border border-gray-200 rounded-full items-center justify-center text-[#066f48] shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 z-50"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4" />
+            ) : (
+              <ChevronLeft className="w-4 h-4" />
+            )}
+          </button>
+        )}
+
+        {/* Navigation Links */}
+        <nav className="flex-1 overflow-y-auto px-3 space-y-1.5 py-4 custom-scrollbar">
+          {menuItems.map((item) => {
+            const isActive = currentPath === item.path;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  navigate(item.path);
+                  setSidebarOpen(false);
+                }}
+                className={`
+                  w-full flex items-center rounded-lg py-2.5 transition-all duration-200
+                  ${isCollapsed ? "justify-center px-2" : "px-3"}
+                  ${isActive 
+                    ? "bg-[#066f48] text-white" 
+                    : "text-gray-600 hover:bg-gray-100"}
+                `}
+                title={isCollapsed ? item.label : ""}
+              >
+                <item.icon
+                  className={`
+                    shrink-0 transition-all duration-200
+                    ${isCollapsed ? "w-5 h-5" : "w-5 h-5 mr-3"}
+                  `}
+                />
+                
+                {!isCollapsed && (
+                  <span className="text-sm font-medium">
+                    {item.label}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="p-4 border-t mt-auto">
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-100">
           <button
             onClick={onLogout}
-            className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className={`
+              w-full flex items-center py-2.5 rounded-lg transition-all duration-200
+              text-gray-600 hover:bg-red-50 hover:text-red-600
+              ${isCollapsed ? "justify-center px-2" : "px-3"}
+            `}
+            title={isCollapsed ? "Sign Out" : ""}
           >
-            <LogOut className="w-5 h-5 mr-3" />
-            Sign Out
+            <LogOut className={`w-5 h-5 ${isCollapsed ? "" : "mr-3"}`} />
+            {!isCollapsed && <span className="text-sm font-medium">Sign Out</span>}
           </button>
         </div>
       </div>
+
+      {/* Custom Scrollbar */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.3);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.5);
+        }
+      `}</style>
     </>
   );
 };

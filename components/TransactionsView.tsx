@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Download, Eye, X, User, Wallet } from "lucide-react";
-import {
-  transactionsApi,
-  Transaction,
-  TransactionStats,
-  TransactionQueryParams,
-} from "../api/transactions";
-import { farmersApi, UserFinancialDetails } from "../api/farmers";
-import {
-  getAllPayrollTransactions,
-  PayrollTransaction,
-  PaginatedTransactionResponse,
-} from "../api/payroll";
+import { farmersApi, UserFinancialDetails } from "@/services/farmers";
+import { Transaction, TransactionQueryParams, transactionsApi, TransactionStats } from "@/services/transactions";
+import { getAllPayrollTransactions, PayrollTransaction } from "@/services/payroll";
+import LeafInlineLoader from "./Loader";
 
 // Small helpers
-const formatCurrency = (value: number | undefined) => {
+const formatCurrencyNaira = (value: number | undefined) => {
   if (value == null) return "₦0";
-  return `₦${(value / 100).toLocaleString()}`;
+  return `₦${Number(value).toLocaleString("en-NG", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const formatCurrencyKobo = (value: number | undefined) => {
+  if (value == null) return "₦0";
+  return formatCurrencyNaira(Number(value) / 100);
 };
 
 const getPageWindow = (current: number, total: number, maxButtons = 5) => {
@@ -127,7 +127,7 @@ const UserModal: React.FC<UserModalProps> = ({
                       Current Balance
                     </span>
                     <span className="text-lg font-bold text-green-600">
-                      {formatCurrency(userFinancialDetails.wallet.balance)}
+                      {formatCurrencyKobo(userFinancialDetails.wallet.balance)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-1">
@@ -191,7 +191,7 @@ const UserModal: React.FC<UserModalProps> = ({
                           </div>
                           <div className="text-right">
                             <p className="font-medium text-gray-800">
-                              {formatCurrency(transaction.amount)}
+                              {formatCurrencyNaira(transaction.amount)}
                             </p>
                             <span
                               className={`text-xs px-2 py-1 rounded-full ${
@@ -298,7 +298,7 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
 
         <td className="px-4 py-3 align-top">
           <div className="text-sm font-medium text-gray-800">
-            {formatCurrency(transaction.amount)}
+            {formatCurrencyNaira(transaction.amount)}
           </div>
         </td>
 
@@ -383,7 +383,7 @@ const MobileTxCard: React.FC<{
         </div>
         <div className="text-right ml-4">
           <div className="text-sm font-semibold">
-            {formatCurrency(tx.amount)}
+            {formatCurrencyNaira(tx.amount)}
           </div>
           <div className="text-xs mt-1">
             <span
@@ -469,10 +469,10 @@ const PayrollTransactionRow: React.FC<{ transaction: PayrollTransaction }> = ({
 
         <td className="px-4 py-3 align-top">
           <div className="text-sm font-medium text-gray-800">
-            {formatCurrency(transaction.netSalary)}
+            {formatCurrencyKobo(transaction.netSalary)}
           </div>
           <div className="text-xs text-gray-500">
-            Gross: {formatCurrency(transaction.grossSalary)}
+            Gross: {formatCurrencyKobo(transaction.grossSalary)}
           </div>
         </td>
 
@@ -510,31 +510,31 @@ const PayrollTransactionRow: React.FC<{ transaction: PayrollTransaction }> = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <strong>Gross Salary:</strong>{" "}
-                {formatCurrency(transaction.grossSalary)}
+                {formatCurrencyKobo(transaction.grossSalary)}
               </div>
               <div>
                 <strong>Net Salary:</strong>{" "}
-                {formatCurrency(transaction.netSalary)}
+                {formatCurrencyKobo(transaction.netSalary)}
               </div>
               <div>
                 <strong>Pension (Employee):</strong>{" "}
-                {formatCurrency(transaction.pensionEmployeeContribution)}
+                {formatCurrencyKobo(transaction.pensionEmployeeContribution)}
               </div>
               <div>
                 <strong>Pension (Employer):</strong>{" "}
-                {formatCurrency(transaction.pensionEmployerContribution)}
+                {formatCurrencyKobo(transaction.pensionEmployerContribution)}
               </div>
               <div>
                 <strong>Tax Deduction:</strong>{" "}
-                {formatCurrency(transaction.taxDeduction)}
+                {formatCurrencyKobo(transaction.taxDeduction)}
               </div>
               <div>
                 <strong>Other Deductions:</strong>{" "}
-                {formatCurrency(transaction.otherDeductions)}
+                {formatCurrencyKobo(transaction.otherDeductions)}
               </div>
               <div>
                 <strong>Savings Deduction:</strong>{" "}
-                {formatCurrency(transaction.savingsDeduction)}
+                {formatCurrencyKobo(transaction.savingsDeduction)}
               </div>
               <div>
                 <strong>Payment Reference:</strong>{" "}
@@ -594,10 +594,10 @@ const PayrollMobileTxCard: React.FC<{ tx: PayrollTransaction }> = ({ tx }) => {
         </div>
         <div className="text-right ml-4">
           <div className="text-sm font-semibold">
-            {formatCurrency(tx.netSalary)}
+            {formatCurrencyKobo(tx.netSalary)}
           </div>
           <div className="text-xs text-gray-500">
-            Gross: {formatCurrency(tx.grossSalary)}
+            Gross: {formatCurrencyKobo(tx.grossSalary)}
           </div>
           <div className="text-xs mt-1">
             <span
@@ -620,20 +620,20 @@ const PayrollMobileTxCard: React.FC<{ tx: PayrollTransaction }> = ({ tx }) => {
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
               <strong>Pension (Emp):</strong>{" "}
-              {formatCurrency(tx.pensionEmployeeContribution)}
+              {formatCurrencyKobo(tx.pensionEmployeeContribution)}
             </div>
             <div>
               <strong>Pension (Empr):</strong>{" "}
-              {formatCurrency(tx.pensionEmployerContribution)}
+              {formatCurrencyKobo(tx.pensionEmployerContribution)}
             </div>
             <div>
-              <strong>Tax:</strong> {formatCurrency(tx.taxDeduction)}
+              <strong>Tax:</strong> {formatCurrencyKobo(tx.taxDeduction)}
             </div>
             <div>
-              <strong>Other Ded:</strong> {formatCurrency(tx.otherDeductions)}
+              <strong>Other Ded:</strong> {formatCurrencyKobo(tx.otherDeductions)}
             </div>
             <div>
-              <strong>Savings:</strong> {formatCurrency(tx.savingsDeduction)}
+              <strong>Savings:</strong> {formatCurrencyKobo(tx.savingsDeduction)}
             </div>
             <div>
               <strong>Employee ID:</strong> {tx.employeeId}
@@ -647,7 +647,7 @@ const PayrollMobileTxCard: React.FC<{ tx: PayrollTransaction }> = ({ tx }) => {
 
 export const TransactionsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "all" | "wallet" | "loans" | "purchases" | "payroll"
+    "all" | "wallet" | "loans" | "purchases" | "payroll" | "organization"
   >("all");
   const [stats, setStats] = useState<TransactionStats | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -661,6 +661,7 @@ export const TransactionsView: React.FC = () => {
     loans?: { transactions: Transaction[]; pagination: any };
     purchases?: { transactions: Transaction[]; pagination: any };
     payroll?: { transactions: Transaction[]; pagination: any };
+    organization?: { transactions: Transaction[]; pagination: any };
   }>({});
 
   const [payrollTransactions, setPayrollTransactions] = useState<
@@ -725,31 +726,24 @@ export const TransactionsView: React.FC = () => {
 
   // When user switches tab, load that tab if not cached
   useEffect(() => {
+    if (initialLoading) return;
+
     if (!transactionsCache[activeTab]) {
       loadCurrentTabTransactions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, initialLoading]);
 
   const loadAllTransactionsAndStats = async () => {
     try {
       setInitialLoading(true);
       setError(null);
 
-      const [
-        statsResponse,
-        allTransactionsResponse,
-        walletTransactionsResponse,
-        loanTransactionsResponse,
-        purchaseTransactionsResponse,
-        payrollTransactionsResponse,
-      ] = await Promise.all([
+      // OPTIMIZED: Only load stats and current tab (all) on initial load
+      // Other tabs are loaded lazily when user clicks on them
+      const [statsResponse, allTransactionsResponse] = await Promise.all([
         transactionsApi.getTransactionStats(),
         transactionsApi.getAllTransactions(filters),
-        transactionsApi.getWalletTransactions(filters),
-        transactionsApi.getLoanTransactions(filters),
-        transactionsApi.getPurchaseTransactions(filters),
-        getAllPayrollTransactions(filters),
       ]);
 
       setStats(statsResponse);
@@ -762,46 +756,6 @@ export const TransactionsView: React.FC = () => {
             currentPage: allTransactionsResponse.page,
           },
         },
-        wallet: {
-          transactions: walletTransactionsResponse.transactions,
-          pagination: {
-            total: walletTransactionsResponse.total,
-            totalPages: walletTransactionsResponse.totalPages,
-            currentPage: walletTransactionsResponse.page,
-          },
-        },
-        loans: {
-          transactions: loanTransactionsResponse.transactions,
-          pagination: {
-            total: loanTransactionsResponse.total,
-            totalPages: loanTransactionsResponse.totalPages,
-            currentPage: loanTransactionsResponse.page,
-          },
-        },
-        purchases: {
-          transactions: purchaseTransactionsResponse.transactions,
-          pagination: {
-            total: purchaseTransactionsResponse.total,
-            totalPages: purchaseTransactionsResponse.totalPages,
-            currentPage: purchaseTransactionsResponse.page,
-          },
-        },
-        payroll: {
-          transactions: payrollTransactionsResponse.transactions,
-          pagination: {
-            total: payrollTransactionsResponse.total,
-            totalPages: payrollTransactionsResponse.totalPages,
-            currentPage: payrollTransactionsResponse.page,
-          },
-        },
-      });
-
-      // Set payroll state separately since it has different structure
-      setPayrollTransactions(payrollTransactionsResponse.transactions);
-      setPayrollPagination({
-        total: payrollTransactionsResponse.total,
-        totalPages: payrollTransactionsResponse.totalPages,
-        currentPage: payrollTransactionsResponse.page,
       });
     } catch (error: any) {
       console.error("Failed to load transaction data:", error);
@@ -826,6 +780,9 @@ export const TransactionsView: React.FC = () => {
           break;
         case "purchases":
           response = await transactionsApi.getPurchaseTransactions(filters);
+          break;
+        case "organization":
+          response = await transactionsApi.getOrganizationTransactions(filters);
           break;
         case "payroll":
           const payrollResponse = await getAllPayrollTransactions(filters);
@@ -883,75 +840,80 @@ export const TransactionsView: React.FC = () => {
   };
 
   const tabs = [
-    {
-      id: "all",
-      label: "All Transactions",
-      count: stats?.totalTransactions || 0,
-    },
-    { id: "wallet", label: "Wallet", count: stats?.byType?.wallet || 0 },
-    { id: "loans", label: "Loans", count: stats?.byType?.loan || 0 },
-    {
-      id: "purchases",
-      label: "Purchases",
-      count: stats?.byType?.purchase || 0,
-    },
-    { id: "payroll", label: "Payroll", count: stats?.byType?.payroll || 0 },
+    { id: "all", label: "All Transactions" },
+    { id: "wallet", label: "Wallet" },
+    { id: "loans", label: "Loans" },
+    { id: "payroll", label: "Payroll" },
+    { id: "organization", label: "Organization" },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-          Transactions
-        </h2>
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+            Transactions
+          </h2>
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex w-full sm:w-auto justify-center items-center px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+            </button>
 
-          <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </button>
+            <button className="inline-flex w-full sm:w-auto justify-center items-center px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600">Total Transactions</div>
-            <div className="text-2xl font-bold text-gray-800">
-              {stats.totalTransactions.toLocaleString()}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
+              <div className="text-sm text-gray-600">Total Transactions</div>
+              <div className="text-2xl font-bold text-gray-800">
+                {stats.totalTransactions.toLocaleString()}
+              </div>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600">Total Amount</div>
-            <div className="text-2xl font-bold text-gray-800">
-              {formatCurrency(stats.totalAmount)}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
+              <div className="text-sm text-gray-600">Total Amount</div>
+              <div className="text-2xl font-bold text-gray-800">
+                {formatCurrencyNaira(stats.totalAmount)}
+              </div>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600">Completed</div>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.completedTransactions.toLocaleString()}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
+              <div className="text-sm text-gray-600">Completed</div>
+              <div className="text-2xl font-bold text-green-600">
+                {stats.completedTransactions.toLocaleString()}
+              </div>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600">Pending</div>
-            <div className="text-2xl font-bold text-green-500">
-              {stats.pendingTransactions.toLocaleString()}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
+              <div className="text-sm text-gray-600">Pending</div>
+              <div className="text-2xl font-bold text-green-500">
+                {stats.pendingTransactions.toLocaleString()}
+              </div>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600">Failed</div>
-            <div className="text-2xl font-bold text-green-900">
-              {stats.failedTransactions.toLocaleString()}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:shadow-md transition-all">
+            <div>
+              <div className="text-sm text-gray-600">Failed</div>
+              <div className="text-2xl font-bold text-green-900">
+                {stats.failedTransactions.toLocaleString()}
+              </div>
             </div>
           </div>
         </div>
@@ -959,7 +921,7 @@ export const TransactionsView: React.FC = () => {
 
       {/* Filter Panel */}
       {showFilters && (
-        <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -972,7 +934,7 @@ export const TransactionsView: React.FC = () => {
                   placeholder="Search reference, description..."
                   value={filters.search || ""}
                   onChange={(e) => handleFilterChange("search", e.target.value)}
-                  className="pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-full focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="pl-10 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm w-full focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800 placeholder-gray-500"
                 />
               </div>
             </div>
@@ -984,7 +946,7 @@ export const TransactionsView: React.FC = () => {
               <select
                 value={filters.status || ""}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800"
               >
                 <option value="">All Status</option>
                 <option value="pending">Pending</option>
@@ -1001,7 +963,7 @@ export const TransactionsView: React.FC = () => {
               <select
                 value={filters.userType || ""}
                 onChange={(e) => handleFilterChange("userType", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800"
               >
                 <option value="">All Users</option>
                 <option value="farmer">Farmers</option>
@@ -1020,7 +982,7 @@ export const TransactionsView: React.FC = () => {
                   onChange={(e) =>
                     handleFilterChange("startDate", e.target.value)
                   }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800"
                 />
                 <input
                   type="date"
@@ -1028,7 +990,7 @@ export const TransactionsView: React.FC = () => {
                   onChange={(e) =>
                     handleFilterChange("endDate", e.target.value)
                   }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#066f48] focus:outline-none transition-all text-gray-800"
                 />
               </div>
             </div>
@@ -1037,182 +999,181 @@ export const TransactionsView: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8 overflow-x-auto">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-2">
+        <nav className="-mb-px flex space-x-8 overflow-x-auto px-3">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-green-600 text-green-700"
+                activeTab === tab.id
+                  ? "border-emerald-600 text-emerald-700"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               {tab.label}
-              {tab.count > 0 && (
-                <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
-                  {tab.count.toLocaleString()}
-                </span>
-              )}
             </button>
           ))}
         </nav>
       </div>
 
-      {/* Transactions Table / Cards - responsive: cards on small screens to prevent horizontal scroll */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        {error && (
-          <div className="p-4 bg-green-50 border-b border-green-200">
-            <p className="text-green-900 text-sm">{error}</p>
-          </div>
-        )}
-
-        {initialLoading || tabLoading ? (
-          <div className="p-8 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-4"></div>
-            <p className="text-gray-600">
-              {initialLoading ? "Loading transactions..." : "Updating..."}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Mobile: simple cards */}
-            <div className="block md:hidden space-y-3 p-3">
-              {transactions.length > 0 ? (
-                activeTab === "payroll" ? (
-                  (transactions as PayrollTransaction[]).map((tx) => (
-                    <PayrollMobileTxCard key={tx.id} tx={tx} />
-                  ))
-                ) : (
-                  (transactions as Transaction[]).map((tx) => (
-                    <MobileTxCard
-                      key={tx.id}
-                      tx={tx}
-                      onUserClick={handleUserClick}
-                    />
-                  ))
-                )
-              ) : (
-                <div className="p-4 text-center text-gray-500">
-                  No transactions found
-                </div>
-              )}
+      {/* Transactions Table / Cards */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div>
+          {error && (
+            <div className="p-4 bg-green-50 border-b border-green-200">
+              <p className="text-green-900 text-sm">{error}</p>
             </div>
+          )}
 
-            {/* Desktop: table */}
-            <div className="hidden md:block w-full overflow-visible">
-              <table className="w-full table-auto">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      {activeTab === "payroll"
-                        ? "Payment Reference"
-                        : "Reference"}
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      {activeTab === "payroll" ? "Staff Member" : "User"}
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Type
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      {activeTab === "payroll" ? "Net Salary" : "Amount"}
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      {activeTab === "payroll"
-                        ? "Payroll Period"
-                        : "Description"}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.length > 0 ? (
-                    activeTab === "payroll" ? (
-                      (transactions as PayrollTransaction[]).map(
-                        (transaction) => (
-                          <PayrollTransactionRow
+          {initialLoading || tabLoading ? (
+            <div className="p-8 text-center">
+              <LeafInlineLoader />
+              <p className="text-gray-600">
+                {initialLoading ? "Loading transactions..." : "Updating..."}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Mobile: simple cards */}
+              <div className="block md:hidden space-y-3 p-3">
+                {transactions.length > 0 ? (
+                  activeTab === "payroll" ? (
+                    (transactions as PayrollTransaction[]).map((tx) => (
+                      <PayrollMobileTxCard key={tx.id} tx={tx} />
+                    ))
+                  ) : (
+                    (transactions as Transaction[]).map((tx) => (
+                      <MobileTxCard
+                        key={tx.id}
+                        tx={tx}
+                        onUserClick={handleUserClick}
+                      />
+                    ))
+                  )
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    No transactions found
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="hidden md:block w-full overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {activeTab === "payroll"
+                          ? "Payment Reference"
+                          : "Reference"}
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {activeTab === "payroll" ? "Staff Member" : "User"}
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Type
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {activeTab === "payroll" ? "Net Salary" : "Amount"}
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {activeTab === "payroll"
+                          ? "Payroll Period"
+                          : "Description"}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {transactions.length > 0 ? (
+                      activeTab === "payroll" ? (
+                        (transactions as PayrollTransaction[]).map(
+                          (transaction) => (
+                            <PayrollTransactionRow
+                              key={transaction.id}
+                              transaction={transaction}
+                            />
+                          )
+                        )
+                      ) : (
+                        (transactions as Transaction[]).map((transaction) => (
+                          <TransactionRow
                             key={transaction.id}
                             transaction={transaction}
+                            onUserClick={handleUserClick}
                           />
-                        )
+                        ))
                       )
                     ) : (
-                      (transactions as Transaction[]).map((transaction) => (
-                        <TransactionRow
-                          key={transaction.id}
-                          transaction={transaction}
-                          onUserClick={handleUserClick}
-                        />
-                      ))
-                    )
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-4 py-8 text-center text-gray-500"
-                      >
-                        No transactions found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-                <div className="text-sm text-gray-500 w-full md:w-auto">
-                  Showing{" "}
-                  {(pagination.currentPage - 1) * (filters.limit || 20) + 1} to{" "}
-                  {Math.min(
-                    pagination.currentPage * (filters.limit || 20),
-                    pagination.total
-                  )}{" "}
-                  of {pagination.total} transactions
-                </div>
-                <div className="flex items-center space-x-1">
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                    disabled={pagination.currentPage === 1}
-                    className="px-3 py-1 rounded border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  {getPageWindow(
-                    pagination.currentPage,
-                    pagination.totalPages
-                  ).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 rounded text-sm ${
-                        page === pagination.currentPage
-                          ? "bg-green-600 text-white"
-                          : "border border-gray-300 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                    disabled={pagination.currentPage === pagination.totalPages}
-                    className="px-3 py-1 rounded border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="px-4 py-8 text-center text-gray-500"
+                        >
+                          No transactions found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            )}
-          </>
-        )}
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                  <div className="text-sm text-gray-600 w-full md:w-auto">
+                    Showing{" "}
+                    {(pagination.currentPage - 1) * (filters.limit || 20) + 1} to{" "}
+                    {Math.min(
+                      pagination.currentPage * (filters.limit || 20),
+                      pagination.total
+                    )}{" "}
+                    of {pagination.total} transactions
+                  </div>
+                    <div className="flex flex-col md:flex-row items-center md:items-center space-x-0 md:space-x-1 gap-2 md:gap-0 w-full md:w-auto">
+                      <button
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        disabled={pagination.currentPage === 1}
+                        className="w-full md:w-auto px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        Previous
+                      </button>
+
+                      <div className="w-full md:w-auto flex md:inline-flex gap-2 md:gap-1">
+                        {getPageWindow(
+                          pagination.currentPage,
+                          pagination.totalPages
+                        ).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`w-full md:w-auto px-3 py-1 rounded-lg text-sm transition-all ${
+                              page === pagination.currentPage
+                                ? "bg-emerald-600 text-white shadow-sm"
+                                : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={pagination.currentPage === pagination.totalPages}
+                        className="w-full md:w-auto px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        Next
+                      </button>
+                    </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* User Modal */}
@@ -1225,5 +1186,4 @@ export const TransactionsView: React.FC = () => {
     </div>
   );
 };
-
 export default TransactionsView;
