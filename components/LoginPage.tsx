@@ -34,7 +34,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
       onLoginSuccess(adminInfo);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Login failed. Please try again."
+        err instanceof Error ? err.message : "Login failed. Please try again.",
       );
     } finally {
       setLoading(false);
