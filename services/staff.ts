@@ -71,10 +71,10 @@ export interface RegisterStaffDto {
 }
 
 export interface ApproveStaffDto {
-  approved_by?: string;
   monthly_salary?: number;
-  profile_picture?: string;
-  notes?: string;
+  tax_rate?: number;
+  savings_percentage?: number;
+  date_of_hire?: string;
 }
 
 export interface UpdateStaffDto {
@@ -138,7 +138,12 @@ export interface StaffTaskPickup {
   id: string;
   farmer_name: string;
   farmer_phone: string;
-  status: "requested" | "approved" | "staff_updated" | "processed" | "cancelled";
+  status:
+    | "requested"
+    | "approved"
+    | "staff_updated"
+    | "processed"
+    | "cancelled";
   scheduled_date?: string;
   request_notes?: string;
   approved_notes?: string;
@@ -338,7 +343,7 @@ class StaffApi {
    * Upload NIN document
    */
   async uploadNIN(
-    file: File
+    file: File,
   ): Promise<{ ninDocumentUrl: string; message: string }> {
     const formData = new FormData();
     formData.append("nin", file);
@@ -372,7 +377,7 @@ class StaffApi {
    * Upload BVN document
    */
   async uploadBVN(
-    file: File
+    file: File,
   ): Promise<{ bvnDocumentUrl: string; message: string }> {
     const formData = new FormData();
     formData.append("bvn", file);
@@ -445,7 +450,7 @@ class StaffApi {
       {
         method: "POST",
         body: formData,
-      }
+      },
     );
 
     if (!response.ok) {
@@ -497,7 +502,7 @@ class StaffApi {
       throw new Error(
         `Failed to upload NIN: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
     }
   }
@@ -517,7 +522,7 @@ class StaffApi {
     const queryString = params.toString();
 
     const response: any = await this.client.get<PaginatedStaffResponse>(
-      `/staff?${queryString}`
+      `/staff?${queryString}`,
     );
 
     return response.data || response;
@@ -558,7 +563,7 @@ class StaffApi {
         };
         const response: any = await this.client.post<Staff>(
           "/staff/register",
-          registerData
+          registerData,
         );
         return response.data || response;
       }
@@ -571,7 +576,7 @@ class StaffApi {
    */
   async updateStaff(
     staffId: string,
-    data: UpdateStaffData | UpdateStaffDto
+    data: UpdateStaffData | UpdateStaffDto,
   ): Promise<Staff> {
     try {
       return await this.client.patch<Staff>(`/admins/staff/${staffId}`, data);
@@ -579,7 +584,7 @@ class StaffApi {
       if (error.message?.includes("404")) {
         const response: any = await this.client.patch<Staff>(
           `/staff/${staffId}`,
-          data
+          data,
         );
         return response.data || response;
       }
@@ -594,12 +599,12 @@ class StaffApi {
     try {
       return await this.client.patch<StaffActionResponse>(
         `/admins/staff/${staffId}/activate`,
-        {}
+        {},
       );
     } catch (error: any) {
       if (error.message?.includes("404")) {
         const response: any = await this.client.post<Staff>(
-          `/staff/${staffId}/reactivate`
+          `/staff/${staffId}/reactivate`,
         );
         return { message: "Staff activated", staff: response.data || response };
       }
@@ -612,18 +617,18 @@ class StaffApi {
    */
   async deactivateStaff(
     staffId: string,
-    reason?: string
+    reason?: string,
   ): Promise<StaffActionResponse> {
     try {
       return await this.client.patch<StaffActionResponse>(
         `/admins/staff/${staffId}/deactivate`,
-        {}
+        {},
       );
     } catch (error: any) {
       if (error.message?.includes("404")) {
         const response: any = await this.client.post<Staff>(
           `/staff/${staffId}/deactivate`,
-          { reason: reason || "Deactivated by admin" }
+          { reason: reason || "Deactivated by admin" },
         );
         return {
           message: "Staff deactivated",
@@ -647,7 +652,7 @@ class StaffApi {
   async registerStaff(data: RegisterStaffDto): Promise<Staff> {
     const response: any = await this.client.post<Staff>(
       "/staff/register",
-      data
+      data,
     );
     return response.data || response;
   }
@@ -658,7 +663,7 @@ class StaffApi {
   async approveStaff(staffId: string, data: ApproveStaffDto): Promise<Staff> {
     const response: any = await this.client.post<Staff>(
       `/staff/${staffId}/approve`,
-      data
+      data,
     );
     return response.data || response;
   }
@@ -668,7 +673,7 @@ class StaffApi {
    */
   async reactivateStaff(staffId: string): Promise<Staff> {
     const response: any = await this.client.post<Staff>(
-      `/staff/${staffId}/reactivate`
+      `/staff/${staffId}/reactivate`,
     );
     return response.data || response;
   }
@@ -677,13 +682,13 @@ class StaffApi {
    * Upload profile picture
    */
   async uploadProfilePicture(
-    file: File
+    file: File,
   ): Promise<{ url: string; publicId: string }> {
     const formData = new FormData();
     formData.append("file", file);
     const response: any = await this.client.post(
       "/upload/profile-picture",
-      formData
+      formData,
     );
     return response.data || response;
   }
@@ -730,7 +735,7 @@ class StaffApi {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -789,7 +794,7 @@ class StaffApi {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -921,7 +926,7 @@ class StaffApi {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -944,7 +949,7 @@ class StaffApi {
       proposed_weight_kg?: number;
       proposed_price_per_kg?: number;
       staff_notes?: string;
-    }
+    },
   ): Promise<StaffTaskPickup> {
     const token = getStaffAuthToken();
     const API_BASE_URL =
@@ -958,7 +963,7 @@ class StaffApi {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -1002,7 +1007,7 @@ class StaffApi {
   async verifyPinReset(
     phone: string,
     otp: string,
-    newPin: string
+    newPin: string,
   ): Promise<{ message: string }> {
     const API_BASE_URL =
       import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -1030,7 +1035,7 @@ export const staffApi = new StaffApi();
 
 // Legacy function exports for backward compatibility
 export const getAllStaff = async (
-  params?: StaffFilters
+  params?: StaffFilters,
 ): Promise<PaginatedStaffResponse> => {
   return staffApi.getAllStaff(params);
 };
@@ -1045,21 +1050,21 @@ export const registerStaff = async (data: RegisterStaffDto): Promise<Staff> => {
 
 export const approveStaff = async (
   staffId: string,
-  data: ApproveStaffDto
+  data: ApproveStaffDto,
 ): Promise<Staff> => {
   return staffApi.approveStaff(staffId, data);
 };
 
 export const updateStaff = async (
   staffId: string,
-  data: UpdateStaffDto
+  data: UpdateStaffDto,
 ): Promise<Staff> => {
   return staffApi.updateStaff(staffId, data);
 };
 
 export const deactivateStaff = async (
   staffId: string,
-  data: DeactivateStaffDto
+  data: DeactivateStaffDto,
 ): Promise<Staff> => {
   const response = await staffApi.deactivateStaff(staffId, data.reason);
   return response.staff;
@@ -1070,7 +1075,7 @@ export const reactivateStaff = async (staffId: string): Promise<Staff> => {
 };
 
 export const uploadProfilePicture = async (
-  file: File
+  file: File,
 ): Promise<{ url: string; publicId: string }> => {
   return staffApi.uploadProfilePicture(file);
 };

@@ -6,7 +6,6 @@ import {
   reactivateStaff,
   registerStaff,
   updateStaff,
-  uploadProfilePicture,
   type Staff,
   type RegisterStaffDto,
   type UpdateStaffDto,
@@ -170,10 +169,10 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
 
   if (loading && staff.length === 0) {
     return (
-        <div className="flex items-center justify-center min-h-screen">
-          <LeafInlineLoader />
-        </div>
-      );
+      <div className="flex items-center justify-center min-h-screen">
+        <LeafInlineLoader />
+      </div>
+    );
   }
 
   return (
@@ -193,8 +192,18 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
             onClick={() => setShowRegisterModal(true)}
             className="flex items-center justify-center px-4 sm:px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all text-sm sm:text-base whitespace-nowrap"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Register Staff
           </button>
@@ -277,8 +286,18 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
           {/* Search */}
           <div className="flex-1 flex gap-2">
             <div className="relative flex-1">
-              <svg className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
               <input
                 type="text"
@@ -378,12 +397,19 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
         {/* Mobile Card View */}
         <div className="lg:hidden space-y-4 p-4">
           {staff?.map((member) => (
-            <div key={member.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+            <div
+              key={member.id}
+              className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+            >
               <div className="space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold text-gray-800">{member.fullName}</h3>
-                    <p className="text-xs text-gray-600 mt-1">{member.employeeId}</p>
+                    <h3 className="font-semibold text-gray-800">
+                      {member.fullName}
+                    </h3>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {member.employeeId}
+                    </p>
                     <p className="text-xs text-gray-600">{member.phone}</p>
                   </div>
                   {getStatusBadge(member)}
@@ -396,15 +422,21 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
                   </div>
                   <div>
                     <span className="text-gray-500">Department:</span>
-                    <p className="font-medium text-gray-800">{member.department}</p>
+                    <p className="font-medium text-gray-800">
+                      {member.department}
+                    </p>
                   </div>
                   <div>
                     <span className="text-gray-500">Salary:</span>
-                    <p className="font-medium text-gray-800">{formatCurrency(member.monthlySalary)}</p>
+                    <p className="font-medium text-gray-800">
+                      {formatCurrency(member.monthlySalary)}
+                    </p>
                   </div>
                   <div>
                     <span className="text-gray-500">Pension:</span>
-                    <p className="font-medium text-gray-800">{formatCurrency(member.pensionContributions)}</p>
+                    <p className="font-medium text-gray-800">
+                      {formatCurrency(member.pensionContributions)}
+                    </p>
                   </div>
                 </div>
 
@@ -489,7 +521,10 @@ const StaffManagementView: React.FC<StaffManagementViewProps> = ({
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {staff?.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={member.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
@@ -745,9 +780,7 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
               </div>
               <div>
                 <label className="text-sm text-gray-600">LGA</label>
-                <p className="text-sm font-medium text-gray-800">
-                  {staff.lga}
-                </p>
+                <p className="text-sm font-medium text-gray-800">{staff.lga}</p>
               </div>
             </div>
           </div>
@@ -825,9 +858,7 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
                 </p>
               </div>
               <div>
-                <label className="text-sm text-gray-600">
-                  Approval Status
-                </label>
+                <label className="text-sm text-gray-600">Approval Status</label>
                 <p className="text-sm font-medium text-gray-800">
                   {staff.isApproved ? "Approved" : "Pending"}
                 </p>
@@ -842,9 +873,7 @@ const StaffDetailsModal: React.FC<{ staff: Staff; onClose: () => void }> = ({
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-600">
-                  Monthly Salary
-                </label>
+                <label className="text-sm text-gray-600">Monthly Salary</label>
                 <p className="text-sm font-medium text-gray-800">
                   {formatCurrency(staff.monthlySalary)}
                 </p>
@@ -1019,7 +1048,7 @@ const RegisterStaffModal: React.FC<{
                 setFormData({ ...formData, phone: e.target.value })
               }
               placeholder="08012345678"
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1034,7 +1063,7 @@ const RegisterStaffModal: React.FC<{
               onChange={(e) =>
                 setFormData({ ...formData, lga: e.target.value })
               }
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1095,7 +1124,7 @@ const RegisterStaffModal: React.FC<{
                   monthlySalary: parseFloat(e.target.value) * 100,
                 })
               }
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1207,7 +1236,7 @@ const EditStaffModal: React.FC<{
               onChange={(e) =>
                 setFormData({ ...formData, lga: e.target.value })
               }
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1263,7 +1292,7 @@ const EditStaffModal: React.FC<{
                   monthlySalary: parseFloat(e.target.value) * 100,
                 })
               }
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
             />
           </div>
 
@@ -1390,59 +1419,22 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
   onError,
 }) => {
   const [monthlySalary, setMonthlySalary] = useState(staff.monthlySalary || 0);
-  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(
-    null
-  );
-  const [profilePicturePreview, setProfilePicturePreview] = useState<string>(
-    staff.profilePicture || ""
-  );
-  const [notes, setNotes] = useState("");
-  const [uploading, setUploading] = useState(false);
+  const [taxRate, setTaxRate] = useState(7.5);
+  const [savingsPercentage, setSavingsPercentage] = useState(0);
+  const [dateOfHire, setDateOfHire] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        onError("Please select a valid image file");
-        return;
-      }
-      // Validate file size (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        onError("Image size must be less than 5MB");
-        return;
-      }
-      setProfilePictureFile(file);
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicturePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      let profilePictureUrl = staff.profilePicture || "";
-
-      // Upload profile picture if provided
-      if (profilePictureFile) {
-        setUploading(true);
-        const uploadResult = await uploadProfilePicture(profilePictureFile);
-        profilePictureUrl = uploadResult.url;
-        setUploading(false);
-      }
-
-      // Approve staff with all details (approved_by is automatically set from authenticated user)
+      // Approve staff with all details
       const approveData: ApproveStaffDto = {
         monthly_salary: monthlySalary * 100, // Convert to kobo
-        profile_picture: profilePictureUrl || undefined,
-        notes: notes || undefined,
+        tax_rate: taxRate,
+        savings_percentage: savingsPercentage,
+        date_of_hire: dateOfHire || undefined,
       };
 
       await approveStaff(staff.id, approveData);
@@ -1504,35 +1496,6 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Profile Picture Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Profile Picture
-              </label>
-              <div className="flex items-start gap-4">
-                {profilePicturePreview && (
-                  <div className="flex-shrink-0">
-                    <img
-                      src={profilePicturePreview}
-                      alt="Profile preview"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-white/50"
-                    />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50/90 file:text-green-700 hover:file:bg-green-100/90"
-                  />
-                  <p className="mt-1 text-xs text-gray-600">
-                    PNG, JPG, WEBP up to 5MB
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Monthly Salary */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1555,17 +1518,56 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
               </p>
             </div>
 
-            {/* Notes */}
+            {/* Tax Rate */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes (Optional)
+                Tax Rate (%)
               </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
+              <input
+                type="number"
+                value={taxRate}
+                onChange={(e) => setTaxRate(Number(e.target.value))}
+                min="0"
+                max="50"
+                step="0.1"
                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
-                placeholder="Add any notes about the approval..."
+                placeholder="7.5"
+              />
+              <p className="mt-1 text-xs text-gray-600">
+                Default: 7.5%, Range: 0-50%
+              </p>
+            </div>
+
+            {/* Savings Percentage */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Savings Percentage (%)
+              </label>
+              <input
+                type="number"
+                value={savingsPercentage}
+                onChange={(e) => setSavingsPercentage(Number(e.target.value))}
+                min="0"
+                max="100"
+                step="1"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
+                placeholder="0"
+              />
+              <p className="mt-1 text-xs text-gray-600">
+                Default: 0%, Range: 0-100%
+              </p>
+            </div>
+
+            {/* Date of Hire */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date of Hire (Optional)
+              </label>
+              <input
+                type="date"
+                value={dateOfHire}
+                onChange={(e) => setDateOfHire(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#066f48]/30 focus:outline-none focus:border-[#066f48] transition-all text-gray-800"
               />
             </div>
 
@@ -1573,17 +1575,17 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                disabled={submitting || uploading}
+                disabled={submitting}
                 className="flex-1 px-4 py-2 bg-white/40 backdrop-blur-md border border-white/60 text-gray-700 rounded-xl hover:bg-white/50 disabled:opacity-50 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={submitting || uploading}
+                disabled={submitting}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg transition-all"
               >
-                {uploading && (
+                {submitting && (
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                     <circle
                       className="opacity-25"
@@ -1601,11 +1603,7 @@ const ApproveStaffModal: React.FC<ApproveStaffModalProps> = ({
                     />
                   </svg>
                 )}
-                {uploading
-                  ? "Uploading..."
-                  : submitting
-                  ? "Approving..."
-                  : "Approve Staff"}
+                {submitting ? "Approving..." : "Approve Staff"}
               </button>
             </div>
           </form>
